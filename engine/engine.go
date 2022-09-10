@@ -10,6 +10,7 @@ import (
 type Engine struct {
 	name   string
 	author string
+	game   *chess.Game
 }
 
 // New returns a new Engine.
@@ -17,6 +18,7 @@ func New(name, author string) *Engine {
 	e := &Engine{
 		name:   name,
 		author: author,
+		game:   chess.NewGame(),
 	}
 
 	return e
@@ -45,16 +47,27 @@ func (e *Engine) SetOption(name, value string) error {
 
 // SetPosition sets the position to the provided FEN.
 func (e *Engine) SetPosition(fen string) error {
+	fn, err := chess.FEN(fen)
+	if err != nil {
+		return err
+	}
+	fn(e.game)
 	return nil
 }
 
 // Move plays the moves on the current position.
 func (e *Engine) Move(moves ...*chess.Move) error {
+	for _, move := range moves {
+		if err := e.game.Move(move); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
 // ResetPosition resets the position to the starting one.
 func (e *Engine) ResetPosition() {
+	e.game = chess.NewGame()
 }
 
 // Search runs a search on the given input.
