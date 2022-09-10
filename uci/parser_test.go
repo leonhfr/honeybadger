@@ -1,15 +1,17 @@
 package uci
 
 import (
+	"fmt"
 	"reflect"
 	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/notnil/chess"
+	"github.com/stretchr/testify/assert"
 )
 
-func Test_Parse(t *testing.T) {
+func TestParse(t *testing.T) {
 	fen := "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1"
 	moves := chess.StartingPosition().ValidMoves()
 	move1 := moves[0]
@@ -51,9 +53,12 @@ func Test_Parse(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := parse(strings.Fields(tt.args)); !cmp.Equal(got, tt.want, cmpOptions...) {
-				t.Errorf("expected %v, got %v", tt.want, got)
-			}
+			got := parse(strings.Fields(tt.args))
+			assert.True(
+				t,
+				cmp.Equal(got, tt.want, cmpOptions...),
+				fmt.Sprintf("expected %v, got %v", tt.want, got),
+			)
 		})
 	}
 }

@@ -5,9 +5,10 @@ import (
 	"time"
 
 	"github.com/notnil/chess"
+	"github.com/stretchr/testify/assert"
 )
 
-func Test_Response_String(t *testing.T) {
+func TestResponseString(t *testing.T) {
 	moves := chess.StartingPosition().ValidMoves()
 	move1 := moves[0]
 	move2 := moves[1]
@@ -78,9 +79,7 @@ func Test_Response_String(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := tt.args.String(); got != tt.want {
-				t.Errorf("expected '%s', got '%s'", tt.want, got)
-			}
+			assert.Equal(t, tt.want, tt.args.String())
 		})
 	}
 }
