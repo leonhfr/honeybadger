@@ -264,4 +264,5 @@ type commandQuit struct{}
 
 // run implements the command interface.
 func (commandQuit) run(e Engine, rc chan<- response) {
+	e.Quit()
 }
