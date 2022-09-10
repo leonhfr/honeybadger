@@ -1,6 +1,5 @@
 builds:
-  - env:
-      - CGO_ENABLED=0
+  - id: honeybadger
     goos:
       - linux
       - darwin
