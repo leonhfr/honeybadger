@@ -3,6 +3,7 @@ package engine
 
 import (
 	"context"
+	"errors"
 	"sync"
 	"time"
 
@@ -22,10 +23,11 @@ type Engine struct {
 	game       *chess.Game
 	mu         sync.Mutex
 	stopSearch chan struct{}
+	search     search.Interface
 }
 
 // New returns a new Engine.
-func New(name, author string) *Engine {
+func New(name, author string, options ...func(*Engine)) *Engine {
 	e := &Engine{
 		name:       name,
 		author:     author,
@@ -34,7 +36,23 @@ func New(name, author string) *Engine {
 		stopSearch: make(chan struct{}),
 	}
 
+	for _, o := range availableOptions {
+		fn := o.defaultFunc()
+		fn(e)
+	}
+
+	for _, fn := range options {
+		fn(e)
+	}
+
 	return e
+}
+
+// WithSearch sets the search strategy.
+func WithSearch(si search.Interface) func(*Engine) {
+	return func(e *Engine) {
+		e.search = si
+	}
 }
 
 // Debug sets the debug option.
@@ -50,12 +68,27 @@ func (e *Engine) Init() {}
 
 // Options lists the available options.
 func (e *Engine) Options() []uci.Option {
-	return nil
+	var options []uci.Option
+	for _, option := range availableOptions {
+		options = append(options, option.uci())
+	}
+	return options
 }
 
 // SetOption sets an option.
 func (e *Engine) SetOption(name, value string) error {
-	return nil
+	for _, option := range availableOptions {
+		if option.String() == name {
+			fn, err := option.optionFunc(value)
+			if err != nil {
+				return err
+			}
+			fn(e)
+			return nil
+		}
+	}
+
+	return errors.New("option name not found")
 }
 
 // SetPosition sets the position to the provided FEN.
