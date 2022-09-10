@@ -19,6 +19,7 @@ var (
 		vars: []search.Interface{
 			search.Capture{},
 			search.Random{},
+			search.Negamax{},
 		},
 		fn: WithSearch,
 	}

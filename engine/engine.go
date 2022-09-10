@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/leonhfr/honeybadger/evaluation"
 	"github.com/leonhfr/honeybadger/search"
 	"github.com/leonhfr/honeybadger/uci"
 	"github.com/notnil/chess"
@@ -124,8 +125,10 @@ func (e *Engine) Search(input uci.Input) <-chan uci.Output {
 
 	engineOutput := make(chan uci.Output)
 	searchOutput := search.Run(ctx, search.Input{
-		Position: e.game.Position(),
-		Strategy: search.Random{},
+		Position:   e.game.Position(),
+		Depth:      input.Depth,
+		Search:     e.search,
+		Evaluation: evaluation.Values{},
 	})
 
 	go func() {

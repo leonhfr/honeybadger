@@ -4,16 +4,20 @@ package search
 import (
 	"context"
 	"fmt"
+	"math"
 	"math/rand"
 	"time"
 
+	"github.com/leonhfr/honeybadger/evaluation"
 	"github.com/notnil/chess"
 )
 
 // Input holds a search input.
 type Input struct {
-	Position *chess.Position // Current board position.
-	Strategy Interface       // Search strategy to use.
+	Position   *chess.Position      // Current board position.
+	Depth      int                  // Search <x> plies only.
+	Search     Interface            // Search strategy to use.
+	Evaluation evaluation.Interface // Evaluation strategy to use.
 }
 
 // Output holds a search output.
@@ -35,9 +39,13 @@ type Interface interface {
 func Run(ctx context.Context, input Input) <-chan Output {
 	output := make(chan Output)
 
+	if input.Depth == 0 {
+		input.Depth = math.MaxInt
+	}
+
 	go func() {
 		defer close(output)
-		input.Strategy.Search(ctx, input, output)
+		input.Search.Search(ctx, input, output)
 	}()
 
 	return output
