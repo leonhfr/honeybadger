@@ -10,25 +10,27 @@ import (
 
 const fenFields = 6
 
-// Parse parses UCI commands and returns a Command object.
-func Parse(command []string) Command {
+var uciNotation = chess.UCINotation{}
+
+// parse parses UCI commands and returns a Command object.
+func parse(command []string) command {
 	var index int
 top:
 	switch command[index] {
 	case "uci":
-		return CommandUCI{}
+		return commandUCI{}
 	case "debug":
 		if len(command) > 1 {
-			return CommandDebug{on: command[index+1] == "on"}
+			return commandDebug{on: command[index+1] == "on"}
 		}
 	case "isready":
-		return CommandIsReady{}
+		return commandIsReady{}
 	case "setoption":
 		if len(command) > 1 {
 			return parseCommandSetOption(command[index+1:])
 		}
 	case "ucinewgame":
-		return CommandUCINewGame{}
+		return commandUCINewGame{}
 	case "position":
 		if len(command) > 1 {
 			return parseCommandPosition(command[index+1:])
@@ -38,9 +40,9 @@ top:
 			return parseCommandGo(command[index+1:])
 		}
 	case "stop":
-		return CommandStop{}
+		return commandStop{}
 	case "quit":
-		return CommandQuit{}
+		return commandQuit{}
 	default:
 		if len(command) == index+1 {
 			break
@@ -53,8 +55,8 @@ top:
 }
 
 // parseCommandSetOption parses setoption UCI commands
-func parseCommandSetOption(command []string) CommandSetOption {
-	var c CommandSetOption
+func parseCommandSetOption(command []string) commandSetOption {
+	var c commandSetOption
 	if len(command) >= 4 && command[0] == "name" && command[2] == "value" {
 		c.name = command[1]
 		c.value = command[3]
@@ -63,9 +65,8 @@ func parseCommandSetOption(command []string) CommandSetOption {
 }
 
 // parseCommandPosition parses position UCI commands
-func parseCommandPosition(command []string) CommandPosition {
-	var notation chess.UCINotation
-	var c CommandPosition
+func parseCommandPosition(command []string) commandPosition {
+	var c commandPosition
 	var index int
 
 	if command[0] == "startpos" {
@@ -78,7 +79,7 @@ func parseCommandPosition(command []string) CommandPosition {
 
 	if len(command) > index && command[index] == "moves" {
 		for index++; index < len(command); index++ {
-			move, _ := notation.Decode(nil, command[index])
+			move, _ := uciNotation.Decode(nil, command[index])
 			c.moves = append(c.moves, move)
 		}
 	}
@@ -87,9 +88,8 @@ func parseCommandPosition(command []string) CommandPosition {
 }
 
 // parseCommandGo parses go UCI commands
-func parseCommandGo(command []string) CommandGo {
-	var notation chess.UCINotation
-	var c CommandGo
+func parseCommandGo(command []string) commandGo {
+	var c commandGo
 
 	for index := 0; index < len(command); index++ {
 		switch command[index] {
@@ -126,7 +126,7 @@ func parseCommandGo(command []string) CommandGo {
 		case "searchmoves":
 			if len(command) >= index+1 {
 				for index++; index < len(command); index++ {
-					move, _ := notation.Decode(nil, command[index])
+					move, _ := uciNotation.Decode(nil, command[index])
 					c.input.SearchMoves = append(c.input.SearchMoves, move)
 				}
 				return c

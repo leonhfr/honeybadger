@@ -1,17 +1,16 @@
 package uci
 
 import (
-	"github.com/leonhfr/honeybadger/engine"
 	"github.com/notnil/chess"
 )
 
-// Command is the interface implemented by objects that represent
+// command is the interface implemented by objects that represent
 // UCI commands from the GUI to the Engine.
-type Command interface {
-	Run(e *engine.Engine, rc chan<- Response)
+type command interface {
+	run(e Engine, rc chan<- response)
 }
 
-// CommandUCI represents a "uci" command.
+// commandUCI represents a "uci" command.
 //
 // Tell engine to use the uci (universal chess interface),
 // this will be sent once as a first command after program boot
@@ -22,24 +21,24 @@ type Command interface {
 //
 // After that the engine should send "uciok" to acknowledge the uci mode.
 // If no "uciok" is sent within a certain time period, the engine task will be killed by the GUI.
-type CommandUCI struct{}
+type commandUCI struct{}
 
-// Run implements the Command interface.
-func (CommandUCI) Run(e *engine.Engine, rc chan<- Response) {
-	info := e.Info()
-	rc <- ResponseID{
-		name:   info.Name,
-		author: info.Author,
+// run implements the command interface.
+func (commandUCI) run(e Engine, rc chan<- response) {
+	name, author := e.Info()
+	rc <- responseID{
+		name:   name,
+		author: author,
 	}
 
-	for _, option := range engine.Options() {
-		rc <- ResponseOption{option}
+	for _, option := range e.Options() {
+		rc <- responseOption{option}
 	}
 
-	rc <- ResponseUCIOK{}
+	rc <- responseUCIOK{}
 }
 
-// CommandDebug represents a "debug" command.
+// commandDebug represents a "debug" command.
 //
 // Switch the debug mode of the engine on and off.
 // In debug mode the engine should send additional infos to the GUI, e.g. with the "info string" command,
@@ -47,16 +46,16 @@ func (CommandUCI) Run(e *engine.Engine, rc chan<- Response) {
 //
 // This mode should be switched off by default and this command can be sent
 // any time, also when the engine is thinking.
-type CommandDebug struct {
+type commandDebug struct {
 	on bool
 }
 
-// Run implements the Command interface.
-func (c CommandDebug) Run(e *engine.Engine, rc chan<- Response) {
+// run implements the command interface.
+func (c commandDebug) run(e Engine, rc chan<- response) {
 	e.Debug(c.on)
 }
 
-// CommandIsReady represents an "isready" command.
+// commandIsReady represents an "isready" command.
 //
 // This is used to synchronize the engine with the GUI. When the GUI has sent a command or
 // multiple commands that can take some time to complete,
@@ -69,17 +68,17 @@ func (c CommandDebug) Run(e *engine.Engine, rc chan<- Response) {
 //
 // This command must always be answered with "readyok" and can be sent also when the engine is calculating
 // in which case the engine should also immediately answer with "readyok" without stopping the search.
-type CommandIsReady struct{}
+type commandIsReady struct{}
 
-// Run implements the Command interface.
-func (CommandIsReady) Run(e *engine.Engine, rc chan<- Response) {
+// run implements the command interface.
+func (commandIsReady) run(e Engine, rc chan<- response) {
 	go func() {
-		e.Initialize()
-		rc <- ResponseReadyOK{}
+		e.Init()
+		rc <- responseReadyOK{}
 	}()
 }
 
-// CommandSetOption represents a "setoption" command.
+// commandSetOption represents a "setoption" command.
 //
 // This is sent to the engine when the user wants to change the internal parameters
 // of the engine. For the "button" type no value is needed.
@@ -97,20 +96,20 @@ func (CommandIsReady) Run(e *engine.Engine, rc chan<- Response) {
 //	setoption name Style value Risky\n
 //	setoption name Clear Hash\n
 //	setoption name NalimovPath value c:\chess\tb\4;c:\chess\tb\5\n
-type CommandSetOption struct {
+type commandSetOption struct {
 	name  string
 	value string
 }
 
-// Run implements the Command interface.
-func (c CommandSetOption) Run(e *engine.Engine, rc chan<- Response) {
+// run implements the command interface.
+func (c commandSetOption) run(e Engine, rc chan<- response) {
 	err := e.SetOption(c.name, c.value)
 	if err != nil {
-		rc <- ResponseComment{err.Error()}
+		rc <- responseComment{err.Error()}
 	}
 }
 
-// CommandUCINewGame represents a "ucinewgame" command.
+// commandUCINewGame represents a "ucinewgame" command.
 //
 // This is sent to the engine when the next search (started with "position" and "go") will be from
 // a different game. This can be a new game the engine should play or a new game it should analyze but
@@ -122,13 +121,13 @@ func (c CommandSetOption) Run(e *engine.Engine, rc chan<- Response) {
 //
 // As the engine's reaction to "ucinewgame" can take some time the GUI should always send "isready"
 // after "ucinewgame" to wait for the engine to finish its operation.
-type CommandUCINewGame struct{}
+type commandUCINewGame struct{}
 
-// Run implements the Command interface.
-func (CommandUCINewGame) Run(e *engine.Engine, rc chan<- Response) {
+// run implements the command interface.
+func (commandUCINewGame) run(e Engine, rc chan<- response) {
 }
 
-// CommandPosition represents a "position" command.
+// commandPosition represents a "position" command.
 //
 //	position [fen <fenstring> | startpos ] moves <move1> ... <movei>
 //
@@ -139,31 +138,31 @@ func (CommandUCINewGame) Run(e *engine.Engine, rc chan<- Response) {
 //
 // Note: no "new" command is needed. However, if this position is from a different game than
 // the last position sent to the engine, the GUI should have sent a "ucinewgame" inbetween.
-type CommandPosition struct {
+type commandPosition struct {
 	fen      string
 	startPos bool
 	moves    []*chess.Move
 }
 
-// Run implements the Command interface.
-func (c CommandPosition) Run(e *engine.Engine, rc chan<- Response) {
+// run implements the command interface.
+func (c commandPosition) run(e Engine, rc chan<- response) {
 	if c.startPos {
 		e.ResetPosition()
 	} else if len(c.fen) > 0 {
-		err := e.SetFEN(c.fen)
+		err := e.SetPosition(c.fen)
 		if err != nil {
-			rc <- ResponseComment{err.Error()}
+			rc <- responseComment{err.Error()}
 		}
 		return
 	}
 
 	err := e.Move(c.moves...)
 	if err != nil {
-		rc <- ResponseComment{err.Error()}
+		rc <- responseComment{err.Error()}
 	}
 }
 
-// CommandGo represents a "go" command.
+// commandGo represents a "go" command.
 //
 // Start calculating on the current position set up with the "position" command.
 //
@@ -230,39 +229,39 @@ func (c CommandPosition) Run(e *engine.Engine, rc chan<- Response) {
 //	infinite
 //
 // Search until the "stop" command. Do not exit the search without being told so in this mode!
-type CommandGo struct {
-	input engine.Input
+type commandGo struct {
+	input Input
 }
 
-// Run implements the Command interface.
-func (c CommandGo) Run(e *engine.Engine, rc chan<- Response) {
+// run implements the command interface.
+func (c commandGo) run(e Engine, rc chan<- response) {
 	oc := e.Search(c.input)
 
 	go func() {
-		var output engine.Output
+		var output Output
 		for output = range oc {
-			rc <- ResponseInfo{output}
+			rc <- responseInfo{output}
 		}
-		rc <- ResponseBestMove{output.PV[0]}
+		rc <- responseBestMove{output.PV[0]}
 	}()
 }
 
-// CommandStop represents a "stop" command.
+// commandStop represents a "stop" command.
 //
 // Stop calculating as soon as possible,
 // don't forget the "bestmove" and possibly the "ponder" token when finishing the search.
-type CommandStop struct{}
+type commandStop struct{}
 
-// Run implements the Command interface.
-func (CommandStop) Run(e *engine.Engine, rc chan<- Response) {
+// run implements the command interface.
+func (commandStop) run(e Engine, rc chan<- response) {
 	e.StopSearch()
 }
 
-// CommandQuit represents a "quit" command.
+// commandQuit represents a "quit" command.
 //
 // Quit the program as soon as possible.
-type CommandQuit struct{}
+type commandQuit struct{}
 
-// Run implements the Command interface.
-func (CommandQuit) Run(e *engine.Engine, rc chan<- Response) {
+// run implements the command interface.
+func (commandQuit) run(e Engine, rc chan<- response) {
 }

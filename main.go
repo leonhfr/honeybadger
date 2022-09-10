@@ -2,6 +2,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/leonhfr/honeybadger/engine"
@@ -15,11 +16,7 @@ var (
 )
 
 func main() {
-	e := engine.New(engine.Info{
-		Name:    engineName,
-		Version: engineVersion,
-		Author:  engineAuthor,
-	})
+	e := engine.New(engineName, fmt.Sprintf("%s %s", engineAuthor, engineVersion))
 
 	uci.Run(e, os.Stdin, os.Stdout)
 }

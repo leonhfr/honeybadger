@@ -4,17 +4,16 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/leonhfr/honeybadger/engine"
 	"github.com/notnil/chess"
 )
 
-// Response is the interface implemented by objects that represent
+// response is the interface implemented by objects that represent
 // UCI commands from the Engine to the GUI.
-type Response interface {
+type response interface {
 	fmt.Stringer
 }
 
-// ResponseID represents a "id" command.
+// responseID represents a "id" command.
 //
 //	name <x>
 //
@@ -25,26 +24,26 @@ type Response interface {
 //
 // This must be sent after receiving the "uci" command to identify the engine,
 // e.g. "id author Stefan MK\n".
-type ResponseID struct {
+type responseID struct {
 	name   string
 	author string
 }
 
-func (r ResponseID) String() string {
+func (r responseID) String() string {
 	return fmt.Sprintf("id name %s\nid author %s", r.name, r.author)
 }
 
-// ResponseUCIOK represents a "uciok" command.
+// responseUCIOK represents a "uciok" command.
 //
 // Must be sent after the id and optional options to tell the GUI that the engine
 // has sent all infos and is ready in uci mode.
-type ResponseUCIOK struct{}
+type responseUCIOK struct{}
 
-func (r ResponseUCIOK) String() string {
+func (r responseUCIOK) String() string {
 	return "uciok"
 }
 
-// ResponseReadyOK represents a "readyok" command.
+// responseReadyOK represents a "readyok" command.
 //
 // This must be sent when the engine has received an "isready" command and has
 // processed all input and is ready to accept new commands now.
@@ -52,13 +51,13 @@ func (r ResponseUCIOK) String() string {
 // It is usually sent after a command that can take some time to be able to wait for the engine,
 // but it can be used anytime, even when the engine is searching,
 // and must always be answered with "isready".
-type ResponseReadyOK struct{}
+type responseReadyOK struct{}
 
-func (r ResponseReadyOK) String() string {
+func (r responseReadyOK) String() string {
 	return "readyok"
 }
 
-// ResponseBestMove represents a "bestmove" command.
+// responseBestMove represents a "bestmove" command.
 //
 //	bestmove <move1> [ ponder <move2> ]
 //
@@ -69,16 +68,15 @@ func (r ResponseReadyOK) String() string {
 // "stop" command, so for every "go" command a "bestmove" command is needed!
 // Directly before that the engine should send a final "info" command with the final search information,
 // the the GUI has the complete statistics about the last search.
-type ResponseBestMove struct {
+type responseBestMove struct {
 	*chess.Move
 }
 
-func (r ResponseBestMove) String() string {
-	var notation chess.UCINotation
-	return fmt.Sprintf("bestmove %s", notation.Encode(nil, r.Move))
+func (r responseBestMove) String() string {
+	return fmt.Sprintf("bestmove %s", uciNotation.Encode(nil, r.Move))
 }
 
-// ResponseInfo represents an "info" command.
+// responseInfo represents an "info" command.
 //
 // The engine wants to send information to the GUI. This should be done whenever one of the info has changed.
 // The engine can send only selected infos or multiple infos with one info command, e.g.
@@ -184,12 +182,11 @@ func (r ResponseBestMove) String() string {
 // If the engine is just using one cpu, <cpunr> can be omitted.
 // If <cpunr> is greater than 1, always send all k lines in k strings together.
 // The engine should only send this if the option "UCI_ShowCurrLine" is set to true.
-type ResponseInfo struct {
-	output engine.Output
+type responseInfo struct {
+	output Output
 }
 
-func (r ResponseInfo) String() string {
-	var notation chess.UCINotation
+func (r responseInfo) String() string {
 	var res []string
 
 	if r.output.Depth > 0 {
@@ -207,7 +204,7 @@ func (r ResponseInfo) String() string {
 	if len(r.output.PV) > 0 {
 		res = append(res, "pv")
 		for _, move := range r.output.PV {
-			res = append(res, notation.Encode(nil, move))
+			res = append(res, uciNotation.Encode(nil, move))
 		}
 	}
 	if r.output.Time > 0 {
@@ -217,16 +214,16 @@ func (r ResponseInfo) String() string {
 	return fmt.Sprintf("info %s", strings.Join(res, " "))
 }
 
-// ResponseComment is an helper type to send a comment to the GUI.
-type ResponseComment struct {
+// responseComment is an helper type to send a comment to the GUI.
+type responseComment struct {
 	comment string
 }
 
-func (r ResponseComment) String() string {
+func (r responseComment) String() string {
 	return fmt.Sprintf("info %s", r.comment)
 }
 
-// ResponseOption represents an "option" command.
+// responseOption represents an "option" command.
 //
 // This command tells the GUI which parameters can be changed in the engine.
 // This should be sent once at engine startup after the "uci" and the "id" commands
@@ -294,18 +291,18 @@ func (r ResponseComment) String() string {
 //   - "option name Style type combo default Normal var Solid var Normal var Risky\n"
 //   - "option name NalimovPath type string default c:\\n"
 //   - "option name Clear Hash type button\n"
-type ResponseOption struct {
-	option engine.Option
+type responseOption struct {
+	option Option
 }
 
-func (r ResponseOption) String() string {
+func (r responseOption) String() string {
 	switch r.option.Type {
-	case engine.OptionBoolean:
+	case OptionBoolean:
 		return fmt.Sprintf(
 			"option name %s type check default %s",
 			r.option.Name, r.option.Default,
 		)
-	case engine.OptionInteger:
+	case OptionInteger:
 		var min, max string
 		if len(r.option.Min) > 0 {
 			min = fmt.Sprintf(" min %s", r.option.Min)
@@ -317,7 +314,7 @@ func (r ResponseOption) String() string {
 			"option name %s type spin default %s%s%s",
 			r.option.Name, r.option.Default, min, max,
 		)
-	case engine.OptionEnum:
+	case OptionEnum:
 		var vars []string
 		for _, v := range r.option.Vars {
 			vars = append(vars, fmt.Sprintf("var %s", v))

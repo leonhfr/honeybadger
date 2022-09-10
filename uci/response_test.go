@@ -4,7 +4,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/leonhfr/honeybadger/engine"
 	"github.com/notnil/chess"
 )
 
@@ -15,16 +14,16 @@ func Test_Response_String(t *testing.T) {
 
 	tests := []struct {
 		name string
-		args Response
+		args response
 		want string
 	}{
-		{name: "id", args: ResponseID{name: "NAME", author: "AUTHOR"}, want: "id name NAME\nid author AUTHOR"},
-		{name: "uciok", args: ResponseUCIOK{}, want: "uciok"},
-		{name: "readyok", args: ResponseReadyOK{}, want: "readyok"},
-		{name: "bestmove", args: ResponseBestMove{move1}, want: "bestmove b1a3"},
+		{name: "id", args: responseID{name: "NAME", author: "AUTHOR"}, want: "id name NAME\nid author AUTHOR"},
+		{name: "uciok", args: responseUCIOK{}, want: "uciok"},
+		{name: "readyok", args: responseReadyOK{}, want: "readyok"},
+		{name: "bestmove", args: responseBestMove{move1}, want: "bestmove b1a3"},
 		{
 			name: "info score",
-			args: ResponseInfo{output: engine.Output{
+			args: responseInfo{output: Output{
 				Depth: 8,
 				Nodes: 1024,
 				Score: 3000,
@@ -35,7 +34,7 @@ func Test_Response_String(t *testing.T) {
 		},
 		{
 			name: "info mate",
-			args: ResponseInfo{output: engine.Output{
+			args: responseInfo{output: Output{
 				Depth: 8,
 				Nodes: 1024,
 				Mate:  5,
@@ -44,11 +43,11 @@ func Test_Response_String(t *testing.T) {
 			}},
 			want: "info depth 8 nodes 1024 score mate 5 pv b1a3 b1c3 time 5000",
 		},
-		{name: "comment", args: ResponseComment{comment: "COMMENT"}, want: "info COMMENT"},
+		{name: "comment", args: responseComment{comment: "COMMENT"}, want: "info COMMENT"},
 		{
 			name: "option boolean",
-			args: ResponseOption{option: engine.Option{
-				Type:    engine.OptionBoolean,
+			args: responseOption{option: Option{
+				Type:    OptionBoolean,
 				Name:    "BOOLEAN OPTION",
 				Default: "true",
 			}},
@@ -56,8 +55,8 @@ func Test_Response_String(t *testing.T) {
 		},
 		{
 			name: "option integer",
-			args: ResponseOption{option: engine.Option{
-				Type:    engine.OptionInteger,
+			args: responseOption{option: Option{
+				Type:    OptionInteger,
 				Name:    "INTEGER OPTION",
 				Default: "32",
 				Min:     "2",
@@ -67,8 +66,8 @@ func Test_Response_String(t *testing.T) {
 		},
 		{
 			name: "option enum",
-			args: ResponseOption{option: engine.Option{
-				Type:    engine.OptionEnum,
+			args: responseOption{option: Option{
+				Type:    OptionEnum,
 				Name:    "ENUM OPTION",
 				Default: "Value1",
 				Vars:    []string{"Value1", "Value2"},

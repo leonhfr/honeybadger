@@ -6,60 +6,89 @@ import (
 	"io"
 	"log"
 	"strings"
-	"sync"
+	"time"
 
-	"github.com/leonhfr/honeybadger/engine"
+	"github.com/notnil/chess"
 )
+
+// Engine is the interface implemented by objects that can be used as UCI engines.
+type Engine interface {
+	Init()
+	Quit()
+	Debug(on bool)
+	Info() (name, author string)
+	Options() []Option
+	SetOption(name, value string) error
+	SetPosition(fen string) error
+	ResetPosition()
+	Move(moves ...*chess.Move) error
+	Search(input Input) <-chan Output
+	StopSearch()
+}
 
 // Run runs the program in UCI mode.
 //
 // Run parses command from the reader, executes them with the provided engine
 // and writes the responses on the writer.
-func Run(e *engine.Engine, r io.Reader, w io.Writer) {
-	cc := make(chan Command)
-	rc := make(chan Response)
+func Run(e Engine, r io.Reader, w io.Writer) {
+	responses := make(chan response)
+	defer close(responses)
 
-	var wg sync.WaitGroup
-	wg.Add(3)
-
-	go parser(&wg, r, cc)
-	go worker(&wg, e, cc, rc)
-	go logger(&wg, w, rc)
-
-	wg.Wait()
-}
-
-// parser reads from the reader and sends commands to the channel
-func parser(wg *sync.WaitGroup, r io.Reader, cc chan<- Command) {
-	defer wg.Done()
-	defer close(cc)
+	logger := log.New(w, "", 0)
+	go func() {
+		for response := range responses {
+			logger.Println(response)
+		}
+	}()
 
 	for scanner := bufio.NewScanner(r); scanner.Scan(); {
-		command := strings.Fields(scanner.Text())
-		c := Parse(command)
-		cc <- c
-		if _, ok := c.(CommandQuit); ok {
-			return
+		c := parse(strings.Fields(scanner.Text()))
+		c.run(e, responses)
+		if _, ok := c.(commandQuit); ok {
+			break
 		}
 	}
 }
 
-// worker receives commands from the channel and execute them
-func worker(wg *sync.WaitGroup, e *engine.Engine, cc <-chan Command, rc chan<- Response) {
-	defer wg.Done()
-	defer close(rc)
-
-	for c := range cc {
-		c.Run(e, rc)
-	}
+// Input is what the engine needs to run a search.
+type Input struct {
+	WhiteTime      time.Duration // White has <x> ms left on the clock.
+	BlackTime      time.Duration // Black has <x> ms left on the clock.
+	WhiteIncrement time.Duration // White increment per move in ms if <x> > 0.
+	BlackIncrement time.Duration // Black increment per move in ms if <x> > 0.
+	MovesToGo      int           // Number of moves until the next time control.
+	SearchMoves    []*chess.Move // Restrict search to those moves only.
+	Depth          int           // Search <x> plies only.
+	Nodes          int           // Search <x> nodes only.
+	MoveTime       time.Duration // Search exactly <x> ms.
+	Infinite       bool          // Search until the stop command. Do not exit before.
 }
 
-// logger receives responses from the channel and logs them
-func logger(wg *sync.WaitGroup, w io.Writer, rc <-chan Response) {
-	defer wg.Done()
+// Output holds a search result.
+type Output struct {
+	Time  time.Duration // Time searched in ms.
+	Depth int           // Search depth in plies.
+	Nodes int           // Number of nodes searched.
+	Score int           // Score from the engine's point of view in centipawns.
+	Mate  int           // Number of moves before mate.
+	PV    []*chess.Move // Principal variation, best line found.
+}
 
-	l := log.New(w, "", 0)
-	for r := range rc {
-		l.Println(r.String())
-	}
+// OptionType represents an option's type.
+type OptionType int
+
+const (
+	OptionBoolean OptionType = iota // OptionBoolean represents a boolean option.
+	OptionInteger                   // OptionInteger represents an integer option.
+	OptionEnum                      // OptionEnum represents an enum option.
+)
+
+// Option represents an available option.
+type Option struct {
+	Type    OptionType
+	Name    string
+	Default string
+	Min     string
+	Max     string
+	Vars    []string
 }
