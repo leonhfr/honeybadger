@@ -10,13 +10,13 @@ import (
 )
 
 var (
-	engineName    = "Honey Badger"
-	engineVersion = "0.0.0"
-	engineAuthor  = "Leon Hollender"
+	name    = "Honey Badger"
+	version = "0.0.0"
+	author  = "Leon Hollender"
 )
 
 func main() {
-	e := engine.New(engineName, fmt.Sprintf("%s %s", engineAuthor, engineVersion))
+	e := engine.New(fmt.Sprintf("%s %s", name, version), author)
 
 	uci.Run(e, os.Stdin, os.Stdout)
 }
