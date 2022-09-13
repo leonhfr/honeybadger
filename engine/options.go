@@ -15,7 +15,7 @@ var (
 
 	searchStrategy = optionStrategy[search.Interface]{
 		name: "SearchStrategy",
-		def:  search.Capture{},
+		def:  search.Negamax{},
 		vars: []search.Interface{
 			search.Capture{},
 			search.Random{},
