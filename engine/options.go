@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/leonhfr/honeybadger/evaluation"
 	"github.com/leonhfr/honeybadger/search"
 	"github.com/leonhfr/honeybadger/uci"
 )
@@ -11,6 +12,7 @@ import (
 var (
 	availableOptions = []option{
 		searchStrategy,
+		evaluationStrategy,
 	}
 
 	searchStrategy = optionStrategy[search.Interface]{
@@ -22,6 +24,16 @@ var (
 			search.Negamax{},
 		},
 		fn: WithSearch,
+	}
+
+	evaluationStrategy = optionStrategy[evaluation.Interface]{
+		name: "EvaluationStrategy",
+		def:  evaluation.Simplified{},
+		vars: []evaluation.Interface{
+			evaluation.Values{},
+			evaluation.Simplified{},
+		},
+		fn: WithEvaluation,
 	}
 )
 

@@ -25,6 +25,7 @@ type Engine struct {
 	mu         sync.Mutex
 	stopSearch chan struct{}
 	search     search.Interface
+	evaluation evaluation.Interface
 }
 
 // New returns a new Engine.
@@ -53,6 +54,13 @@ func New(name, author string, options ...func(*Engine)) *Engine {
 func WithSearch(si search.Interface) func(*Engine) {
 	return func(e *Engine) {
 		e.search = si
+	}
+}
+
+// WithEvaluation sets the evaluation strategy.
+func WithEvaluation(ei evaluation.Interface) func(*Engine) {
+	return func(e *Engine) {
+		e.evaluation = ei
 	}
 }
 
@@ -128,7 +136,7 @@ func (e *Engine) Search(input uci.Input) <-chan uci.Output {
 		Position:   e.game.Position(),
 		Depth:      input.Depth,
 		Search:     e.search,
-		Evaluation: evaluation.Values{},
+		Evaluation: e.evaluation,
 	})
 
 	go func() {
