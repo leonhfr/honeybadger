@@ -2,7 +2,6 @@ package search
 
 import (
 	"context"
-	"errors"
 	"math"
 
 	"github.com/notnil/chess"
@@ -20,30 +19,26 @@ func (Negamax) String() string {
 // Search implements the Interface interface.
 func (Negamax) Search(ctx context.Context, input Input, output chan<- Output) {
 	for depth := 1; depth < input.Depth; depth++ {
-		o, err := negamax(ctx, Input{
+		select {
+		case <-ctx.Done():
+			return
+		default:
+		}
+
+		output <- negamax(Input{
 			Position:   input.Position,
 			Depth:      depth,
 			Evaluation: input.Evaluation,
 		})
-		if err != nil {
-			return
-		}
-		output <- o
 	}
 }
 
-func negamax(ctx context.Context, input Input) (Output, error) {
-	select {
-	case <-ctx.Done():
-		return Output{}, errors.New("aborted by context")
-	default:
-	}
-
+func negamax(input Input) Output {
 	if input.Depth == 0 || input.Position.Status() > 0 {
 		return Output{
 			Nodes: 1,
 			Score: input.Evaluation.Evaluate(input.Position),
-		}, nil
+		}
 	}
 
 	result := Output{
@@ -53,14 +48,11 @@ func negamax(ctx context.Context, input Input) (Output, error) {
 	}
 
 	for _, move := range input.Position.ValidMoves() {
-		current, err := negamax(ctx, Input{
+		current := negamax(Input{
 			Position:   input.Position.Update(move),
 			Depth:      input.Depth - 1,
 			Evaluation: input.Evaluation,
 		})
-		if err != nil {
-			return result, err
-		}
 
 		current.Score = -current.Score
 		if current.Score > result.Score {
@@ -70,5 +62,5 @@ func negamax(ctx context.Context, input Input) (Output, error) {
 		result.Nodes += current.Nodes
 	}
 
-	return result, nil
+	return result
 }
