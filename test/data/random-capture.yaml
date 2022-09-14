@@ -1,0 +1,9 @@
+white:
+  engine: ./honeybadger
+  options:
+    SearchStrategy: Random
+black:
+  engine: ./honeybadger
+  options:
+    SearchStrategy: Capture
+time: 500
