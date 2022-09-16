@@ -150,6 +150,7 @@ func (e *Engine) Search(input uci.Input) <-chan uci.Output {
 				Depth: output.Depth,
 				Nodes: output.Nodes,
 				Score: output.Score,
+				Mate:  output.Mate,
 				PV:    output.PV,
 			}
 		}

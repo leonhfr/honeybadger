@@ -18,7 +18,7 @@ func (Negamax) String() string {
 
 // Search implements the Interface interface.
 func (Negamax) Search(ctx context.Context, input Input, output chan<- Output) {
-	for depth := 1; depth < input.Depth; depth++ {
+	for depth := 1; depth <= input.Depth; depth++ {
 		select {
 		case <-ctx.Done():
 			return
@@ -34,7 +34,26 @@ func (Negamax) Search(ctx context.Context, input Input, output chan<- Output) {
 }
 
 func negamax(input Input) Output {
-	if input.Depth == 0 || input.Position.Status() > 0 {
+	switch input.Position.Status() { //nolint
+	case chess.Checkmate:
+		return Output{
+			Nodes: 1,
+			Score: math.MinInt + 1, // +1 allows negation to positive score
+			mate:  true,
+		}
+	case chess.Stalemate,
+		chess.ThreefoldRepetition,
+		chess.FivefoldRepetition,
+		chess.FiftyMoveRule,
+		chess.SeventyFiveMoveRule,
+		chess.InsufficientMaterial:
+		return Output{
+			Nodes: 1,
+			Score: 0, // draw
+		}
+	}
+
+	if input.Depth == 0 {
 		return Output{
 			Nodes: 1,
 			Score: input.Evaluation.Evaluate(input.Position),
@@ -55,9 +74,18 @@ func negamax(input Input) Output {
 		})
 
 		current.Score = -current.Score
+		current.Mate = -current.Mate
 		if current.Score > result.Score {
 			result.Score = current.Score
 			result.PV = append([]*chess.Move{move}, current.PV...)
+			if current.mate && !result.mate {
+				inc := 1
+				if result.Score < 0 {
+					inc = -1
+				}
+				result.mate = true
+				result.Mate = current.Mate + inc
+			}
 		}
 		result.Nodes += current.Nodes
 	}
