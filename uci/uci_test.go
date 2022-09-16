@@ -1,7 +1,6 @@
 package uci
 
 import (
-	"github.com/notnil/chess"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -38,7 +37,7 @@ func (m *mockEngine) SetPosition(fen string) error {
 	return args.Error(0)
 }
 
-func (m *mockEngine) Move(moves ...*chess.Move) error {
+func (m *mockEngine) Move(moves ...string) error {
 	args := m.Called(moves)
 	return args.Error(0)
 }

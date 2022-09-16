@@ -1,9 +1,5 @@
 package uci
 
-import (
-	"github.com/notnil/chess"
-)
-
 // command is the interface implemented by objects that represent
 // UCI commands from the GUI to the Engine.
 type command interface {
@@ -141,7 +137,7 @@ func (commandUCINewGame) run(e Engine, rc chan<- response) {
 type commandPosition struct {
 	fen      string
 	startPos bool
-	moves    []*chess.Move
+	moves    []string
 }
 
 // run implements the command interface.

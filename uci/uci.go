@@ -7,8 +7,6 @@ import (
 	"log"
 	"strings"
 	"time"
-
-	"github.com/notnil/chess"
 )
 
 // Engine is the interface implemented by objects that can be used as UCI engines.
@@ -21,7 +19,7 @@ type Engine interface {
 	SetOption(name, value string) error
 	SetPosition(fen string) error
 	ResetPosition()
-	Move(moves ...*chess.Move) error
+	Move(moves ...string) error
 	Search(input Input) <-chan Output
 	StopSearch()
 }
@@ -60,7 +58,7 @@ type Input struct {
 	WhiteIncrement time.Duration // White increment per move in ms if <x> > 0.
 	BlackIncrement time.Duration // Black increment per move in ms if <x> > 0.
 	MovesToGo      int           // Number of moves until the next time control.
-	SearchMoves    []*chess.Move // Restrict search to those moves only.
+	SearchMoves    []string      // Restrict search to those moves only.
 	Depth          int           // Search <x> plies only.
 	Nodes          int           // Search <x> nodes only.
 	MoveTime       time.Duration // Search exactly <x> ms.
@@ -74,7 +72,7 @@ type Output struct {
 	Nodes int           // Number of nodes searched.
 	Score int           // Score from the engine's point of view in centipawns.
 	Mate  int           // Number of moves before mate.
-	PV    []*chess.Move // Principal variation, best line found.
+	PV    []string      // Principal variation, best line found.
 }
 
 // OptionType represents an option's type.

@@ -34,22 +34,16 @@ func TestSetPositionInvalid(t *testing.T) {
 func TestMoveValid(t *testing.T) {
 	fen := "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1"
 	e := New("", "")
-	move, err := chess.UCINotation{}.Decode(e.game.Position(), "e2e4")
+	err := e.Move("e2e4")
 	if assert.NoError(t, err) {
-		err := e.Move(move)
-		if assert.NoError(t, err) {
-			assert.Equal(t, fen, e.game.Position().String())
-		}
+		assert.Equal(t, fen, e.game.Position().String())
 	}
 }
 
 func TestMoveInvalid(t *testing.T) {
 	e := New("", "")
-	move, err := chess.UCINotation{}.Decode(nil, "e2e5")
-	if assert.NoError(t, err) {
-		err := e.Move(move)
-		assert.Error(t, err)
-	}
+	err := e.Move("e2e5")
+	assert.Error(t, err)
 }
 
 func TestResetPosition(t *testing.T) {

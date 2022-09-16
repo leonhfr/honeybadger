@@ -4,13 +4,9 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/notnil/chess"
 )
 
 const fenFields = 6
-
-var uciNotation = chess.UCINotation{}
 
 // parse parses UCI commands and returns a Command object.
 func parse(command []string) command {
@@ -79,8 +75,7 @@ func parseCommandPosition(command []string) commandPosition {
 
 	if len(command) > index && command[index] == "moves" {
 		for index++; index < len(command); index++ {
-			move, _ := uciNotation.Decode(nil, command[index])
-			c.moves = append(c.moves, move)
+			c.moves = append(c.moves, command[index])
 		}
 	}
 
@@ -126,8 +121,7 @@ func parseCommandGo(command []string) commandGo {
 		case "searchmoves":
 			if len(command) >= index+1 {
 				for index++; index < len(command); index++ {
-					move, _ := uciNotation.Decode(nil, command[index])
-					c.input.SearchMoves = append(c.input.SearchMoves, move)
+					c.input.SearchMoves = append(c.input.SearchMoves, command[index])
 				}
 				return c
 			}

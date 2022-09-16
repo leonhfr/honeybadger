@@ -3,8 +3,6 @@ package uci
 import (
 	"fmt"
 	"strings"
-
-	"github.com/notnil/chess"
 )
 
 // response is the interface implemented by objects that represent
@@ -69,11 +67,11 @@ func (r responseReadyOK) String() string {
 // Directly before that the engine should send a final "info" command with the final search information,
 // the the GUI has the complete statistics about the last search.
 type responseBestMove struct {
-	*chess.Move
+	move string
 }
 
 func (r responseBestMove) String() string {
-	return fmt.Sprintf("bestmove %s", uciNotation.Encode(nil, r.Move))
+	return fmt.Sprintf("bestmove %s", r.move)
 }
 
 // responseInfo represents an "info" command.
@@ -202,9 +200,7 @@ func (r responseInfo) String() string {
 	}
 	if len(r.output.PV) > 0 {
 		res = append(res, "pv")
-		for _, move := range r.output.PV {
-			res = append(res, uciNotation.Encode(nil, move))
-		}
+		res = append(res, r.output.PV...)
 	}
 	if r.output.Time > 0 {
 		res = append(res, "time", fmt.Sprint(r.output.Time.Milliseconds()))

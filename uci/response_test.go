@@ -4,15 +4,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/notnil/chess"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestResponseString(t *testing.T) {
-	moves := chess.StartingPosition().ValidMoves()
-	move1 := moves[0]
-	move2 := moves[1]
-
 	tests := []struct {
 		name string
 		args response
@@ -21,14 +16,14 @@ func TestResponseString(t *testing.T) {
 		{name: "id", args: responseID{name: "NAME", author: "AUTHOR"}, want: "id name NAME\nid author AUTHOR"},
 		{name: "uciok", args: responseUCIOK{}, want: "uciok"},
 		{name: "readyok", args: responseReadyOK{}, want: "readyok"},
-		{name: "bestmove", args: responseBestMove{move1}, want: "bestmove b1a3"},
+		{name: "bestmove", args: responseBestMove{"b1a3"}, want: "bestmove b1a3"},
 		{
 			name: "info score positive",
 			args: responseInfo{output: Output{
 				Depth: 8,
 				Nodes: 1024,
 				Score: 3000,
-				PV:    []*chess.Move{move1, move2},
+				PV:    []string{"b1a3", "b1c3"},
 				Time:  time.Duration(5e9),
 			}},
 			want: "info depth 8 nodes 1024 score cp 3000 pv b1a3 b1c3 time 5000",
@@ -39,7 +34,7 @@ func TestResponseString(t *testing.T) {
 				Depth: 8,
 				Nodes: 1024,
 				Score: -3000,
-				PV:    []*chess.Move{move1, move2},
+				PV:    []string{"b1a3", "b1c3"},
 				Time:  time.Duration(5e9),
 			}},
 			want: "info depth 8 nodes 1024 score cp -3000 pv b1a3 b1c3 time 5000",
@@ -51,7 +46,7 @@ func TestResponseString(t *testing.T) {
 				Score: 3000,
 				Nodes: 1024,
 				Mate:  5,
-				PV:    []*chess.Move{move1, move2},
+				PV:    []string{"b1a3", "b1c3"},
 				Time:  time.Duration(5e9),
 			}},
 			want: "info depth 8 nodes 1024 score mate 5 pv b1a3 b1c3 time 5000",
@@ -63,7 +58,7 @@ func TestResponseString(t *testing.T) {
 				Nodes: 1024,
 				Score: -3000,
 				Mate:  -5,
-				PV:    []*chess.Move{move1, move2},
+				PV:    []string{"b1a3", "b1c3"},
 				Time:  time.Duration(5e9),
 			}},
 			want: "info depth 8 nodes 1024 score mate -5 pv b1a3 b1c3 time 5000",

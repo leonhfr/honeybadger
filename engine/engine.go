@@ -23,6 +23,7 @@ type Engine struct {
 	name       string
 	author     string
 	game       *chess.Game
+	notation   chess.Notation
 	mu         sync.Mutex
 	stopSearch chan struct{}
 	search     search.Interface
@@ -35,6 +36,7 @@ func New(name, author string, options ...func(*Engine)) *Engine {
 		name:       name,
 		author:     author,
 		game:       chess.NewGame(),
+		notation:   chess.UCINotation{},
 		mu:         sync.Mutex{},
 		stopSearch: make(chan struct{}),
 	}
@@ -112,9 +114,14 @@ func (e *Engine) SetPosition(fen string) error {
 }
 
 // Move plays the moves on the current position.
-func (e *Engine) Move(moves ...*chess.Move) error {
+func (e *Engine) Move(moves ...string) error {
 	for _, move := range moves {
-		if err := e.game.Move(move); err != nil {
+		m, err := e.notation.Decode(e.game.Position(), move)
+		if err != nil {
+			return err
+		}
+
+		if err := e.game.Move(m); err != nil {
 			return err
 		}
 	}
@@ -146,13 +153,18 @@ func (e *Engine) Search(input uci.Input) <-chan uci.Output {
 		defer close(engineOutput)
 
 		for output := range searchOutput {
+			var pv []string
+			for _, move := range output.PV {
+				pv = append(pv, e.notation.Encode(e.game.Position(), move))
+			}
+
 			engineOutput <- uci.Output{
 				Time:  time.Since(start),
 				Depth: output.Depth,
 				Nodes: output.Nodes,
 				Score: output.Score,
 				Mate:  output.Mate,
-				PV:    output.PV,
+				PV:    pv,
 			}
 		}
 	}()
