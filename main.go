@@ -16,7 +16,10 @@ var (
 )
 
 func main() {
-	e := engine.New(fmt.Sprintf("%s %s", name, version), author)
+	e := engine.New(
+		engine.WithName(fmt.Sprintf("%s v%s", name, version)),
+		engine.WithAuthor(author),
+	)
 
 	uci.Run(e, os.Stdin, os.Stdout)
 }

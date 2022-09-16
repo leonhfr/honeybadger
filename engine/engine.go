@@ -31,10 +31,8 @@ type Engine struct {
 }
 
 // New returns a new Engine.
-func New(name, author string, options ...func(*Engine)) *Engine {
+func New(options ...func(*Engine)) *Engine {
 	e := &Engine{
-		name:       name,
-		author:     author,
 		game:       chess.NewGame(),
 		notation:   chess.UCINotation{},
 		mu:         sync.Mutex{},
@@ -51,6 +49,20 @@ func New(name, author string, options ...func(*Engine)) *Engine {
 	}
 
 	return e
+}
+
+// WithName sets the name of the engine.
+func WithName(name string) func(*Engine) {
+	return func(e *Engine) {
+		e.name = name
+	}
+}
+
+// WithAuthor sets the author of the engine.
+func WithAuthor(author string) func(*Engine) {
+	return func(e *Engine) {
+		e.author = author
+	}
 }
 
 // WithSearch sets the search strategy.
