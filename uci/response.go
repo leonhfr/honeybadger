@@ -195,11 +195,10 @@ func (r responseInfo) String() string {
 	if r.output.Nodes > 0 {
 		res = append(res, "nodes", fmt.Sprint(r.output.Nodes))
 	}
-	if r.output.Score > 0 {
-		res = append(res, "score cp", fmt.Sprint(r.output.Score))
-	}
-	if r.output.Mate > 0 {
+	if r.output.Mate != 0 {
 		res = append(res, "score mate", fmt.Sprint(r.output.Mate))
+	} else if r.output.Score != 0 {
+		res = append(res, "score cp", fmt.Sprint(r.output.Score))
 	}
 	if len(r.output.PV) > 0 {
 		res = append(res, "pv")

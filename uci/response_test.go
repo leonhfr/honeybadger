@@ -23,7 +23,7 @@ func TestResponseString(t *testing.T) {
 		{name: "readyok", args: responseReadyOK{}, want: "readyok"},
 		{name: "bestmove", args: responseBestMove{move1}, want: "bestmove b1a3"},
 		{
-			name: "info score",
+			name: "info score positive",
 			args: responseInfo{output: Output{
 				Depth: 8,
 				Nodes: 1024,
@@ -34,15 +34,39 @@ func TestResponseString(t *testing.T) {
 			want: "info depth 8 nodes 1024 score cp 3000 pv b1a3 b1c3 time 5000",
 		},
 		{
-			name: "info mate",
+			name: "info score negative",
 			args: responseInfo{output: Output{
 				Depth: 8,
+				Nodes: 1024,
+				Score: -3000,
+				PV:    []*chess.Move{move1, move2},
+				Time:  time.Duration(5e9),
+			}},
+			want: "info depth 8 nodes 1024 score cp -3000 pv b1a3 b1c3 time 5000",
+		},
+		{
+			name: "info mate positive",
+			args: responseInfo{output: Output{
+				Depth: 8,
+				Score: 3000,
 				Nodes: 1024,
 				Mate:  5,
 				PV:    []*chess.Move{move1, move2},
 				Time:  time.Duration(5e9),
 			}},
 			want: "info depth 8 nodes 1024 score mate 5 pv b1a3 b1c3 time 5000",
+		},
+		{
+			name: "info mate negative",
+			args: responseInfo{output: Output{
+				Depth: 8,
+				Nodes: 1024,
+				Score: -3000,
+				Mate:  -5,
+				PV:    []*chess.Move{move1, move2},
+				Time:  time.Duration(5e9),
+			}},
+			want: "info depth 8 nodes 1024 score mate -5 pv b1a3 b1c3 time 5000",
 		},
 		{name: "comment", args: responseComment{comment: "COMMENT"}, want: "info COMMENT"},
 		{
