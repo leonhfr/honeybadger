@@ -8,8 +8,9 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/leonhfr/honeybadger/evaluation"
 	"github.com/notnil/chess"
+
+	"github.com/leonhfr/honeybadger/evaluation"
 )
 
 // Input holds a search input.

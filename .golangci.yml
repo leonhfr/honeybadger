@@ -1,7 +1,7 @@
 linters:
   enable:
     - errcheck
-    - exhaustive
+    - gci
     - gosec
     - gosimple
     - govet
@@ -10,6 +10,13 @@ linters:
     - staticcheck
     - typecheck
     - unused
+
+linters-settings:
+  gci:
+    sections:
+    - standard
+    - default
+    - prefix(github.com/leonhfr/honeybadger)
 
 issues:
   include:

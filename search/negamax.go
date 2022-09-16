@@ -34,7 +34,7 @@ func (Negamax) Search(ctx context.Context, input Input, output chan<- Output) {
 }
 
 func negamax(input Input) Output {
-	switch input.Position.Status() { //nolint
+	switch input.Position.Status() {
 	case chess.Checkmate:
 		return Output{
 			Nodes: 1,

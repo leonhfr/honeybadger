@@ -7,10 +7,11 @@ import (
 	"sync"
 	"time"
 
+	"github.com/notnil/chess"
+
 	"github.com/leonhfr/honeybadger/evaluation"
 	"github.com/leonhfr/honeybadger/search"
 	"github.com/leonhfr/honeybadger/uci"
-	"github.com/notnil/chess"
 )
 
 const (
