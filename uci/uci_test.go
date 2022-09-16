@@ -48,12 +48,7 @@ func (m *mockEngine) ResetPosition() {
 
 func (m *mockEngine) Search(input Input) <-chan Output {
 	args := m.Called(input)
-	output := make(chan Output)
-	defer close(output)
-	go func() {
-		output <- args.Get(0).(Output)
-	}()
-	return output
+	return args.Get(0).(chan Output)
 }
 
 func (m *mockEngine) StopSearch() {

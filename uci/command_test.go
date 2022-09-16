@@ -49,11 +49,11 @@ func TestCommandIsReady(t *testing.T) {
 	wg := &sync.WaitGroup{}
 	wg.Add(1)
 
+	// testing asynchronously
 	go func() {
 		defer wg.Done()
 		defer close(rc)
 		r := <-rc
-		// testing asynchronously
 		e.AssertExpectations(t)
 		assert.Equal(t, responseReadyOK{}, r)
 	}()
@@ -199,7 +199,59 @@ func TestCommandPosition_SetPosition(t *testing.T) {
 	}
 }
 
-// TODO: go
+func TestCommandGo(t *testing.T) {
+	type args struct {
+		cmd     commandGo
+		outputs []Output
+	}
+
+	output1 := Output{Score: 1000, PV: []string{"b1a3", "d2d4"}}
+	output2 := Output{Score: 2000, PV: []string{"d2d4"}}
+
+	tests := []struct {
+		name string
+		args args
+		want []response
+	}{
+		{
+			"go",
+			args{commandGo{Input{Depth: 3}}, []Output{output1, output2}},
+			[]response{responseInfo{output1}, responseInfo{output2}, responseBestMove{output2.PV[0]}},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			e := new(mockEngine)
+			oc := make(chan Output, len(tt.args.outputs))
+			for _, o := range tt.args.outputs {
+				oc <- o
+			}
+			close(oc)
+			e.On("Search", tt.args.cmd.input).Return(oc)
+
+			rc := make(chan response)
+			wg := &sync.WaitGroup{}
+			wg.Add(1)
+
+			// testing asynchronously
+			go func() {
+				defer wg.Done()
+				defer close(rc)
+				var responses []response
+				for i := 0; i < len(tt.want); i++ {
+					responses = append(responses, <-rc)
+				}
+				e.AssertExpectations(t)
+				assert.Equal(t, tt.want, responses)
+			}()
+
+			tt.args.cmd.run(e, rc)
+
+			wg.Wait()
+		})
+	}
+}
 
 func TestCommandStop(t *testing.T) {
 	e := new(mockEngine)
