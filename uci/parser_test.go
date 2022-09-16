@@ -3,6 +3,7 @@ package uci
 import (
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -25,11 +26,37 @@ func TestParse(t *testing.T) {
 		{name: "position", args: "position fen " + fen, want: commandPosition{fen: fen}},
 		{name: "position", args: "position startpos moves b1a3 b1c3", want: commandPosition{startPos: true, moves: []string{"b1a3", "b1c3"}}},
 		{
-			name: "go",
+			name: "go movetime",
+			args: "go movetime 500",
+			want: commandGo{input: Input{
+				MoveTime: 500 * time.Millisecond,
+			}},
+		},
+		{
+			name: "go time control",
+			args: "go wtime 1000 btime 2000 winc 3000 binc 4000 movestogo 5",
+			want: commandGo{input: Input{
+				WhiteTime:      1 * time.Second,
+				BlackTime:      2 * time.Second,
+				WhiteIncrement: 3 * time.Second,
+				BlackIncrement: 4 * time.Second,
+				MovesToGo:      5,
+			}},
+		},
+		{
+			name: "go inifinte searchmoves",
 			args: "go infinite searchmoves b1a3 b1c3",
 			want: commandGo{input: Input{
 				SearchMoves: []string{"b1a3", "b1c3"},
 				Infinite:    true,
+			}},
+		},
+		{
+			name: "go depth nodes",
+			args: "go depth 8 nodes 1024",
+			want: commandGo{input: Input{
+				Depth: 8,
+				Nodes: 1024,
 			}},
 		},
 		{name: "stop", args: "stop", want: commandStop{}},
