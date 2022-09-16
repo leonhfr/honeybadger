@@ -43,6 +43,9 @@ func Run(e Engine, r io.Reader, w io.Writer) {
 
 	for scanner := bufio.NewScanner(r); scanner.Scan(); {
 		c := parse(strings.Fields(scanner.Text()))
+		if c == nil {
+			continue
+		}
 		c.run(e, responses)
 		if _, ok := c.(commandQuit); ok {
 			break
