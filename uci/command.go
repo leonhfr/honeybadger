@@ -242,7 +242,9 @@ func (c commandGo) run(e Engine, rc chan<- response) {
 		for output = range oc {
 			rc <- responseInfo{output}
 		}
-		rc <- responseBestMove{output.PV[0]}
+		if len(output.PV) > 0 {
+			rc <- responseBestMove{output.PV[0]}
+		}
 	}()
 }
 
