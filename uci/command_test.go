@@ -16,9 +16,7 @@ func TestCommandUCI(t *testing.T) {
 	e.On("Options").Return([]Option{option})
 
 	rc := make(chan response)
-	wg := &sync.WaitGroup{}
-
-	assertResponses(t, wg, e, rc, []response{
+	wg := assertResponses(t, e, rc, []response{
 		responseID{"NAME", "AUTHOR"},
 		responseOption{option},
 		responseUCIOK{},
@@ -94,9 +92,7 @@ func TestCommandSetOption(t *testing.T) {
 			e.On("SetOption", tt.args.cmd.name, tt.args.cmd.value).Return(tt.args.err)
 
 			rc := make(chan response)
-			wg := &sync.WaitGroup{}
-
-			assertResponses(t, wg, e, rc, tt.want)
+			wg := assertResponses(t, e, rc, tt.want)
 
 			tt.args.cmd.run(e, rc)
 			close(rc)
@@ -118,7 +114,90 @@ func TestCommandUCINewGame(t *testing.T) {
 	e.AssertExpectations(t)
 }
 
-// TODO: position
+func TestCommandPosition_ResetPosition(t *testing.T) {
+	type args struct {
+		cmd     commandPosition
+		errMove error
+	}
+
+	tests := []struct {
+		name string
+		args args
+		want []response
+	}{
+		{
+			"no error",
+			args{commandPosition{startPos: true, moves: []string{"b1a3"}}, nil},
+			[]response{},
+		},
+		{
+			"error",
+			args{commandPosition{startPos: true, moves: []string{"b1a3"}}, errors.New("ERROR")},
+			[]response{responseComment{"ERROR"}},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			e := new(mockEngine)
+			e.On("ResetPosition")
+			e.On("Move", tt.args.cmd.moves).Return(tt.args.errMove)
+
+			rc := make(chan response)
+			wg := assertResponses(t, e, rc, tt.want)
+
+			tt.args.cmd.run(e, rc)
+			close(rc)
+
+			e.AssertExpectations(t)
+			wg.Wait()
+		})
+	}
+}
+
+func TestCommandPosition_SetPosition(t *testing.T) {
+	fen := "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1"
+
+	type args struct {
+		cmd     commandPosition
+		errPos  error
+		errMove error
+	}
+
+	tests := []struct {
+		name string
+		args args
+		want []response
+	}{
+		{
+			"no error",
+			args{commandPosition{fen: fen, moves: []string{"b1a3"}}, nil, nil},
+			[]response{},
+		},
+		{
+			"error",
+			args{commandPosition{fen: fen, moves: []string{"b1a3"}}, errors.New("ERROR POS"), errors.New("ERROR MOVE")},
+			[]response{responseComment{"ERROR POS"}, responseComment{"ERROR MOVE"}},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			e := new(mockEngine)
+			e.On("SetPosition", tt.args.cmd.fen).Return(tt.args.errPos)
+			e.On("Move", tt.args.cmd.moves).Return(tt.args.errMove)
+
+			rc := make(chan response)
+			wg := assertResponses(t, e, rc, tt.want)
+
+			tt.args.cmd.run(e, rc)
+			close(rc)
+
+			e.AssertExpectations(t)
+			wg.Wait()
+		})
+	}
+}
 
 // TODO: go
 
@@ -146,7 +225,8 @@ func TestCommandQuit(t *testing.T) {
 	e.AssertExpectations(t)
 }
 
-func assertResponses(t *testing.T, wg *sync.WaitGroup, e *mockEngine, rc chan response, expected []response) {
+func assertResponses(t *testing.T, e *mockEngine, rc chan response, expected []response) *sync.WaitGroup {
+	wg := &sync.WaitGroup{}
 	wg.Add(1)
 
 	go func() {
@@ -157,4 +237,6 @@ func assertResponses(t *testing.T, wg *sync.WaitGroup, e *mockEngine, rc chan re
 		}
 		assert.Equal(t, expected, responses)
 	}()
+
+	return wg
 }

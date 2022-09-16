@@ -24,6 +24,7 @@ func TestParse(t *testing.T) {
 		{name: "ucinewgame", args: "ucinewgame", want: commandUCINewGame{}},
 		{name: "position", args: "position startpos", want: commandPosition{startPos: true}},
 		{name: "position", args: "position fen " + fen, want: commandPosition{fen: fen}},
+		{name: "position", args: "position fen " + fen + " moves b1a3 b1c3", want: commandPosition{fen: fen, moves: []string{"b1a3", "b1c3"}}},
 		{name: "position", args: "position startpos moves b1a3 b1c3", want: commandPosition{startPos: true, moves: []string{"b1a3", "b1c3"}}},
 		{
 			name: "go movetime",

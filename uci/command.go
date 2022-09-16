@@ -149,11 +149,9 @@ func (c commandPosition) run(e Engine, rc chan<- response) {
 		if err != nil {
 			rc <- responseComment{err.Error()}
 		}
-		return
 	}
 
-	err := e.Move(c.moves...)
-	if err != nil {
+	if err := e.Move(c.moves...); err != nil {
 		rc <- responseComment{err.Error()}
 	}
 }
