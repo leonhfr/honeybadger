@@ -65,6 +65,13 @@ func WithAuthor(author string) func(*Engine) {
 	}
 }
 
+// WithNotation sets the chess notation.
+func WithNotation(notation chess.Notation) func(*Engine) {
+	return func(e *Engine) {
+		e.notation = notation
+	}
+}
+
 // WithSearch sets the search strategy.
 func WithSearch(si search.Interface) func(*Engine) {
 	return func(e *Engine) {
