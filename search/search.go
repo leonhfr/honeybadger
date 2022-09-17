@@ -35,12 +35,12 @@ type Output struct {
 // run a search on a chess board.
 type Interface interface {
 	fmt.Stringer
-	Search(ctx context.Context, input Input, output chan<- Output)
+	Search(ctx context.Context, input Input, output chan<- *Output)
 }
 
 // Run starts a search.
-func Run(ctx context.Context, input Input) <-chan Output {
-	output := make(chan Output)
+func Run(ctx context.Context, input Input) <-chan *Output {
+	output := make(chan *Output)
 
 	if input.Depth == 0 {
 		input.Depth = math.MaxInt

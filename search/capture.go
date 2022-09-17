@@ -16,7 +16,7 @@ func (Capture) String() string {
 }
 
 // Search implements the Interface interface.
-func (Capture) Search(ctx context.Context, input Input, output chan<- Output) {
+func (Capture) Search(ctx context.Context, input Input, output chan<- *Output) {
 	moves := input.Position.ValidMoves()
 
 	var captures []*chess.Move
@@ -28,14 +28,14 @@ func (Capture) Search(ctx context.Context, input Input, output chan<- Output) {
 
 	if len(captures) > 0 {
 		pv := []*chess.Move{captures[rand.Intn(len(captures))]} //nolint
-		output <- Output{
+		output <- &Output{
 			PV: pv,
 		}
 		return
 	}
 
 	pv := []*chess.Move{moves[rand.Intn(len(moves))]} //nolint
-	output <- Output{
+	output <- &Output{
 		PV: pv,
 	}
 }

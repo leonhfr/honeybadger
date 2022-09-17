@@ -16,10 +16,10 @@ func (Random) String() string {
 }
 
 // Search implements the Interface interface.
-func (Random) Search(ctx context.Context, input Input, output chan<- Output) {
+func (Random) Search(ctx context.Context, input Input, output chan<- *Output) {
 	moves := input.Position.ValidMoves()
 	pv := []*chess.Move{moves[rand.Intn(len(moves))]} //nolint
-	output <- Output{
+	output <- &Output{
 		PV: pv,
 	}
 }

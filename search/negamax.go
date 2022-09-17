@@ -17,7 +17,7 @@ func (Negamax) String() string {
 }
 
 // Search implements the Interface interface.
-func (Negamax) Search(ctx context.Context, input Input, output chan<- Output) {
+func (Negamax) Search(ctx context.Context, input Input, output chan<- *Output) {
 	for depth := 1; depth <= input.Depth; depth++ {
 		select {
 		case <-ctx.Done():
@@ -33,34 +33,20 @@ func (Negamax) Search(ctx context.Context, input Input, output chan<- Output) {
 	}
 }
 
-func negamax(input Input) Output {
-	switch input.Position.Status() {
-	case chess.Checkmate:
-		return Output{
-			Nodes: 1,
-			Score: math.MinInt + 1, // +1 allows negation to positive score
-			mate:  true,
-		}
-	case chess.Stalemate,
-		chess.ThreefoldRepetition,
-		chess.FivefoldRepetition,
-		chess.FiftyMoveRule,
-		chess.SeventyFiveMoveRule,
-		chess.InsufficientMaterial:
-		return Output{
-			Nodes: 1,
-			Score: 0, // draw
-		}
+func negamax(input Input) *Output {
+	output := terminalNode(input.Position)
+	if output != nil {
+		return output
 	}
 
 	if input.Depth == 0 {
-		return Output{
+		return &Output{
 			Nodes: 1,
 			Score: input.Evaluation.Evaluate(input.Position),
 		}
 	}
 
-	result := Output{
+	result := &Output{
 		Depth: input.Depth,
 		Nodes: 0,
 		Score: math.MinInt,
@@ -91,4 +77,27 @@ func negamax(input Input) Output {
 	}
 
 	return result
+}
+
+func terminalNode(position *chess.Position) *Output {
+	switch position.Status() {
+	case chess.Checkmate:
+		return &Output{
+			Nodes: 1,
+			Score: math.MinInt + 1, // +1 allows negation to positive score
+			mate:  true,
+		}
+	case chess.Stalemate,
+		chess.ThreefoldRepetition,
+		chess.FivefoldRepetition,
+		chess.FiftyMoveRule,
+		chess.SeventyFiveMoveRule,
+		chess.InsufficientMaterial:
+		return &Output{
+			Nodes: 1,
+			Score: 0, // draw
+		}
+	default:
+		return nil
+	}
 }
