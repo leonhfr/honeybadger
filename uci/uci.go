@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -30,10 +31,12 @@ type Engine interface {
 // and writes the responses on the writer.
 func Run(e Engine, r io.Reader, w io.Writer) {
 	responses := make(chan response)
-	defer close(responses)
+	wg := sync.WaitGroup{}
+	wg.Add(1)
 
 	logger := log.New(w, "", 0)
 	go func() {
+		defer wg.Done()
 		for response := range responses {
 			logger.Println(response)
 		}
@@ -49,6 +52,9 @@ func Run(e Engine, r io.Reader, w io.Writer) {
 			break
 		}
 	}
+
+	close(responses)
+	wg.Wait()
 }
 
 // Input is what the engine needs to run a search.
