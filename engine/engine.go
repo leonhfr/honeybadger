@@ -3,7 +3,6 @@ package engine
 
 import (
 	"context"
-	"errors"
 	"log"
 	"os"
 	"sync"
@@ -137,7 +136,7 @@ func (e *Engine) SetOption(name, value string) error {
 		}
 	}
 
-	return errors.New("option name not found")
+	return errOptionName
 }
 
 // SetPosition sets the position to the provided FEN.

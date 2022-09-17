@@ -10,6 +10,9 @@ import (
 )
 
 var (
+	errOptionName  = errors.New("option name not found")
+	errOptionValue = errors.New("option value not found")
+
 	availableOptions = []option{
 		searchStrategy,
 		evaluationStrategy,
@@ -85,5 +88,5 @@ func (o optionStrategy[T]) optionFunc(value string) (func(*Engine), error) {
 		}
 	}
 
-	return func(e *Engine) {}, errors.New("option value not found")
+	return func(e *Engine) {}, errOptionValue
 }

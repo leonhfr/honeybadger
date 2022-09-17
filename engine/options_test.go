@@ -1,7 +1,6 @@
 package engine
 
 import (
-	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -54,7 +53,7 @@ func TestOptionStrategyOptionFunc(t *testing.T) {
 		{
 			name: "option does not exist",
 			args: args{search.Random{}, ""},
-			want: want{search.Random{}, errors.New("option value not found")},
+			want: want{search.Random{}, errOptionValue},
 		},
 	}
 

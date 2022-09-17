@@ -1,7 +1,6 @@
 package engine
 
 import (
-	"errors"
 	"testing"
 
 	"github.com/notnil/chess"
@@ -91,12 +90,12 @@ func TestSetOption(t *testing.T) {
 		{
 			"option does not exist",
 			args{"SearchStrategy", "Whatever", search.Random{}},
-			want{search.Random{}, errors.New("option value not found")},
+			want{search.Random{}, errOptionValue},
 		},
 		{
 			"option does not exist",
 			args{"Whatever", "Whatever", search.Random{}},
-			want{search.Random{}, errors.New("option name not found")},
+			want{search.Random{}, errOptionName},
 		},
 	}
 
