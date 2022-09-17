@@ -57,6 +57,11 @@ func Run(e Engine, r io.Reader, w io.Writer) {
 	wg.Wait()
 }
 
+// Logger returns a logger that is able to log UCI-compliant output.
+func Logger(w io.Writer) *log.Logger {
+	return log.New(w, "info string ", 0)
+}
+
 // Input is what the engine needs to run a search.
 type Input struct {
 	WhiteTime      time.Duration // White has <x> ms left on the clock.

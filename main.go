@@ -19,6 +19,7 @@ func main() {
 	e := engine.New(
 		engine.WithName(fmt.Sprintf("%s v%s", name, version)),
 		engine.WithAuthor(author),
+		engine.WithLogger(uci.Logger(os.Stdout)),
 	)
 
 	uci.Run(e, os.Stdin, os.Stdout)

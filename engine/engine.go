@@ -4,6 +4,8 @@ package engine
 import (
 	"context"
 	"errors"
+	"log"
+	"os"
 	"sync"
 	"time"
 
@@ -22,6 +24,8 @@ const (
 type Engine struct {
 	name       string
 	author     string
+	debug      bool
+	logger     *log.Logger
 	game       *chess.Game
 	notation   chess.Notation
 	mu         sync.Mutex
@@ -31,8 +35,12 @@ type Engine struct {
 }
 
 // New returns a new Engine.
+//
+// Defaults to using the UCI chess notation and a
+// logger that outputs to stdout without any prefix.
 func New(options ...func(*Engine)) *Engine {
 	e := &Engine{
+		logger:     log.New(os.Stdout, "", 0),
 		game:       chess.NewGame(),
 		notation:   chess.UCINotation{},
 		mu:         sync.Mutex{},
@@ -65,6 +73,13 @@ func WithAuthor(author string) func(*Engine) {
 	}
 }
 
+// WithLogger sets the logger used for the debug output.
+func WithLogger(logger *log.Logger) func(*Engine) {
+	return func(e *Engine) {
+		e.logger = logger
+	}
+}
+
 // WithNotation sets the chess notation.
 func WithNotation(notation chess.Notation) func(*Engine) {
 	return func(e *Engine) {
@@ -87,7 +102,9 @@ func WithEvaluation(ei evaluation.Interface) func(*Engine) {
 }
 
 // Debug sets the debug option.
-func (e *Engine) Debug(on bool) {}
+func (e *Engine) Debug(on bool) {
+	e.debug = on
+}
 
 // Info returns the engine's info.
 func (e *Engine) Info() (name, author string) {
@@ -115,6 +132,7 @@ func (e *Engine) SetOption(name, value string) error {
 				return err
 			}
 			fn(e)
+			e.log("option", name, "set to", value)
 			return nil
 		}
 	}
@@ -129,6 +147,7 @@ func (e *Engine) SetPosition(fen string) error {
 		return err
 	}
 	fn(e.game)
+	e.log("position set to", e.game.Position())
 	return nil
 }
 
@@ -144,12 +163,14 @@ func (e *Engine) Move(moves ...string) error {
 			return err
 		}
 	}
+	e.log("position set to", e.game.Position())
 	return nil
 }
 
 // ResetPosition resets the position to the starting one.
 func (e *Engine) ResetPosition() {
 	e.game = chess.NewGame()
+	e.log("position set to start")
 }
 
 // Search runs a search on the given input.
@@ -160,7 +181,10 @@ func (e *Engine) Search(input uci.Input) <-chan uci.Output {
 
 	engineOutput := make(chan uci.Output)
 
-	searchMoves, _ := searchMoves(e.notation, e.game.Position(), input.SearchMoves)
+	searchMoves, err := searchMoves(e.notation, e.game.Position(), input.SearchMoves)
+	if err != nil {
+		e.log("could not parse search moves, defaulting to all possible moves", err)
+	}
 	searchOutput := search.Run(ctx, search.Input{
 		Position:    e.game.Position(),
 		SearchMoves: searchMoves,
@@ -207,6 +231,13 @@ func (e *Engine) Quit() {
 	e.StopSearch()
 	// prevents future searches and ensures all search routines have been shut down
 	e.mu.Lock()
+}
+
+// logger returns the logger to use depending on the debug setting
+func (e *Engine) log(v ...any) {
+	if e.debug {
+		e.logger.Println(v...)
+	}
 }
 
 // searchMoves decodes the moves to search from the engine notation
