@@ -26,9 +26,10 @@ func (Negamax) Search(ctx context.Context, input Input, output chan<- *Output) {
 		}
 
 		output <- negamax(Input{
-			Position:   input.Position,
-			Depth:      depth,
-			Evaluation: input.Evaluation,
+			Position:    input.Position,
+			SearchMoves: input.SearchMoves,
+			Depth:       depth,
+			Evaluation:  input.Evaluation,
 		})
 	}
 }
@@ -52,7 +53,7 @@ func negamax(input Input) *Output {
 		Score: math.MinInt,
 	}
 
-	for _, move := range input.Position.ValidMoves() {
+	for _, move := range searchMoves(input) {
 		current := negamax(Input{
 			Position:   input.Position.Update(move),
 			Depth:      input.Depth - 1,
@@ -77,6 +78,13 @@ func negamax(input Input) *Output {
 	}
 
 	return result
+}
+
+func searchMoves(input Input) []*chess.Move {
+	if input.SearchMoves != nil {
+		return input.SearchMoves
+	}
+	return input.Position.ValidMoves()
 }
 
 func terminalNode(position *chess.Position) *Output {

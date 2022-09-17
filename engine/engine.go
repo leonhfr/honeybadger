@@ -159,11 +159,14 @@ func (e *Engine) Search(input uci.Input) <-chan uci.Output {
 	ctx, cancel := newContext(input, e.stopSearch)
 
 	engineOutput := make(chan uci.Output)
+
+	searchMoves, _ := searchMoves(e.notation, e.game.Position(), input.SearchMoves)
 	searchOutput := search.Run(ctx, search.Input{
-		Position:   e.game.Position(),
-		Depth:      input.Depth,
-		Search:     e.search,
-		Evaluation: e.evaluation,
+		Position:    e.game.Position(),
+		SearchMoves: searchMoves,
+		Depth:       input.Depth,
+		Search:      e.search,
+		Evaluation:  e.evaluation,
 	})
 
 	go func() {
@@ -204,6 +207,19 @@ func (e *Engine) Quit() {
 	e.StopSearch()
 	// prevents future searches and ensures all search routines have been shut down
 	e.mu.Lock()
+}
+
+// searchMoves decodes the moves to search from the engine notation
+func searchMoves(notation chess.Notation, position *chess.Position, moves []string) ([]*chess.Move, error) {
+	var next []*chess.Move
+	for _, move := range moves {
+		m, err := notation.Decode(position, move)
+		if err != nil {
+			return nil, err
+		}
+		next = append(next, m)
+	}
+	return next, nil
 }
 
 // newContext creates a new context from the input
