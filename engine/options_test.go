@@ -19,9 +19,10 @@ func TestOptionStrategyUCI(t *testing.T) {
 		Name:    searchStrategy.name,
 		Default: searchStrategy.def.String(),
 		Vars: []string{
-			search.Capture{}.String(),
 			search.Random{}.String(),
+			search.Capture{}.String(),
 			search.Negamax{}.String(),
+			search.AlphaBeta{}.String(),
 		},
 	}, searchStrategy.uci())
 }

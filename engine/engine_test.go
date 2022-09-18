@@ -15,7 +15,7 @@ func TestNew(t *testing.T) {
 	e := New()
 	assert.Equal(t, chess.StartingPosition().String(), e.game.Position().String())
 	assert.Equal(t, chess.UCINotation{}, e.notation)
-	assert.Equal(t, search.Negamax{}, e.search)
+	assert.Equal(t, search.AlphaBeta{}, e.search)
 	assert.Equal(t, evaluation.Simplified{}, e.evaluation)
 }
 
@@ -53,8 +53,8 @@ func TestOptions(t *testing.T) {
 		{
 			Type:    uci.OptionEnum,
 			Name:    "SearchStrategy",
-			Default: "Negamax",
-			Vars:    []string{"Capture", "Random", "Negamax"},
+			Default: "AlphaBeta",
+			Vars:    []string{"Random", "Capture", "Negamax", "AlphaBeta"},
 		},
 		{
 			Type:    uci.OptionEnum,

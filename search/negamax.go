@@ -65,7 +65,7 @@ func negamax(ctx context.Context, input Input) (*Output, error) {
 			Evaluation: input.Evaluation,
 		})
 		if err != nil {
-			return result, err
+			return nil, err
 		}
 
 		current.Score = -current.Score
