@@ -19,33 +19,37 @@ func (Negamax) String() string {
 // Search implements the Interface interface.
 func (Negamax) Search(ctx context.Context, input Input, output chan<- *Output) {
 	for depth := 1; depth <= input.Depth; depth++ {
-		select {
-		case <-ctx.Done():
-			return
-		default:
-		}
-
-		output <- negamax(Input{
+		o, err := negamax(ctx, Input{
 			Position:    input.Position,
 			SearchMoves: input.SearchMoves,
 			Depth:       depth,
 			Evaluation:  input.Evaluation,
 		})
+		if err != nil {
+			return
+		}
+		output <- o
 	}
 }
 
-// negamax is the recursive function that implements the Negamax algorithm
-func negamax(input Input) *Output {
+// negamax is the recursive function that implements the Negamax algorithm.
+func negamax(ctx context.Context, input Input) (*Output, error) {
+	select {
+	case <-ctx.Done():
+		return nil, context.Canceled
+	default:
+	}
+
 	output := terminalNode(input.Position)
 	if output != nil {
-		return output
+		return output, nil
 	}
 
 	if input.Depth == 0 {
 		return &Output{
 			Nodes: 1,
 			Score: input.Evaluation.Evaluate(input.Position),
-		}
+		}, nil
 	}
 
 	result := &Output{
@@ -55,11 +59,14 @@ func negamax(input Input) *Output {
 	}
 
 	for _, move := range searchMoves(input) {
-		current := negamax(Input{
+		current, err := negamax(ctx, Input{
 			Position:   input.Position.Update(move),
 			Depth:      input.Depth - 1,
 			Evaluation: input.Evaluation,
 		})
+		if err != nil {
+			return result, err
+		}
 
 		current.Score = -current.Score
 		current.Mate = -current.Mate
@@ -67,10 +74,10 @@ func negamax(input Input) *Output {
 		result.Nodes += current.Nodes
 	}
 
-	return result
+	return result, nil
 }
 
-// updateResult updates the result if the current output is better
+// updateResult updates the result if the current output is better.
 func updateResult(result, current *Output, move *chess.Move) {
 	// move that don't lead to mate but is better
 	if !current.mate && current.Score > result.Score {
@@ -92,7 +99,7 @@ func updateResult(result, current *Output, move *chess.Move) {
 	}
 }
 
-// searchMoves returns the list of moves to search
+// searchMoves returns the list of moves to search.
 func searchMoves(input Input) []*chess.Move {
 	if input.SearchMoves != nil {
 		return input.SearchMoves
@@ -100,7 +107,7 @@ func searchMoves(input Input) []*chess.Move {
 	return input.Position.ValidMoves()
 }
 
-// terminalNode checks if a position is terminal and returns the appropriate score
+// terminalNode checks if a position is terminal and returns the appropriate score.
 func terminalNode(position *chess.Position) *Output {
 	switch position.Status() {
 	case chess.Checkmate:
