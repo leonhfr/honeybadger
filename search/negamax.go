@@ -2,7 +2,6 @@ package search
 
 import (
 	"context"
-	"math"
 
 	"github.com/notnil/chess"
 )
@@ -28,6 +27,7 @@ func (Negamax) Search(ctx context.Context, input Input, output chan<- *Output) {
 		if err != nil {
 			return
 		}
+		o.Mate = matePlies(o.Score)
 		output <- o
 	}
 }
@@ -55,7 +55,7 @@ func negamax(ctx context.Context, input Input) (*Output, error) {
 	result := &Output{
 		Depth: input.Depth,
 		Nodes: 0,
-		Score: math.MinInt,
+		Score: -mateScore,
 	}
 
 	for _, move := range searchMoves(input) {
@@ -69,34 +69,43 @@ func negamax(ctx context.Context, input Input) (*Output, error) {
 		}
 
 		current.Score = -current.Score
-		current.Mate = -current.Mate
-		updateResult(result, current, move)
+		if current.Score > result.Score {
+			result.Score = current.Score
+			result.PV = append([]*chess.Move{move}, current.PV...)
+		}
 		result.Nodes += current.Nodes
 	}
 
+	result.Score = updateScore(result.Score)
 	return result, nil
 }
 
-// updateResult updates the result if the current output is better.
-func updateResult(result, current *Output, move *chess.Move) {
-	// move that don't lead to mate but is better
-	if !current.mate && current.Score > result.Score {
-		result.Score = current.Score
-		result.PV = append([]*chess.Move{move}, current.PV...)
+// sign returns the sign +/-1 of the passed integer.
+func sign(n int) int {
+	if n < 0 {
+		return -1
 	}
+	return 1
+}
 
-	// move that lead to mate when we don't have any currently
-	// or move that lead to mate that do so in fewer moves
-	if current.mate && (!result.mate || current.Mate < result.Mate) {
-		result.Score = current.Score
-		result.PV = append([]*chess.Move{move}, current.PV...)
-		inc := 1
-		if result.Score < 0 {
-			inc = -1
-		}
-		result.mate = true
-		result.Mate = current.Mate + inc
+// updateScore update the score to account for the distance to mate.
+func updateScore(score int) int {
+	sign := sign(score)
+	delta := mateScore - sign*score
+	if delta <= maxDepth {
+		return score - sign
 	}
+	return score
+}
+
+// matePlies returns the number of plies before mate.
+func matePlies(score int) int {
+	sign := sign(score)
+	delta := mateScore - sign*score
+	if delta <= maxDepth {
+		return sign * (delta/2 + delta%2)
+	}
+	return 0
 }
 
 // searchMoves returns the list of moves to search.
@@ -113,8 +122,7 @@ func terminalNode(position *chess.Position) *Output {
 	case chess.Checkmate:
 		return &Output{
 			Nodes: 1,
-			Score: math.MinInt + 1, // +1 allows negation to positive score
-			mate:  true,
+			Score: -mateScore, // current player is in checkmate
 		}
 	case chess.Stalemate,
 		chess.ThreefoldRepetition,

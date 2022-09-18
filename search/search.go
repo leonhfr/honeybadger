@@ -28,7 +28,6 @@ type Output struct {
 	Nodes int           // Number of nodes searched.
 	Score int           // Score from the engine's point of view in centipawns.
 	Mate  int           // Number of moves before mate. Positive for the current player to mate, negative for the current player to be mated.
-	mate  bool          // current position leads to mate
 	PV    []*chess.Move // Principal variation, best line found.
 }
 
@@ -44,7 +43,7 @@ func Run(ctx context.Context, input Input) <-chan *Output {
 	output := make(chan *Output)
 
 	if input.Depth == 0 {
-		input.Depth = math.MaxInt
+		input.Depth = maxDepth
 	}
 
 	go func() {
@@ -54,6 +53,13 @@ func Run(ctx context.Context, input Input) <-chan *Output {
 
 	return output
 }
+
+const (
+	// maxDepth is the maximum depth at which the package will search.
+	maxDepth = 64
+	// mateScore is the score a position is given when it is checkmated.
+	mateScore = math.MaxInt
+)
 
 func init() {
 	rand.Seed(time.Now().UnixNano())
