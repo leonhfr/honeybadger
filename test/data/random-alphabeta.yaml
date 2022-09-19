@@ -1,0 +1,9 @@
+white:
+  engine: ./honeybadger
+  options:
+    SearchStrategy: Random
+black:
+  engine: ./honeybadger
+  options:
+    SearchStrategy: AlphaBeta
+time: 500

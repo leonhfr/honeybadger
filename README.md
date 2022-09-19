@@ -4,7 +4,7 @@
 
 Honey Badger is a UCI-compliant chess engine written in Go. Honey Badger is not a complete chess software and requires a UCI-compatible graphical user interface (GUI) to be used comfortably.
 
-While being a toy project used for learning, it is working and actively maintained. Fair warning: it is not very strong.
+While it is a toy project used for learning, it's working and is actively maintained. Fair warning: it is not very strong.
 
 Key features include:
 
@@ -44,11 +44,24 @@ make build
 
 ## Quick start
 
-Honey Badger handles all of its communications via stdin and stdout using the UCI protocol. Therefore, a chess GUI that can communicate over UCI is needed. Refer to the documentation of your chosen GUI for information about how to use Honey Badger with it. We recommend:
+Honey Badger handles all of its communications via stdin and stdout using the [UCI protocol](https://backscattering.de/chess/uci/). Therefore, a chess GUI that can communicate over UCI is needed. Refer to the documentation of your chosen GUI for information about how to use Honey Badger with it. We recommend:
 
 - [leonhfr/cete](https://github.com/leonhfr/honeybadger), a CLI developed to pit UCI-compliant engines against each other. It runs games from command line options or configuration files, and can broadcast the game in a live web view.
 - [cutechess/CuteChess](https://github.com/cutechess/cutechess)
-- other options include SCID, Arena, Shredder, Fritz...
+- other options include [SCID](http://scid.sourceforge.net/), [Arena](http://www.playwitharena.de/), [Shredder](https://www.shredderchess.com/)...
+
+### Example
+
+Using [cete](https://github.com/leonhfr/honeybadger), you can quickly make UCI engines play games against each other using configuration files. For example:
+
+```sh
+# This will play a game between two Honey Badger, one playing randomly and the other using negamax with alpha-beta pruning
+cete game ./test/data/random-alphabeta.yaml
+
+
+# This will play a game with the same options and will also broadcast the game in a web view
+cete game -b ./test/data/random-alphabeta.yaml
+```
 
 ## Options
 
