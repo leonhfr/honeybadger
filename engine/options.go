@@ -3,6 +3,7 @@ package engine
 import (
 	"errors"
 	"fmt"
+	"strconv"
 
 	"github.com/leonhfr/honeybadger/evaluation"
 	"github.com/leonhfr/honeybadger/quiescence"
@@ -11,13 +12,15 @@ import (
 )
 
 var (
-	errOptionName  = errors.New("option name not found")
-	errOptionValue = errors.New("option value not found")
+	errOptionName   = errors.New("option name not found")
+	errOptionValue  = errors.New("option value not found")
+	errOutsideBound = errors.New("option value outside bounds")
 
 	availableOptions = []option{
 		searchStrategy,
 		evaluationStrategy,
 		quiescenceStrategy,
+		hashOption,
 	}
 
 	searchStrategy = optionStrategy[search.Interface]{
@@ -51,6 +54,14 @@ var (
 		},
 		fn: WithQuiescence,
 	}
+
+	hashOption = optionInteger{
+		name: "Hash",
+		def:  32,
+		min:  1,
+		max:  1024,
+		fn:   WithHash,
+	}
 )
 
 // option is the interface implemented by each option type.
@@ -59,6 +70,48 @@ type option interface {
 	uci() uci.Option
 	defaultFunc() func(*Engine)
 	optionFunc(value string) (func(*Engine), error)
+}
+
+// optionInteger represents an integer option.
+type optionInteger struct {
+	name          string
+	def, min, max int
+	fn            func(int) func(*Engine)
+}
+
+// String implements the option interface.
+func (o optionInteger) String() string {
+	return o.name
+}
+
+// uci implements the option interface.
+func (o optionInteger) uci() uci.Option {
+	return uci.Option{
+		Type:    uci.OptionInteger,
+		Name:    o.name,
+		Default: fmt.Sprint(o.def),
+		Min:     fmt.Sprint(o.min),
+		Max:     fmt.Sprint(o.max),
+	}
+}
+
+// defaultFunc implements the option interface.
+func (o optionInteger) defaultFunc() func(*Engine) {
+	return o.fn(o.def)
+}
+
+// optionFunc implements the option interface.
+func (o optionInteger) optionFunc(value string) (func(*Engine), error) {
+	v, err := strconv.ParseInt(value, 10, 0)
+	if err != nil {
+		return func(e *Engine) {}, err
+	}
+
+	if int(v) < o.min || int(v) > o.max {
+		return func(e *Engine) {}, errOutsideBound
+	}
+
+	return o.fn(int(v)), nil
 }
 
 // optionStrategy represents a strategy option.

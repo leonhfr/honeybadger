@@ -19,6 +19,7 @@ func TestNew(t *testing.T) {
 	assert.Equal(t, search.AlphaBeta{}, e.options.search)
 	assert.Equal(t, evaluation.Simplified{}, e.options.evaluation)
 	assert.Equal(t, quiescence.None{}, e.options.quiescence)
+	assert.Equal(t, 32, e.options.hash)
 }
 
 func TestWithName(t *testing.T) {
@@ -74,6 +75,13 @@ func TestOptions(t *testing.T) {
 			Name:    "QuiescenceStrategy",
 			Default: "None",
 			Vars:    []string{"None", "AlphaBeta"},
+		},
+		{
+			Type:    uci.OptionInteger,
+			Name:    "Hash",
+			Default: "32",
+			Min:     "1",
+			Max:     "1024",
 		},
 	}, options)
 }

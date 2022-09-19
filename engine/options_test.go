@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -66,6 +67,64 @@ func TestOptionStrategyOptionFunc(t *testing.T) {
 			e := New(WithSearch(tt.args.search))
 			fn(e)
 			assert.Equal(t, tt.want.search, e.options.search)
+		})
+	}
+}
+
+func TestOptionIntegerString(t *testing.T) {
+	assert.Equal(t, hashOption.name, hashOption.String())
+}
+
+func TestOptionIntegerUCI(t *testing.T) {
+	assert.Equal(t, uci.Option{
+		Type:    uci.OptionInteger,
+		Name:    hashOption.name,
+		Default: fmt.Sprint(hashOption.def),
+		Min:     fmt.Sprint(hashOption.min),
+		Max:     fmt.Sprint(hashOption.max),
+	}, hashOption.uci())
+}
+
+// optionInteger.defaultFunc tested in New
+
+func TestOptionIntegerOptionFunc(t *testing.T) {
+	type want struct {
+		value int
+		err   string
+	}
+
+	tests := []struct {
+		name string
+		args string
+		want want
+	}{
+		{
+			name: "value cannot be parsed as integer",
+			args: "foobar",
+			want: want{32, "strconv.ParseInt: parsing \"foobar\": invalid syntax"},
+		},
+		{
+			name: "value is outside bounds",
+			args: "0",
+			want: want{32, errOutsideBound.Error()},
+		},
+		{
+			name: "value is valid",
+			args: "256",
+			want: want{256, ""},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fn, err := hashOption.optionFunc(tt.args)
+			if err != nil {
+				assert.Equal(t, tt.want.err, err.Error())
+			}
+
+			e := New()
+			fn(e)
+			assert.Equal(t, tt.want.value, e.options.hash)
 		})
 	}
 }

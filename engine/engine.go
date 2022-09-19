@@ -37,6 +37,7 @@ type engineOptions struct {
 	search     search.Interface     // search strategy
 	evaluation evaluation.Interface // evaluation strategy
 	quiescence quiescence.Interface // quiescence strategy
+	hash       int                  // size of the transposition hash table in MB
 }
 
 // New returns a new Engine.
@@ -111,6 +112,13 @@ func WithEvaluation(ei evaluation.Interface) func(*Engine) {
 func WithQuiescence(qi quiescence.Interface) func(*Engine) {
 	return func(e *Engine) {
 		e.options.quiescence = qi
+	}
+}
+
+// WithHash sets the size of the transposition hash table in MB.
+func WithHash(hash int) func(*Engine) {
+	return func(e *Engine) {
+		e.options.hash = hash
 	}
 }
 

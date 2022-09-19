@@ -87,3 +87,8 @@ cete game -b ./test/data/random-alphabeta.yaml
 
   - None (default): no quiescence search is performed.
   - AlphaBeta: negamax algorithm with alpha-beta pruning.
+
+- **Hash**
+
+  Size of the transposition hash table in megabytes (MB).
+  Defaults to 32 MB, can range from 1 to 1024 MB.
