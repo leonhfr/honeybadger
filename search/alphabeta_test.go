@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/leonhfr/honeybadger/evaluation"
+	"github.com/leonhfr/honeybadger/quiescence"
 )
 
 func TestAlphaBeta(t *testing.T) {
@@ -55,6 +56,7 @@ func TestAlphaBeta(t *testing.T) {
 				Position:   position(tt.args.fen),
 				Depth:      tt.args.depth,
 				Evaluation: evaluation.Simplified{},
+				Quiescence: quiescence.None{},
 			}, -evaluation.Mate, evaluation.Mate)
 
 			output := *o

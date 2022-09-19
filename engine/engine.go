@@ -11,6 +11,7 @@ import (
 	"github.com/notnil/chess"
 
 	"github.com/leonhfr/honeybadger/evaluation"
+	"github.com/leonhfr/honeybadger/quiescence"
 	"github.com/leonhfr/honeybadger/search"
 	"github.com/leonhfr/honeybadger/uci"
 )
@@ -31,6 +32,7 @@ type Engine struct {
 	stopSearch chan struct{}
 	search     search.Interface
 	evaluation evaluation.Interface
+	quiescence quiescence.Interface
 }
 
 // New returns a new Engine.
@@ -97,6 +99,13 @@ func WithSearch(si search.Interface) func(*Engine) {
 func WithEvaluation(ei evaluation.Interface) func(*Engine) {
 	return func(e *Engine) {
 		e.evaluation = ei
+	}
+}
+
+// WithQuiescence sets the quiescence strategy.
+func WithQuiescence(qi quiescence.Interface) func(*Engine) {
+	return func(e *Engine) {
+		e.quiescence = qi
 	}
 }
 
@@ -190,6 +199,7 @@ func (e *Engine) Search(input uci.Input) <-chan uci.Output {
 		Depth:       input.Depth,
 		Search:      e.search,
 		Evaluation:  e.evaluation,
+		Quiescence:  e.quiescence,
 	})
 
 	go func() {

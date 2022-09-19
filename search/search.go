@@ -10,6 +10,7 @@ import (
 	"github.com/notnil/chess"
 
 	"github.com/leonhfr/honeybadger/evaluation"
+	"github.com/leonhfr/honeybadger/quiescence"
 )
 
 // Input holds a search input.
@@ -19,6 +20,7 @@ type Input struct {
 	Depth       int                  // Search <x> plies only.
 	Search      Interface            // Search strategy to use.
 	Evaluation  evaluation.Interface // Evaluation strategy to use.
+	Quiescence  quiescence.Interface // Quiescence strategy to use.
 }
 
 // Output holds a search output.

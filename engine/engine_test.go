@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/leonhfr/honeybadger/evaluation"
+	"github.com/leonhfr/honeybadger/quiescence"
 	"github.com/leonhfr/honeybadger/search"
 	"github.com/leonhfr/honeybadger/uci"
 )
@@ -17,6 +18,7 @@ func TestNew(t *testing.T) {
 	assert.Equal(t, chess.UCINotation{}, e.notation)
 	assert.Equal(t, search.AlphaBeta{}, e.search)
 	assert.Equal(t, evaluation.Simplified{}, e.evaluation)
+	assert.Equal(t, quiescence.None{}, e.quiescence)
 }
 
 func TestWithName(t *testing.T) {
@@ -37,6 +39,11 @@ func TestWithSearch(t *testing.T) {
 func TestWithEvaluation(t *testing.T) {
 	e := New(WithEvaluation(evaluation.Simplified{}))
 	assert.Equal(t, evaluation.Simplified{}, e.evaluation)
+}
+
+func TestWithQuiescence(t *testing.T) {
+	e := New(WithQuiescence(quiescence.AlphaBeta{}))
+	assert.Equal(t, quiescence.AlphaBeta{}, e.quiescence)
 }
 
 func TestInfo(t *testing.T) {
@@ -61,6 +68,12 @@ func TestOptions(t *testing.T) {
 			Name:    "EvaluationStrategy",
 			Default: "Simplified",
 			Vars:    []string{"Values", "Simplified"},
+		},
+		{
+			Type:    uci.OptionEnum,
+			Name:    "QuiescenceStrategy",
+			Default: "None",
+			Vars:    []string{"None", "AlphaBeta"},
 		},
 	}, options)
 }

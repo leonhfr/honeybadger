@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/leonhfr/honeybadger/evaluation"
+	"github.com/leonhfr/honeybadger/quiescence"
 	"github.com/leonhfr/honeybadger/search"
 	"github.com/leonhfr/honeybadger/uci"
 )
@@ -16,6 +17,7 @@ var (
 	availableOptions = []option{
 		searchStrategy,
 		evaluationStrategy,
+		quiescenceStrategy,
 	}
 
 	searchStrategy = optionStrategy[search.Interface]{
@@ -38,6 +40,16 @@ var (
 			evaluation.Simplified{},
 		},
 		fn: WithEvaluation,
+	}
+
+	quiescenceStrategy = optionStrategy[quiescence.Interface]{
+		name: "QuiescenceStrategy",
+		def:  quiescence.None{},
+		vars: []quiescence.Interface{
+			quiescence.None{},
+			quiescence.AlphaBeta{},
+		},
+		fn: WithQuiescence,
 	}
 )
 

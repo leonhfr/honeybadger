@@ -67,3 +67,10 @@ Honey Badger handles all of its communications via stdin and stdout using the UC
 
   - Values: difference between the piece values of each side.
   - Simplified (default): combination of piece values and positional advantage.
+
+- **QuiescenceStrategy**
+
+  Quiescence strategy to use. Available strategies are:
+
+  - None (default): no quiescence search is performed.
+  - AlphaBeta: negamax algorithm with alpha-beta pruning.

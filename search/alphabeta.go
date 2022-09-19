@@ -6,6 +6,7 @@ import (
 	"github.com/notnil/chess"
 
 	"github.com/leonhfr/honeybadger/evaluation"
+	"github.com/leonhfr/honeybadger/quiescence"
 )
 
 // AlphaBeta pruning is an optimization for Negamax. It returns the same
@@ -25,6 +26,7 @@ func (AlphaBeta) Search(ctx context.Context, input Input, output chan<- *Output)
 			SearchMoves: input.SearchMoves,
 			Depth:       depth,
 			Evaluation:  input.Evaluation,
+			Quiescence:  input.Quiescence,
 		}, -evaluation.Mate, evaluation.Mate)
 		if err != nil {
 			return
@@ -52,9 +54,27 @@ func alphaBeta(ctx context.Context, input Input, alpha, beta int) (*Output, erro
 	}
 
 	if input.Depth == 0 {
+		if quiescence.IsQuiet(input.Position) {
+			return &Output{
+				Nodes: 1,
+				Score: input.Evaluation.Evaluate(input.Position),
+			}, nil
+		}
+
+		output, err := input.Quiescence.Search(ctx, quiescence.Input{
+			Position:   input.Position,
+			Depth:      quiescence.MaxDepth,
+			Alpha:      -beta,
+			Beta:       -alpha,
+			Evaluation: input.Evaluation,
+		})
+		if err != nil {
+			return nil, err
+		}
+
 		return &Output{
-			Nodes: 1,
-			Score: input.Evaluation.Evaluate(input.Position),
+			Nodes: output.Nodes,
+			Score: output.Score,
 		}, nil
 	}
 
@@ -69,6 +89,7 @@ func alphaBeta(ctx context.Context, input Input, alpha, beta int) (*Output, erro
 			Position:   input.Position.Update(move),
 			Depth:      input.Depth - 1,
 			Evaluation: input.Evaluation,
+			Quiescence: input.Quiescence,
 		}, -beta, -alpha)
 		if err != nil {
 			return nil, err
