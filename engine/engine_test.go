@@ -16,9 +16,9 @@ func TestNew(t *testing.T) {
 	e := New()
 	assert.Equal(t, chess.StartingPosition().String(), e.game.Position().String())
 	assert.Equal(t, chess.UCINotation{}, e.notation)
-	assert.Equal(t, search.AlphaBeta{}, e.search)
-	assert.Equal(t, evaluation.Simplified{}, e.evaluation)
-	assert.Equal(t, quiescence.None{}, e.quiescence)
+	assert.Equal(t, search.AlphaBeta{}, e.options.search)
+	assert.Equal(t, evaluation.Simplified{}, e.options.evaluation)
+	assert.Equal(t, quiescence.None{}, e.options.quiescence)
 }
 
 func TestWithName(t *testing.T) {
@@ -33,17 +33,17 @@ func TestWithAuthor(t *testing.T) {
 
 func TestWithSearch(t *testing.T) {
 	e := New(WithSearch(search.Capture{}))
-	assert.Equal(t, search.Capture{}, e.search)
+	assert.Equal(t, search.Capture{}, e.options.search)
 }
 
 func TestWithEvaluation(t *testing.T) {
 	e := New(WithEvaluation(evaluation.Simplified{}))
-	assert.Equal(t, evaluation.Simplified{}, e.evaluation)
+	assert.Equal(t, evaluation.Simplified{}, e.options.evaluation)
 }
 
 func TestWithQuiescence(t *testing.T) {
 	e := New(WithQuiescence(quiescence.AlphaBeta{}))
-	assert.Equal(t, quiescence.AlphaBeta{}, e.quiescence)
+	assert.Equal(t, quiescence.AlphaBeta{}, e.options.quiescence)
 }
 
 func TestInfo(t *testing.T) {
@@ -116,7 +116,7 @@ func TestSetOption(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			e := New(WithSearch(tt.args.search))
 			err := e.SetOption(tt.args.name, tt.args.value)
-			assert.Equal(t, tt.want.search, e.search)
+			assert.Equal(t, tt.want.search, e.options.search)
 			assert.Equal(t, tt.want.err, err)
 		})
 	}

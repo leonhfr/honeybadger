@@ -53,7 +53,7 @@ var (
 	}
 )
 
-// option is the interface implemented by each option type
+// option is the interface implemented by each option type.
 type option interface {
 	fmt.Stringer
 	uci() uci.Option
@@ -61,7 +61,7 @@ type option interface {
 	optionFunc(value string) (func(*Engine), error)
 }
 
-// optionStrategy represents a strategy option
+// optionStrategy represents a strategy option.
 type optionStrategy[T fmt.Stringer] struct {
 	name string
 	def  T
@@ -69,12 +69,12 @@ type optionStrategy[T fmt.Stringer] struct {
 	fn   func(T) func(*Engine)
 }
 
-// String implements the option interface
+// String implements the option interface.
 func (o optionStrategy[T]) String() string {
 	return o.name
 }
 
-// uci implements the option interface
+// uci implements the option interface.
 func (o optionStrategy[T]) uci() uci.Option {
 	var vars []string
 	for _, i := range o.vars {
@@ -88,12 +88,12 @@ func (o optionStrategy[T]) uci() uci.Option {
 	}
 }
 
-// defaultFunc implements the option interface
+// defaultFunc implements the option interface.
 func (o optionStrategy[T]) defaultFunc() func(*Engine) {
 	return o.fn(o.def)
 }
 
-// optionFunc implements the option interface
+// optionFunc implements the option interface.
 func (o optionStrategy[T]) optionFunc(value string) (func(*Engine), error) {
 	for _, i := range o.vars {
 		if value == i.String() {

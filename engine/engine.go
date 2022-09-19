@@ -30,9 +30,13 @@ type Engine struct {
 	notation   chess.Notation
 	mu         sync.Mutex
 	stopSearch chan struct{}
-	search     search.Interface
-	evaluation evaluation.Interface
-	quiescence quiescence.Interface
+	options    engineOptions
+}
+
+type engineOptions struct {
+	search     search.Interface     // search strategy
+	evaluation evaluation.Interface // evaluation strategy
+	quiescence quiescence.Interface // quiescence strategy
 }
 
 // New returns a new Engine.
@@ -46,6 +50,7 @@ func New(options ...func(*Engine)) *Engine {
 		notation:   chess.UCINotation{},
 		mu:         sync.Mutex{},
 		stopSearch: make(chan struct{}),
+		options:    engineOptions{},
 	}
 
 	for _, o := range availableOptions {
@@ -91,21 +96,21 @@ func WithNotation(notation chess.Notation) func(*Engine) {
 // WithSearch sets the search strategy.
 func WithSearch(si search.Interface) func(*Engine) {
 	return func(e *Engine) {
-		e.search = si
+		e.options.search = si
 	}
 }
 
 // WithEvaluation sets the evaluation strategy.
 func WithEvaluation(ei evaluation.Interface) func(*Engine) {
 	return func(e *Engine) {
-		e.evaluation = ei
+		e.options.evaluation = ei
 	}
 }
 
 // WithQuiescence sets the quiescence strategy.
 func WithQuiescence(qi quiescence.Interface) func(*Engine) {
 	return func(e *Engine) {
-		e.quiescence = qi
+		e.options.quiescence = qi
 	}
 }
 
@@ -197,9 +202,9 @@ func (e *Engine) Search(input uci.Input) <-chan uci.Output {
 		Position:    e.game.Position(),
 		SearchMoves: searchMoves,
 		Depth:       input.Depth,
-		Search:      e.search,
-		Evaluation:  e.evaluation,
-		Quiescence:  e.quiescence,
+		Search:      e.options.search,
+		Evaluation:  e.options.evaluation,
+		Quiescence:  e.options.quiescence,
 	})
 
 	go func() {

@@ -65,7 +65,7 @@ func TestOptionStrategyOptionFunc(t *testing.T) {
 
 			e := New(WithSearch(tt.args.search))
 			fn(e)
-			assert.Equal(t, tt.want.search, e.search)
+			assert.Equal(t, tt.want.search, e.options.search)
 		})
 	}
 }
