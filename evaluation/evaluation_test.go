@@ -46,3 +46,24 @@ func position(fen string) *chess.Position {
 	game.Outcome()
 	return game.Position()
 }
+
+func TestIncMateDistance(t *testing.T) {
+	tests := []struct {
+		name string
+		args int
+		want int
+	}{
+		{"", Mate, Mate - 1},
+		{"", Mate - 1, Mate - 2},
+		{"", Mate - 2, Mate - 3},
+		{"", -Mate, -Mate + 1},
+		{"", -Mate + 1, -Mate + 2},
+		{"", -Mate + 2, -Mate + 3},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, IncMateDistance(tt.args, 64))
+		})
+	}
+}

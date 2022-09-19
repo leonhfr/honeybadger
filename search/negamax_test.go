@@ -74,27 +74,6 @@ func TestNegamax(t *testing.T) {
 	}
 }
 
-func TestAdjustScore(t *testing.T) {
-	tests := []struct {
-		name string
-		args int
-		want int
-	}{
-		{"", evaluation.Mate, evaluation.Mate - 1},
-		{"", evaluation.Mate - 1, evaluation.Mate - 2},
-		{"", evaluation.Mate - 2, evaluation.Mate - 3},
-		{"", -evaluation.Mate, -evaluation.Mate + 1},
-		{"", -evaluation.Mate + 1, -evaluation.Mate + 2},
-		{"", -evaluation.Mate + 2, -evaluation.Mate + 3},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			assert.Equal(t, tt.want, adjustScore(tt.args))
-		})
-	}
-}
-
 func TestMateIn(t *testing.T) {
 	tests := []struct {
 		name string

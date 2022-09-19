@@ -90,6 +90,6 @@ func alphaBeta(ctx context.Context, input Input, alpha, beta int) (*Output, erro
 		}
 	}
 
-	result.Score = adjustScore(result.Score)
+	result.Score = evaluation.IncMateDistance(result.Score, maxDepth)
 	return result, nil
 }

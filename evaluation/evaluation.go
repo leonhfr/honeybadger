@@ -40,3 +40,19 @@ func Terminal(position *chess.Position) (int, bool) {
 		return 0, false
 	}
 }
+
+// IncMateDistance increase the distance to the mate by a count of one.
+//
+// In case of a positive score, it is decreased by 1.
+// In case of a negative score, it is increased by 1.
+func IncMateDistance(score, maxDepth int) int {
+	sign := 1
+	if score < 0 {
+		sign = -1
+	}
+	delta := Mate - sign*score
+	if delta <= maxDepth {
+		return score - sign
+	}
+	return score
+}
