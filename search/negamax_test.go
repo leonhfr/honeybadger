@@ -74,7 +74,7 @@ func TestNegamax(t *testing.T) {
 	}
 }
 
-func TestUpdateScore(t *testing.T) {
+func TestAdjustScore(t *testing.T) {
 	tests := []struct {
 		name string
 		args int
@@ -90,7 +90,7 @@ func TestUpdateScore(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			assert.Equal(t, tt.want, updateScore(tt.args))
+			assert.Equal(t, tt.want, adjustScore(tt.args))
 		})
 	}
 }

@@ -81,7 +81,7 @@ func negamax(ctx context.Context, input Input) (*Output, error) {
 		result.Nodes += current.Nodes
 	}
 
-	result.Score = updateScore(result.Score)
+	result.Score = adjustScore(result.Score)
 	return result, nil
 }
 
@@ -93,8 +93,8 @@ func sign(n int) int {
 	return 1
 }
 
-// updateScore update the score to account for the distance to mate.
-func updateScore(score int) int {
+// adjustScore updates the score to account for the distance to mate.
+func adjustScore(score int) int {
 	sign := sign(score)
 	delta := evaluation.Mate - sign*score
 	if delta <= maxDepth {

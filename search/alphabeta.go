@@ -90,6 +90,6 @@ func alphaBeta(ctx context.Context, input Input, alpha, beta int) (*Output, erro
 		}
 	}
 
-	result.Score = updateScore(result.Score)
+	result.Score = adjustScore(result.Score)
 	return result, nil
 }
