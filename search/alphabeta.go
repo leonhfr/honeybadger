@@ -4,6 +4,8 @@ import (
 	"context"
 
 	"github.com/notnil/chess"
+
+	"github.com/leonhfr/honeybadger/evaluation"
 )
 
 // AlphaBeta pruning is an optimization for Negamax. It returns the same
@@ -23,11 +25,11 @@ func (AlphaBeta) Search(ctx context.Context, input Input, output chan<- *Output)
 			SearchMoves: input.SearchMoves,
 			Depth:       depth,
 			Evaluation:  input.Evaluation,
-		}, -mateScore, mateScore)
+		}, -evaluation.Mate, evaluation.Mate)
 		if err != nil {
 			return
 		}
-		o.Mate = matePlies(o.Score)
+		o.Mate = mateIn(o.Score)
 		output <- o
 	}
 }
@@ -56,7 +58,7 @@ func alphaBeta(ctx context.Context, input Input, alpha, beta int) (*Output, erro
 	result := &Output{
 		Depth: input.Depth,
 		Nodes: 0,
-		Score: -mateScore,
+		Score: -evaluation.Mate,
 	}
 
 	for _, move := range searchMoves(input) {

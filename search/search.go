@@ -4,7 +4,6 @@ package search
 import (
 	"context"
 	"fmt"
-	"math"
 	"math/rand"
 	"time"
 
@@ -57,8 +56,6 @@ func Run(ctx context.Context, input Input) <-chan *Output {
 const (
 	// maxDepth is the maximum depth at which the package will search.
 	maxDepth = 64
-	// mateScore is the score a position is given when it is checkmated.
-	mateScore = math.MaxInt
 )
 
 func init() {

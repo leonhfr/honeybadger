@@ -4,6 +4,8 @@ import (
 	"context"
 
 	"github.com/notnil/chess"
+
+	"github.com/leonhfr/honeybadger/evaluation"
 )
 
 // Negamax is a variant form of minimax that relies on the
@@ -27,7 +29,7 @@ func (Negamax) Search(ctx context.Context, input Input, output chan<- *Output) {
 		if err != nil {
 			return
 		}
-		o.Mate = matePlies(o.Score)
+		o.Mate = mateIn(o.Score)
 		output <- o
 	}
 }
@@ -55,7 +57,7 @@ func negamax(ctx context.Context, input Input) (*Output, error) {
 	result := &Output{
 		Depth: input.Depth,
 		Nodes: 0,
-		Score: -mateScore,
+		Score: -evaluation.Mate,
 	}
 
 	for _, move := range searchMoves(input) {
@@ -91,17 +93,17 @@ func sign(n int) int {
 // updateScore update the score to account for the distance to mate.
 func updateScore(score int) int {
 	sign := sign(score)
-	delta := mateScore - sign*score
+	delta := evaluation.Mate - sign*score
 	if delta <= maxDepth {
 		return score - sign
 	}
 	return score
 }
 
-// matePlies returns the number of plies before mate.
-func matePlies(score int) int {
+// mateIn returns the number of moves before mate.
+func mateIn(score int) int {
 	sign := sign(score)
-	delta := mateScore - sign*score
+	delta := evaluation.Mate - sign*score
 	if delta <= maxDepth {
 		return sign * (delta/2 + delta%2)
 	}
@@ -122,7 +124,7 @@ func terminalNode(position *chess.Position) *Output {
 	case chess.Checkmate:
 		return &Output{
 			Nodes: 1,
-			Score: -mateScore, // current player is in checkmate
+			Score: -evaluation.Mate, // current player is in checkmate
 		}
 	case chess.Stalemate,
 		chess.ThreefoldRepetition,
@@ -132,7 +134,7 @@ func terminalNode(position *chess.Position) *Output {
 		chess.InsufficientMaterial:
 		return &Output{
 			Nodes: 1,
-			Score: 0, // draw
+			Score: evaluation.Draw,
 		}
 	default:
 		return nil

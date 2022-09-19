@@ -3,6 +3,7 @@ package evaluation
 
 import (
 	"fmt"
+	"math"
 
 	"github.com/notnil/chess"
 )
@@ -14,3 +15,10 @@ type Interface interface {
 	fmt.Stringer
 	Evaluate(p *chess.Position) int
 }
+
+const (
+	// Mate is the score of a checkmate.
+	Mate = math.MaxInt
+	// Draw is the score of a draw.
+	Draw = 0
+)

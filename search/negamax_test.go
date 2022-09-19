@@ -31,22 +31,22 @@ func TestNegamax(t *testing.T) {
 		{
 			name: "checkmate",
 			args: args{"8/8/8/5K1k/8/8/8/7R b - - 0 1", 1},
-			want: want{Output{0, 1, -mateScore, 0, nil}, nil, nil},
+			want: want{Output{0, 1, -evaluation.Mate, 0, nil}, nil, nil},
 		},
 		{
 			name: "mate in 1",
 			args: args{"8/8/8/5K1k/8/8/8/5R2 w - - 0 1", 1},
-			want: want{Output{1, 15, mateScore - 1, 0, nil}, []string{"f1h1"}, nil},
+			want: want{Output{1, 15, evaluation.Mate - 1, 0, nil}, []string{"f1h1"}, nil},
 		},
 		{
 			name: "mate in 1",
 			args: args{"r1b1kb1r/pppp1ppp/2n1pq2/8/3Pn2N/2P3P1/PP1NPP1P/R1BQKB1R b KQkq - 3 6", 1},
-			want: want{Output{1, 46, mateScore - 1, 0, nil}, []string{"f6f2"}, nil},
+			want: want{Output{1, 46, evaluation.Mate - 1, 0, nil}, []string{"f6f2"}, nil},
 		},
 		{
 			name: "mate in 2",
 			args: args{"5rk1/pb2npp1/1pq4p/5p2/5B2/1B6/P2RQ1PP/2r1R2K b - - 0 1", 3},
-			want: want{Output{3, 90094, 9223372036854775804, 0, nil}, []string{"c6g2", "e2g2", "c1e1"}, nil},
+			want: want{Output{3, 90094, evaluation.Mate - 3, 0, nil}, []string{"c6g2", "e2g2", "c1e1"}, nil},
 		},
 	}
 
@@ -80,12 +80,12 @@ func TestUpdateScore(t *testing.T) {
 		args int
 		want int
 	}{
-		{"", mateScore, mateScore - 1},
-		{"", mateScore - 1, mateScore - 2},
-		{"", mateScore - 2, mateScore - 3},
-		{"", -mateScore, -mateScore + 1},
-		{"", -mateScore + 1, -mateScore + 2},
-		{"", -mateScore + 2, -mateScore + 3},
+		{"", evaluation.Mate, evaluation.Mate - 1},
+		{"", evaluation.Mate - 1, evaluation.Mate - 2},
+		{"", evaluation.Mate - 2, evaluation.Mate - 3},
+		{"", -evaluation.Mate, -evaluation.Mate + 1},
+		{"", -evaluation.Mate + 1, -evaluation.Mate + 2},
+		{"", -evaluation.Mate + 2, -evaluation.Mate + 3},
 	}
 
 	for _, tt := range tests {
@@ -95,7 +95,7 @@ func TestUpdateScore(t *testing.T) {
 	}
 }
 
-func TestMatePlies(t *testing.T) {
+func TestMateIn(t *testing.T) {
 	tests := []struct {
 		name string
 		args int
@@ -104,23 +104,23 @@ func TestMatePlies(t *testing.T) {
 		{"normal move", 0, 0},
 		{"normal move", 100, 0},
 		{"normal move", -100, 0},
-		{"mate", mateScore, 0},
-		{"mate", -mateScore, 0},
-		{"mate in 1", mateScore - 1, 1},
-		{"mate in 1", -mateScore + 1, -1},
-		{"mate in 2", mateScore - 2, 1},
-		{"mate in 2", -mateScore + 2, -1},
-		{"mate in 2", mateScore - 3, 2},
-		{"mate in 2", -mateScore + 3, -2},
-		{"mate in 2", mateScore - 4, 2},
-		{"mate in 2", -mateScore + 4, -2},
-		{"mate in 3", mateScore - 5, 3},
-		{"mate in 3", -mateScore + 5, -3},
+		{"mate", evaluation.Mate, 0},
+		{"mate", -evaluation.Mate, 0},
+		{"mate in 1", evaluation.Mate - 1, 1},
+		{"mate in 1", -evaluation.Mate + 1, -1},
+		{"mate in 2", evaluation.Mate - 2, 1},
+		{"mate in 2", -evaluation.Mate + 2, -1},
+		{"mate in 2", evaluation.Mate - 3, 2},
+		{"mate in 2", -evaluation.Mate + 3, -2},
+		{"mate in 2", evaluation.Mate - 4, 2},
+		{"mate in 2", -evaluation.Mate + 4, -2},
+		{"mate in 3", evaluation.Mate - 5, 3},
+		{"mate in 3", -evaluation.Mate + 5, -3},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			assert.Equal(t, tt.want, matePlies(tt.args))
+			assert.Equal(t, tt.want, mateIn(tt.args))
 		})
 	}
 }
@@ -144,7 +144,7 @@ func TestTerminalNode(t *testing.T) {
 		{
 			name: "checkmate",
 			args: "8/8/8/5K1k/8/8/8/7R b - - 0 1",
-			want: want{false, Output{Nodes: 1, Score: -mateScore}},
+			want: want{false, Output{Nodes: 1, Score: -evaluation.Mate}},
 		},
 		// TODO: stalemate (FEN: 7k/5K2/8/5R2/8/8/8/8 b - - 0 1) github.com/notnil/chess doesn't decode check and valid moves from FEN
 	}
