@@ -43,9 +43,12 @@ func alphaBeta(ctx context.Context, input Input, alpha, beta int) (*Output, erro
 	default:
 	}
 
-	output := terminalNode(input.Position)
-	if output != nil {
-		return output, nil
+	score, terminal := evaluation.Terminal(input.Position)
+	if terminal {
+		return &Output{
+			Nodes: 1,
+			Score: score,
+		}, nil
 	}
 
 	if input.Depth == 0 {

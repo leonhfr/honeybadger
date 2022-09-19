@@ -42,9 +42,12 @@ func negamax(ctx context.Context, input Input) (*Output, error) {
 	default:
 	}
 
-	output := terminalNode(input.Position)
-	if output != nil {
-		return output, nil
+	score, terminal := evaluation.Terminal(input.Position)
+	if terminal {
+		return &Output{
+			Nodes: 1,
+			Score: score,
+		}, nil
 	}
 
 	if input.Depth == 0 {
@@ -116,27 +119,4 @@ func searchMoves(input Input) []*chess.Move {
 		return input.SearchMoves
 	}
 	return input.Position.ValidMoves()
-}
-
-// terminalNode checks if a position is terminal and returns the appropriate score.
-func terminalNode(position *chess.Position) *Output {
-	switch position.Status() {
-	case chess.Checkmate:
-		return &Output{
-			Nodes: 1,
-			Score: -evaluation.Mate, // current player is in checkmate
-		}
-	case chess.Stalemate,
-		chess.ThreefoldRepetition,
-		chess.FivefoldRepetition,
-		chess.FiftyMoveRule,
-		chess.SeventyFiveMoveRule,
-		chess.InsufficientMaterial:
-		return &Output{
-			Nodes: 1,
-			Score: evaluation.Draw,
-		}
-	default:
-		return nil
-	}
 }

@@ -125,43 +125,6 @@ func TestMateIn(t *testing.T) {
 	}
 }
 
-func TestTerminalNode(t *testing.T) {
-	type want struct {
-		isNil  bool
-		output Output
-	}
-
-	tests := []struct {
-		name string
-		args string // fen
-		want want
-	}{
-		{
-			name: "in game",
-			args: "8/8/8/5K1k/8/8/8/7R w - - 0 1",
-			want: want{true, Output{}},
-		},
-		{
-			name: "checkmate",
-			args: "8/8/8/5K1k/8/8/8/7R b - - 0 1",
-			want: want{false, Output{Nodes: 1, Score: -evaluation.Mate}},
-		},
-		// TODO: stalemate (FEN: 7k/5K2/8/5R2/8/8/8/8 b - - 0 1) github.com/notnil/chess doesn't decode check and valid moves from FEN
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			output := terminalNode(position(tt.args))
-			if tt.want.isNil {
-				assert.Nil(t, output)
-			} else {
-				assert.NotNil(t, output)
-				assert.Equal(t, tt.want.output, *output)
-			}
-		})
-	}
-}
-
 func position(fen string) *chess.Position {
 	fn, _ := chess.FEN(fen)
 	game := chess.NewGame(fn)

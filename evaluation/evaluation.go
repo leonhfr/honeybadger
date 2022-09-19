@@ -22,3 +22,21 @@ const (
 	// Draw is the score of a draw.
 	Draw = 0
 )
+
+// Terminal checks if a position is terminal and returns a tuple (int, bool)
+// returning the position score and whether it is terminal.
+func Terminal(position *chess.Position) (int, bool) {
+	switch position.Status() {
+	case chess.Checkmate:
+		return -Mate, true
+	case chess.Stalemate,
+		chess.ThreefoldRepetition,
+		chess.FivefoldRepetition,
+		chess.FiftyMoveRule,
+		chess.SeventyFiveMoveRule,
+		chess.InsufficientMaterial:
+		return Draw, true
+	default:
+		return 0, false
+	}
+}
