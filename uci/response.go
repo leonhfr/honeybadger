@@ -107,7 +107,7 @@ func (r responseBestMove) String() string {
 //
 // x nodes searched, the engine should send this info regularly.
 //
-//	pv <move1> ... <movei>
+//	pv <move1> ... <move i>
 //
 // The best line found.
 //
@@ -162,9 +162,9 @@ func (r responseBestMove) String() string {
 // Any string str which will be displayed be the engine,
 // if there is a string command the rest of the line will be interpreted as <str>.
 //
-//	refutation <move1> <move2> ... <movei>
+//	refutation <move1> <move2> ... <move i>
 //
-// Move <move1> is refuted by the line <move2> ... <movei>, i can be any number >= 1.
+// Move <move1> is refuted by the line <move2> ... <move i>, i can be any number >= 1.
 //
 // Example: after move d1h5 is searched, the engine can send
 // "info refutation d1h5 g6h5"
@@ -173,7 +173,7 @@ func (r responseBestMove) String() string {
 // "info refutation d1h5".
 // The engine should only send this if the option "UCI_ShowRefutations" is set to true.
 //
-//	currline <cpunr> <move1> ... <movei>
+//	currline <cpunr> <move1> ... <move i>
 //
 // This is the current line the engine is calculating. <cpunr> is the number of the cpu if
 // the engine is running on more than one cpu. <cpunr> = 1,2,3...

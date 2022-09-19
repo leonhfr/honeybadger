@@ -125,7 +125,7 @@ func (commandUCINewGame) run(e Engine, rc chan<- response) {
 
 // commandPosition represents a "position" command.
 //
-//	position [fen <fenstring> | startpos ] moves <move1> ... <movei>
+//	position [fen <fenstring> | startpos ] moves <move1> ... <move i>
 //
 // Set up the position described in fenstring on the internal board and
 // play the moves on the internal chess board.
@@ -133,7 +133,7 @@ func (commandUCINewGame) run(e Engine, rc chan<- response) {
 // If the game was played  from the start position the string "startpos" will be sent.
 //
 // Note: no "new" command is needed. However, if this position is from a different game than
-// the last position sent to the engine, the GUI should have sent a "ucinewgame" inbetween.
+// the last position sent to the engine, the GUI should have sent a "ucinewgame" in between.
 type commandPosition struct {
 	fen      string
 	startPos bool
@@ -163,7 +163,7 @@ func (c commandPosition) run(e Engine, rc chan<- response) {
 // There are a number of commands that can follow this command, all will be sent in the same string.
 // If one command is not sent its value should be interpreted as it would not influence the search.
 //
-//	searchmoves <move1> ... <movei>
+//	searchmoves <move1> ... <move i>
 //
 // Restrict search to this moves only.
 //
