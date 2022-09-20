@@ -16,6 +16,7 @@ func TestParse(t *testing.T) {
 		args string
 		want command
 	}{
+		{name: "no input", args: "", want: nil},
 		{name: "uci", args: "uci", want: commandUCI{}},
 		{name: "debug on", args: "debug on", want: commandDebug{on: true}},
 		{name: "debug off", args: "debug off", want: commandDebug{on: false}},

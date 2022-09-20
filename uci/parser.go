@@ -11,6 +11,10 @@ const fenFields = 6
 // parse parses UCI commands and returns a Command object.
 func parse(command []string) command {
 	var index int
+	if len(command) == 0 {
+		return nil
+	}
+
 top:
 	switch command[index] {
 	case "uci":
