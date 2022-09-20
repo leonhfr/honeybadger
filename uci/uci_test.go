@@ -37,8 +37,9 @@ func (m *mockEngine) Info() (name, author string) {
 	return args.String(0), args.String(1)
 }
 
-func (m *mockEngine) Init() {
-	m.Called()
+func (m *mockEngine) Init() error {
+	args := m.Called()
+	return args.Error(0)
 }
 
 func (m *mockEngine) Options() []Option {
@@ -65,9 +66,9 @@ func (m *mockEngine) ResetPosition() {
 	m.Called()
 }
 
-func (m *mockEngine) Search(input Input) <-chan Output {
+func (m *mockEngine) Search(input Input) (<-chan Output, error) {
 	args := m.Called(input)
-	return args.Get(0).(chan Output)
+	return args.Get(0).(chan Output), args.Error(1)
 }
 
 func (m *mockEngine) StopSearch() {

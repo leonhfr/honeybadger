@@ -3,6 +3,7 @@ package engine
 
 import (
 	"context"
+	"errors"
 	"log"
 	"os"
 	"sync"
@@ -21,17 +22,25 @@ const (
 	defaultMoveTime = 5 * time.Second
 )
 
+var (
+	errOptionName = errors.New("option name not found")
+	errSetOption  = errors.New("cannot set option after engine has been initialized")
+	errSearch     = errors.New("cannot run a search before engine has been initialized")
+)
+
 // Engine represents the engine object.
 type Engine struct {
-	name       string
-	author     string
-	debug      bool
-	logger     *log.Logger
-	game       *chess.Game
-	notation   chess.Notation
-	mu         sync.Mutex
-	stopSearch chan struct{}
-	options    engineOptions
+	name        string
+	author      string
+	debug       bool
+	logger      *log.Logger
+	game        *chess.Game
+	notation    chess.Notation
+	mu          sync.Mutex
+	once        sync.Once
+	initialized bool
+	stopSearch  chan struct{}
+	options     engineOptions
 }
 
 type engineOptions struct {
@@ -142,7 +151,14 @@ func (e *Engine) Info() (name, author string) {
 }
 
 // Init sets everything up.
-func (e *Engine) Init() {}
+func (e *Engine) Init() error {
+	var err error
+	e.once.Do(func() {
+		err = e.options.transposition.Init()
+		e.initialized = true
+	})
+	return err
+}
 
 // Options lists the available options.
 func (e *Engine) Options() []uci.Option {
@@ -155,6 +171,10 @@ func (e *Engine) Options() []uci.Option {
 
 // SetOption sets an option.
 func (e *Engine) SetOption(name, value string) error {
+	if e.initialized {
+		return errSetOption
+	}
+
 	for _, option := range availableOptions {
 		if option.String() == name {
 			fn, err := option.optionFunc(value)
@@ -204,12 +224,17 @@ func (e *Engine) ResetPosition() {
 }
 
 // Search runs a search on the given input.
-func (e *Engine) Search(input uci.Input) <-chan uci.Output {
+func (e *Engine) Search(input uci.Input) (<-chan uci.Output, error) {
+	engineOutput := make(chan uci.Output)
+
+	if !e.initialized {
+		close(engineOutput)
+		return engineOutput, errSearch
+	}
+
 	e.mu.Lock()
 	start := time.Now()
 	ctx, cancel := newContext(input, e.stopSearch)
-
-	engineOutput := make(chan uci.Output)
 
 	searchMoves, err := searchMoves(e.notation, e.game.Position(), input.SearchMoves)
 	if err != nil {
@@ -246,7 +271,7 @@ func (e *Engine) Search(input uci.Input) <-chan uci.Output {
 		}
 	}()
 
-	return engineOutput
+	return engineOutput, nil
 }
 
 // StopSearch aborts a search prematurely.

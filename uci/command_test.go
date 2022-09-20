@@ -42,25 +42,49 @@ func TestCommandDebug(t *testing.T) {
 }
 
 func TestCommandIsReady(t *testing.T) {
-	e := new(mockEngine)
-	e.On("Init")
+	tests := []struct {
+		name string
+		args error
+		want []response
+	}{
+		{"no error", nil, []response{responseReadyOK{}}},
+		{"error", errors.New("test"), []response{responseComment{"test"}, responseReadyOK{}}},
+	}
 
-	rc := make(chan response)
-	wg := &sync.WaitGroup{}
-	wg.Add(1)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			e := new(mockEngine)
+			e.On("Init").Return(tt.args)
 
-	// testing asynchronously
-	go func() {
-		defer wg.Done()
-		defer close(rc)
-		r := <-rc
-		e.AssertExpectations(t)
-		assert.Equal(t, responseReadyOK{}, r)
-	}()
+			rc := make(chan response)
+			wg := &sync.WaitGroup{}
+			wg.Add(1)
 
-	commandIsReady{}.run(e, rc)
+			// testing asynchronously
+			go func() {
+				defer wg.Done()
+				defer close(rc)
+				var r []response
 
-	wg.Wait()
+				for i := 0; i < len(tt.want); i++ {
+					r = append(r, <-rc)
+				}
+
+				select {
+				case empty := <-rc:
+					assert.Fail(t, "channel should be empty", empty)
+				default:
+				}
+
+				e.AssertExpectations(t)
+				assert.Equal(t, tt.want, r)
+			}()
+
+			commandIsReady{}.run(e, rc)
+
+			wg.Wait()
+		})
+	}
 }
 
 func TestCommandSetOption(t *testing.T) {
@@ -203,6 +227,7 @@ func TestCommandGo(t *testing.T) {
 	type args struct {
 		cmd     commandGo
 		outputs []Output
+		err     error
 	}
 
 	output1 := Output{Score: 1000, PV: []string{"b1a3", "d2d4"}}
@@ -214,8 +239,13 @@ func TestCommandGo(t *testing.T) {
 		want []response
 	}{
 		{
+			"error",
+			args{commandGo{Input{Depth: 3}}, []Output{}, errors.New("test")},
+			[]response{responseComment{"test"}},
+		},
+		{
 			"go",
-			args{commandGo{Input{Depth: 3}}, []Output{output1, output2}},
+			args{commandGo{Input{Depth: 3}}, []Output{output1, output2}, nil},
 			[]response{responseInfo{output1}, responseInfo{output2}, responseBestMove{output2.PV[0]}},
 		},
 	}
@@ -228,7 +258,7 @@ func TestCommandGo(t *testing.T) {
 				oc <- o
 			}
 			close(oc)
-			e.On("Search", tt.args.cmd.input).Return(oc)
+			e.On("Search", tt.args.cmd.input).Return(oc, tt.args.err)
 
 			rc := make(chan response)
 			wg := &sync.WaitGroup{}

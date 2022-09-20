@@ -12,17 +12,17 @@ import (
 
 // Engine is the interface implemented by objects that can be used as UCI engines.
 type Engine interface {
-	Init()                              // Init sets everything up.
-	Quit()                              // Quit initiates a graceful shutdown.
-	Debug(on bool)                      // Debug sets the debug option.
-	Info() (name, author string)        // Info returns the engine's info.
-	Options() []Option                  // Options lists the available options.
-	SetOption(name, value string) error // SetOption sets an option.
-	SetPosition(fen string) error       // SetPosition sets the position to the provided FEN.
-	ResetPosition()                     // ResetPosition resets the position to the starting one.
-	Move(moves ...string) error         // Move plays the moves on the current position.
-	Search(input Input) <-chan Output   // Search runs a search on the given input.
-	StopSearch()                        // StopSearch aborts a search prematurely.
+	Init() error                               // Init sets everything up.
+	Quit()                                     // Quit initiates a graceful shutdown.
+	Debug(on bool)                             // Debug sets the debug option.
+	Info() (name, author string)               // Info returns the engine's info.
+	Options() []Option                         // Options lists the available options.
+	SetOption(name, value string) error        // SetOption sets an option.
+	SetPosition(fen string) error              // SetPosition sets the position to the provided FEN.
+	ResetPosition()                            // ResetPosition resets the position to the starting one.
+	Move(moves ...string) error                // Move plays the moves on the current position.
+	Search(input Input) (<-chan Output, error) // Search runs a search on the given input.
+	StopSearch()                               // StopSearch aborts a search prematurely.
 }
 
 // Run runs the program in UCI mode.

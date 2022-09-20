@@ -13,7 +13,6 @@ import (
 )
 
 var (
-	errOptionName   = errors.New("option name not found")
 	errOptionValue  = errors.New("option value not found")
 	errOutsideBound = errors.New("option value outside bounds")
 

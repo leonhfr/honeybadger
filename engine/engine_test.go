@@ -1,10 +1,13 @@
 package engine
 
 import (
+	"context"
+	"errors"
 	"testing"
 
 	"github.com/notnil/chess"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 
 	"github.com/leonhfr/honeybadger/evaluation"
 	"github.com/leonhfr/honeybadger/quiescence"
@@ -56,6 +59,31 @@ func TestInfo(t *testing.T) {
 	assert.Equal(t, "AUTHOR", author)
 }
 
+func TestInit(t *testing.T) {
+	err := errors.New("test error")
+
+	tests := []struct {
+		name string
+		args error
+		want error
+	}{
+		{"no error", nil, nil},
+		{"error", err, err},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tr := new(mockTransposition)
+			tr.On("Init").Return(tt.args).Times(1)
+			e := New(WithTransposition(tr))
+
+			err := e.Init()
+			_ = e.Init() // test sync.Once
+			assert.Equal(t, tt.want, err)
+		})
+	}
+}
+
 func TestOptions(t *testing.T) {
 	e := New()
 	options := e.Options()
@@ -97,6 +125,7 @@ func TestOptions(t *testing.T) {
 func TestSetOption(t *testing.T) {
 	type (
 		args struct {
+			initialized bool
 			name, value string
 			search      search.Interface
 		}
@@ -112,18 +141,23 @@ func TestSetOption(t *testing.T) {
 		want want
 	}{
 		{
+			"engine not initialized",
+			args{true, "SearchStrategy", "Capture", search.Random{}},
+			want{search.Random{}, errSetOption},
+		},
+		{
 			"option exists",
-			args{"SearchStrategy", "Capture", search.Random{}},
+			args{false, "SearchStrategy", "Capture", search.Random{}},
 			want{search.Capture{}, nil},
 		},
 		{
 			"option does not exist",
-			args{"SearchStrategy", "Whatever", search.Random{}},
+			args{false, "SearchStrategy", "Whatever", search.Random{}},
 			want{search.Random{}, errOptionValue},
 		},
 		{
 			"option does not exist",
-			args{"Whatever", "Whatever", search.Random{}},
+			args{false, "Whatever", "Whatever", search.Random{}},
 			want{search.Random{}, errOptionName},
 		},
 	}
@@ -131,6 +165,7 @@ func TestSetOption(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			e := New(WithSearch(tt.args.search))
+			e.initialized = tt.args.initialized
 			err := e.SetOption(tt.args.name, tt.args.value)
 			assert.Equal(t, tt.want.search, e.options.search)
 			assert.Equal(t, tt.want.err, err)
@@ -179,4 +214,58 @@ func TestResetPosition(t *testing.T) {
 	e := New()
 	e.ResetPosition()
 	assert.Equal(t, chess.StartingPosition().String(), e.game.Position().String())
+}
+
+func TestSearch_Initialized(t *testing.T) {
+	s := new(mockSearch)
+	s.On("Search").Unset()
+	e := New(WithSearch(s))
+	_, err := e.Search(uci.Input{})
+	assert.Equal(t, errSearch, err)
+}
+
+// mockSearch is a mock that implements search.Interface
+type mockSearch struct {
+	mock.Mock
+}
+
+func (m *mockSearch) String() string {
+	args := m.Called()
+	return args.String(0)
+}
+
+func (m *mockSearch) Search(ctx context.Context, input search.Input, output chan<- *search.Output) {
+	args := m.Called(ctx, input, output)
+	_, len := args.Diff([]interface{}{})
+	for i := 0; i < len; i++ {
+		output <- args.Get(i).(*search.Output)
+	}
+}
+
+// mockTransposition is a mock that implements transposition.Interface
+type mockTransposition struct {
+	mock.Mock
+}
+
+func (m *mockTransposition) String() string {
+	args := m.Called()
+	return args.String(0)
+}
+
+func (m *mockTransposition) Init() error {
+	args := m.Called()
+	return args.Error(0)
+}
+
+func (m *mockTransposition) Set(key *chess.Position, entry transposition.Entry) {
+	m.Called(key, entry)
+}
+
+func (m *mockTransposition) Get(key *chess.Position) (transposition.Entry, bool) {
+	args := m.Called(key)
+	return args.Get(0).(transposition.Entry), args.Bool(1)
+}
+
+func (m *mockTransposition) Close() {
+	m.Called()
 }

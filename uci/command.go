@@ -69,7 +69,10 @@ type commandIsReady struct{}
 // run implements the command interface.
 func (commandIsReady) run(e Engine, rc chan<- response) {
 	go func() {
-		e.Init()
+		err := e.Init()
+		if err != nil {
+			rc <- responseComment{err.Error()}
+		}
 		rc <- responseReadyOK{}
 	}()
 }
@@ -229,7 +232,10 @@ type commandGo struct {
 
 // run implements the command interface.
 func (c commandGo) run(e Engine, rc chan<- response) {
-	oc := e.Search(c.input)
+	oc, err := e.Search(c.input)
+	if err != nil {
+		rc <- responseComment{err.Error()}
+	}
 
 	go func() {
 		var output Output
