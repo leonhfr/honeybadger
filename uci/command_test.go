@@ -258,7 +258,7 @@ func TestCommandGo(t *testing.T) {
 				oc <- o
 			}
 			close(oc)
-			e.On("Search", tt.args.cmd.input).Return(oc, tt.args.err)
+			e.On("Search", mock.Anything, tt.args.cmd.input).Return(oc, tt.args.err)
 
 			rc := make(chan response)
 			wg := &sync.WaitGroup{}

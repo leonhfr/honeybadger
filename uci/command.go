@@ -1,5 +1,7 @@
 package uci
 
+import "context"
+
 // command is the interface implemented by objects that represent
 // UCI commands from the GUI to the Engine.
 type command interface {
@@ -232,7 +234,7 @@ type commandGo struct {
 
 // run implements the command interface.
 func (c commandGo) run(e Engine, rc chan<- response) {
-	oc, err := e.Search(c.input)
+	oc, err := e.Search(context.Background(), c.input)
 	if err != nil {
 		rc <- responseComment{err.Error()}
 	}

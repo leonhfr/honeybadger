@@ -224,7 +224,7 @@ func (e *Engine) ResetPosition() {
 }
 
 // Search runs a search on the given input.
-func (e *Engine) Search(input uci.Input) (<-chan uci.Output, error) {
+func (e *Engine) Search(ctx context.Context, input uci.Input) (<-chan uci.Output, error) {
 	engineOutput := make(chan uci.Output)
 
 	if !e.initialized {
@@ -234,7 +234,7 @@ func (e *Engine) Search(input uci.Input) (<-chan uci.Output, error) {
 
 	e.mu.Lock()
 	start := time.Now()
-	ctx, cancel := newContext(input, e.stopSearch)
+	ctx, cancel := searchContext(ctx, input, e.stopSearch)
 
 	searchMoves, err := searchMoves(e.notation, e.game.Position(), input.SearchMoves)
 	if err != nil {
@@ -312,9 +312,9 @@ func searchMoves(notation chess.Notation, position *chess.Position, moves []stri
 	return next, nil
 }
 
-// newContext creates a new context from the input
-func newContext(input uci.Input, stop <-chan struct{}) (context.Context, context.CancelFunc) {
-	ctx, cancel := context.WithCancel(context.Background())
+// searchContext creates a new context from the input
+func searchContext(ctx context.Context, input uci.Input, stop <-chan struct{}) (context.Context, context.CancelFunc) {
+	ctx, cancel := context.WithCancel(ctx)
 
 	if !input.Infinite {
 		timeout := moveTime(input)

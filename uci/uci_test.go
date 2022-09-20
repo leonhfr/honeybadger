@@ -1,6 +1,7 @@
 package uci
 
 import (
+	"context"
 	"strings"
 	"testing"
 
@@ -66,8 +67,8 @@ func (m *mockEngine) ResetPosition() {
 	m.Called()
 }
 
-func (m *mockEngine) Search(input Input) (<-chan Output, error) {
-	args := m.Called(input)
+func (m *mockEngine) Search(ctx context.Context, input Input) (<-chan Output, error) {
+	args := m.Called(ctx, input)
 	return args.Get(0).(chan Output), args.Error(1)
 }
 

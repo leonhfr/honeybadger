@@ -220,7 +220,7 @@ func TestSearch_Initialized(t *testing.T) {
 	s := new(mockSearch)
 	s.On("Search").Unset()
 	e := New(WithSearch(s))
-	_, err := e.Search(uci.Input{})
+	_, err := e.Search(context.Background(), uci.Input{})
 	assert.Equal(t, errSearch, err)
 }
 
