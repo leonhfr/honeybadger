@@ -11,16 +11,18 @@ import (
 
 	"github.com/leonhfr/honeybadger/evaluation"
 	"github.com/leonhfr/honeybadger/quiescence"
+	"github.com/leonhfr/honeybadger/transposition"
 )
 
 // Input holds a search input.
 type Input struct {
-	Position    *chess.Position      // Current board position.
-	SearchMoves []*chess.Move        // Restrict search to those moves only.
-	Depth       int                  // Search <x> plies only.
-	Search      Interface            // Search strategy to use.
-	Evaluation  evaluation.Interface // Evaluation strategy to use.
-	Quiescence  quiescence.Interface // Quiescence strategy to use.
+	Position      *chess.Position         // Current board position.
+	SearchMoves   []*chess.Move           // Restrict search to those moves only.
+	Depth         int                     // Search <x> plies only.
+	Search        Interface               // Search strategy to use.
+	Evaluation    evaluation.Interface    // Evaluation strategy to use.
+	Quiescence    quiescence.Interface    // Quiescence strategy to use.
+	Transposition transposition.Interface // Transposition hash table strategy to use.
 }
 
 // Output holds a search output.

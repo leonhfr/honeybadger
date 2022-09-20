@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/leonhfr/honeybadger/evaluation"
+	"github.com/leonhfr/honeybadger/transposition"
 )
 
 // AlphaBeta performs a quiescence search using the negamax search algorithm
@@ -27,6 +28,30 @@ func alphaBeta(ctx context.Context, input Input) (*Output, error) {
 	case <-ctx.Done():
 		return nil, context.Canceled
 	default:
+	}
+
+	alphaOriginal := input.Alpha
+
+	entry, cached := input.Transposition.Get(input.Position)
+	if cached && entry.Depth >= input.Depth {
+		switch {
+		case entry.Flag == transposition.Exact:
+			return &Output{
+				Nodes: 1,
+				Score: entry.Score,
+			}, nil
+		case entry.Flag == transposition.LowerBound && entry.Score > input.Alpha:
+			input.Alpha = entry.Score
+		case entry.Flag == transposition.UpperBound && entry.Score < input.Beta:
+			input.Beta = entry.Score
+		}
+
+		if input.Alpha >= input.Beta {
+			return &Output{
+				Nodes: 1,
+				Score: entry.Score,
+			}, nil
+		}
 	}
 
 	score, terminal := evaluation.Terminal(input.Position)
@@ -77,5 +102,19 @@ func alphaBeta(ctx context.Context, input Input) (*Output, error) {
 	}
 
 	result.Score = evaluation.IncMateDistance(result.Score, MaxDepth)
+
+	flag := transposition.Exact
+	switch {
+	case result.Score <= alphaOriginal:
+		flag = transposition.UpperBound
+	case result.Score >= input.Beta:
+		flag = transposition.LowerBound
+	}
+	input.Transposition.Set(input.Position, transposition.Entry{
+		Score: result.Score,
+		Depth: input.Depth,
+		Flag:  flag,
+	})
+
 	return result, nil
 }

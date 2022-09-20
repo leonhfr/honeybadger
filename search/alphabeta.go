@@ -7,6 +7,7 @@ import (
 
 	"github.com/leonhfr/honeybadger/evaluation"
 	"github.com/leonhfr/honeybadger/quiescence"
+	"github.com/leonhfr/honeybadger/transposition"
 )
 
 // AlphaBeta pruning is an optimization for Negamax. It returns the same
@@ -22,11 +23,12 @@ func (AlphaBeta) String() string {
 func (AlphaBeta) Search(ctx context.Context, input Input, output chan<- *Output) {
 	for depth := 1; depth <= input.Depth; depth++ {
 		o, err := alphaBeta(ctx, Input{
-			Position:    input.Position,
-			SearchMoves: input.SearchMoves,
-			Depth:       depth,
-			Evaluation:  input.Evaluation,
-			Quiescence:  input.Quiescence,
+			Position:      input.Position,
+			SearchMoves:   input.SearchMoves,
+			Depth:         depth,
+			Evaluation:    input.Evaluation,
+			Quiescence:    input.Quiescence,
+			Transposition: input.Transposition,
 		}, -evaluation.Mate, evaluation.Mate)
 		if err != nil {
 			return
@@ -43,6 +45,30 @@ func alphaBeta(ctx context.Context, input Input, alpha, beta int) (*Output, erro
 	case <-ctx.Done():
 		return nil, context.Canceled
 	default:
+	}
+
+	alphaOriginal := alpha
+
+	entry, cached := input.Transposition.Get(input.Position)
+	if cached && entry.Depth >= input.Depth {
+		switch {
+		case entry.Flag == transposition.Exact:
+			return &Output{
+				Nodes: 1,
+				Score: entry.Score,
+			}, nil
+		case entry.Flag == transposition.LowerBound && entry.Score > alpha:
+			alpha = entry.Score
+		case entry.Flag == transposition.UpperBound && entry.Score < beta:
+			beta = entry.Score
+		}
+
+		if alpha >= beta {
+			return &Output{
+				Nodes: 1,
+				Score: entry.Score,
+			}, nil
+		}
 	}
 
 	score, terminal := evaluation.Terminal(input.Position)
@@ -62,11 +88,12 @@ func alphaBeta(ctx context.Context, input Input, alpha, beta int) (*Output, erro
 		}
 
 		output, err := input.Quiescence.Search(ctx, quiescence.Input{
-			Position:   input.Position,
-			Depth:      quiescence.MaxDepth,
-			Alpha:      -beta,
-			Beta:       -alpha,
-			Evaluation: input.Evaluation,
+			Position:      input.Position,
+			Depth:         quiescence.MaxDepth,
+			Alpha:         -beta,
+			Beta:          -alpha,
+			Evaluation:    input.Evaluation,
+			Transposition: input.Transposition,
 		})
 		if err != nil {
 			return nil, err
@@ -86,10 +113,11 @@ func alphaBeta(ctx context.Context, input Input, alpha, beta int) (*Output, erro
 
 	for _, move := range searchMoves(input) {
 		current, err := alphaBeta(ctx, Input{
-			Position:   input.Position.Update(move),
-			Depth:      input.Depth - 1,
-			Evaluation: input.Evaluation,
-			Quiescence: input.Quiescence,
+			Position:      input.Position.Update(move),
+			Depth:         input.Depth - 1,
+			Evaluation:    input.Evaluation,
+			Quiescence:    input.Quiescence,
+			Transposition: input.Transposition,
 		}, -beta, -alpha)
 		if err != nil {
 			return nil, err
@@ -112,5 +140,19 @@ func alphaBeta(ctx context.Context, input Input, alpha, beta int) (*Output, erro
 	}
 
 	result.Score = evaluation.IncMateDistance(result.Score, maxDepth)
+
+	flag := transposition.Exact
+	switch {
+	case result.Score <= alphaOriginal:
+		flag = transposition.UpperBound
+	case result.Score >= beta:
+		flag = transposition.LowerBound
+	}
+	input.Transposition.Set(input.Position, transposition.Entry{
+		Score: result.Score,
+		Depth: input.Depth,
+		Flag:  flag,
+	})
+
 	return result, nil
 }

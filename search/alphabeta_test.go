@@ -8,6 +8,7 @@ import (
 
 	"github.com/leonhfr/honeybadger/evaluation"
 	"github.com/leonhfr/honeybadger/quiescence"
+	"github.com/leonhfr/honeybadger/transposition"
 )
 
 func TestAlphaBeta(t *testing.T) {
@@ -53,10 +54,11 @@ func TestAlphaBeta(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			o, err := alphaBeta(context.Background(), Input{
-				Position:   position(tt.args.fen),
-				Depth:      tt.args.depth,
-				Evaluation: evaluation.Simplified{},
-				Quiescence: quiescence.None{},
+				Position:      position(tt.args.fen),
+				Depth:         tt.args.depth,
+				Evaluation:    evaluation.Simplified{},
+				Quiescence:    quiescence.None{},
+				Transposition: transposition.None{},
 			}, -evaluation.Mate, evaluation.Mate)
 
 			output := *o

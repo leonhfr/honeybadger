@@ -8,15 +8,17 @@ import (
 	"github.com/notnil/chess"
 
 	"github.com/leonhfr/honeybadger/evaluation"
+	"github.com/leonhfr/honeybadger/transposition"
 )
 
 // Input holds a quiescence search input.
 type Input struct {
-	Position   *chess.Position      // Current board position.
-	Depth      int                  // Search <x> plies only.
-	Alpha      int                  // Best score that the maximizer can guarantee.
-	Beta       int                  // Best score that the minimizer can guarantee.
-	Evaluation evaluation.Interface // Evaluation strategy to use.
+	Position      *chess.Position         // Current board position.
+	Depth         int                     // Search <x> plies only.
+	Alpha         int                     // Best score that the maximizer can guarantee.
+	Beta          int                     // Best score that the minimizer can guarantee.
+	Evaluation    evaluation.Interface    // Evaluation strategy to use.
+	Transposition transposition.Interface // Transposition hash table strategy to use.
 }
 
 // Output holds a quiescence search output.

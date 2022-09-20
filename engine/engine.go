@@ -241,12 +241,13 @@ func (e *Engine) Search(input uci.Input) (<-chan uci.Output, error) {
 		e.log("could not parse search moves, defaulting to all possible moves", err)
 	}
 	searchOutput := search.Run(ctx, search.Input{
-		Position:    e.game.Position(),
-		SearchMoves: searchMoves,
-		Depth:       input.Depth,
-		Search:      e.options.search,
-		Evaluation:  e.options.evaluation,
-		Quiescence:  e.options.quiescence,
+		Position:      e.game.Position(),
+		SearchMoves:   searchMoves,
+		Depth:         input.Depth,
+		Search:        e.options.search,
+		Evaluation:    e.options.evaluation,
+		Quiescence:    e.options.quiescence,
+		Transposition: e.options.transposition,
 	})
 
 	go func() {
