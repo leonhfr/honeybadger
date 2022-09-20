@@ -25,7 +25,7 @@ const (
 // It is the entry point of the UCI interface.
 var rootCmd = &cobra.Command{
 	Use:   "honeybadger",
-	Short: "Honey Badger is a UCI-compliant chess engine written in Go.",
+	Short: "Honey Badger is a UCI-compliant chess engine written in Go",
 	Long: `Honey Badger is a UCI-compliant chess engine written in Go.
 
 Honey Badger is not a complete chess software and requires a UCI-compatible
@@ -38,13 +38,7 @@ Fair warning: it is not very strong.`,
 	CompletionOptions: cobra.CompletionOptions{DisableDefaultCmd: true},
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := cmd.Context()
-		name, version, author := name(ctx), version(ctx), author(ctx)
-
-		e := engine.New(
-			engine.WithName(fmt.Sprintf("%s v%s", name, version)),
-			engine.WithAuthor(author),
-			engine.WithLogger(uci.Logger(os.Stdout)),
-		)
+		e := newEngine(ctx)
 
 		uci.Run(ctx, e, os.Stdin, os.Stdout)
 
@@ -57,6 +51,21 @@ func Execute(ctx context.Context) error {
 	rootCmd.Version = version(ctx)
 
 	return rootCmd.ExecuteContext(ctx)
+}
+
+func init() {
+	rootCmd.AddCommand(optionsCmd)
+}
+
+// newEngine returns a new engine.
+func newEngine(ctx context.Context) *engine.Engine {
+	name, version, author := name(ctx), version(ctx), author(ctx)
+
+	return engine.New(
+		engine.WithName(fmt.Sprintf("%s v%s", name, version)),
+		engine.WithAuthor(author),
+		engine.WithLogger(uci.Logger(os.Stdout)),
+	)
 }
 
 // name returns the name value from the context.

@@ -42,7 +42,7 @@ cd honeybadger
 make build
 ```
 
-## Quick start
+## Quick start (UCI)
 
 Honey Badger handles all of its communications via stdin and stdout using the [UCI protocol](https://backscattering.de/chess/uci/). Therefore, a chess GUI that can communicate over UCI is needed. Refer to the documentation of your chosen GUI for information about how to use Honey Badger with it. We recommend:
 
@@ -51,6 +51,13 @@ Honey Badger handles all of its communications via stdin and stdout using the [U
 - other options include [SCID](http://scid.sourceforge.net/), [Arena](http://www.playwitharena.de/), [Shredder](https://www.shredderchess.com/)...
 
 ### Example
+
+Executing the Honey Badger without any subcommands or arguments will run it in UCI mode:
+
+```sh
+honeybadger
+# honeybadger now expects commands from stdin
+```
 
 Using [cete](https://github.com/leonhfr/honeybadger), you can quickly make UCI engines play games against each other using configuration files. For example:
 
@@ -63,6 +70,25 @@ cete game ./test/data/random-alphabeta.yaml
 # This will play a game with the same options and will also broadcast
 # the game in a web view
 cete game -b ./test/data/random-alphabeta.yaml
+
+```
+
+## Quick start (CLI)
+
+Honey Badger has some limited features available from CLI subcommands.
+
+```
+Usage:
+  honeybadger [flags]
+  honeybadger [command]
+
+Available Commands:
+  help        Help about any command
+  options     Lists the available options
+
+Flags:
+  -h, --help      help for honeybadger
+  -v, --version   version for honeybadger
 ```
 
 ## Options
