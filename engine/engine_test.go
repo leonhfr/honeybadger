@@ -9,6 +9,7 @@ import (
 	"github.com/leonhfr/honeybadger/evaluation"
 	"github.com/leonhfr/honeybadger/quiescence"
 	"github.com/leonhfr/honeybadger/search"
+	"github.com/leonhfr/honeybadger/transposition"
 	"github.com/leonhfr/honeybadger/uci"
 )
 
@@ -19,6 +20,7 @@ func TestNew(t *testing.T) {
 	assert.Equal(t, search.AlphaBeta{}, e.options.search)
 	assert.Equal(t, evaluation.Simplified{}, e.options.evaluation)
 	assert.Equal(t, quiescence.None{}, e.options.quiescence)
+	assert.Equal(t, transposition.None{}, e.options.transposition)
 	assert.Equal(t, 32, e.options.hash)
 }
 
@@ -75,6 +77,12 @@ func TestOptions(t *testing.T) {
 			Name:    "QuiescenceStrategy",
 			Default: "None",
 			Vars:    []string{"None", "AlphaBeta"},
+		},
+		{
+			Type:    uci.OptionEnum,
+			Name:    "TranspositionStrategy",
+			Default: "None",
+			Vars:    []string{"None"},
 		},
 		{
 			Type:    uci.OptionInteger,

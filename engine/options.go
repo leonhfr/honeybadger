@@ -8,6 +8,7 @@ import (
 	"github.com/leonhfr/honeybadger/evaluation"
 	"github.com/leonhfr/honeybadger/quiescence"
 	"github.com/leonhfr/honeybadger/search"
+	"github.com/leonhfr/honeybadger/transposition"
 	"github.com/leonhfr/honeybadger/uci"
 )
 
@@ -20,6 +21,7 @@ var (
 		searchStrategy,
 		evaluationStrategy,
 		quiescenceStrategy,
+		transpositionStrategy,
 		hashOption,
 	}
 
@@ -53,6 +55,15 @@ var (
 			quiescence.AlphaBeta{},
 		},
 		fn: WithQuiescence,
+	}
+
+	transpositionStrategy = optionStrategy[transposition.Interface]{
+		name: "TranspositionStrategy",
+		def:  transposition.None{},
+		vars: []transposition.Interface{
+			transposition.None{},
+		},
+		fn: WithTransposition,
 	}
 
 	hashOption = optionInteger{

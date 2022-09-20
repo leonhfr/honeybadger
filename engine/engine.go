@@ -13,6 +13,7 @@ import (
 	"github.com/leonhfr/honeybadger/evaluation"
 	"github.com/leonhfr/honeybadger/quiescence"
 	"github.com/leonhfr/honeybadger/search"
+	"github.com/leonhfr/honeybadger/transposition"
 	"github.com/leonhfr/honeybadger/uci"
 )
 
@@ -34,10 +35,11 @@ type Engine struct {
 }
 
 type engineOptions struct {
-	search     search.Interface     // search strategy
-	evaluation evaluation.Interface // evaluation strategy
-	quiescence quiescence.Interface // quiescence strategy
-	hash       int                  // size of the transposition hash table in MB
+	search        search.Interface        // Search strategy.
+	evaluation    evaluation.Interface    // Evaluation strategy.
+	quiescence    quiescence.Interface    // Quiescence strategy.
+	transposition transposition.Interface // Transposition strategy.
+	hash          int                     // Size of the transposition hash table in MB.
 }
 
 // New returns a new Engine.
@@ -112,6 +114,13 @@ func WithEvaluation(ei evaluation.Interface) func(*Engine) {
 func WithQuiescence(qi quiescence.Interface) func(*Engine) {
 	return func(e *Engine) {
 		e.options.quiescence = qi
+	}
+}
+
+// WithTransposition sets the transposition strategy.
+func WithTransposition(ti transposition.Interface) func(*Engine) {
+	return func(e *Engine) {
+		e.options.transposition = ti
 	}
 }
 

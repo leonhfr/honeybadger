@@ -90,6 +90,12 @@ cete game -b ./test/data/random-alphabeta.yaml
   - None (default): no quiescence search is performed.
   - AlphaBeta: negamax algorithm with alpha-beta pruning.
 
+- **TranspositionStrategy**
+
+  Transposition hash table strategy to use. Available strategies are:
+
+  - None (default): no transposition hash table is used.
+
 - **Hash**
 
   Size of the transposition hash table in megabytes (MB).
