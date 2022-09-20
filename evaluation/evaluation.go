@@ -13,7 +13,7 @@ import (
 // point of view of the position's current player.
 type Interface interface {
 	fmt.Stringer
-	Evaluate(p *chess.Position) int
+	Evaluate(p *chess.Position) int // Evaluate returns the score of a given chess position.
 }
 
 const (

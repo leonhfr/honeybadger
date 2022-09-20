@@ -36,7 +36,7 @@ type Output struct {
 // run a search on a chess board.
 type Interface interface {
 	fmt.Stringer
-	Search(ctx context.Context, input Input, output chan<- *Output)
+	Search(ctx context.Context, input Input, output chan<- *Output) // Search runs a search.
 }
 
 // Run starts a search.

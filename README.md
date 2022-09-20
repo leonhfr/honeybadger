@@ -55,11 +55,13 @@ Honey Badger handles all of its communications via stdin and stdout using the [U
 Using [cete](https://github.com/leonhfr/honeybadger), you can quickly make UCI engines play games against each other using configuration files. For example:
 
 ```sh
-# This will play a game between two Honey Badger, one playing randomly and the other using negamax with alpha-beta pruning
+# This will play a game between two Honey Badger, one playing randomly
+# and the other using negamax with alpha-beta pruning
 cete game ./test/data/random-alphabeta.yaml
 
 
-# This will play a game with the same options and will also broadcast the game in a web view
+# This will play a game with the same options and will also broadcast
+# the game in a web view
 cete game -b ./test/data/random-alphabeta.yaml
 ```
 

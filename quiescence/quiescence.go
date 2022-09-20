@@ -27,12 +27,9 @@ type Output struct {
 
 // Interface is the interface implemented by objects that can
 // run a quiescence search on a chess board.
-//
-// The Search method includes alpha-beta integers arguments for the cases
-// the algorithm implements alpha-beta pruning.
 type Interface interface {
 	fmt.Stringer
-	Search(ctx context.Context, input Input) (*Output, error)
+	Search(ctx context.Context, input Input) (*Output, error) // Search runs a quiescence search.
 }
 
 const (
