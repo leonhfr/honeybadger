@@ -26,10 +26,12 @@ func (AlphaBeta) Search(ctx context.Context, input Input, output chan<- *Output)
 			Position:      input.Position,
 			SearchMoves:   input.SearchMoves,
 			Depth:         depth,
+			Alpha:         -evaluation.Mate,
+			Beta:          evaluation.Mate,
 			Evaluation:    input.Evaluation,
 			Quiescence:    input.Quiescence,
 			Transposition: input.Transposition,
-		}, -evaluation.Mate, evaluation.Mate)
+		})
 		if err != nil {
 			return
 		}
@@ -40,14 +42,14 @@ func (AlphaBeta) Search(ctx context.Context, input Input, output chan<- *Output)
 
 // alphaBeta is the recursive function that implements the Negamax algorithm
 // with alpha beta pruning.
-func alphaBeta(ctx context.Context, input Input, alpha, beta int) (*Output, error) {
+func alphaBeta(ctx context.Context, input Input) (*Output, error) {
 	select {
 	case <-ctx.Done():
 		return nil, context.Canceled
 	default:
 	}
 
-	alphaOriginal := alpha
+	alphaOriginal := input.Alpha
 
 	entry, cached := input.Transposition.Get(input.Position)
 	if cached && entry.Depth >= input.Depth {
@@ -57,13 +59,13 @@ func alphaBeta(ctx context.Context, input Input, alpha, beta int) (*Output, erro
 				Nodes: 1,
 				Score: entry.Score,
 			}, nil
-		case entry.Flag == transposition.LowerBound && entry.Score > alpha:
-			alpha = entry.Score
-		case entry.Flag == transposition.UpperBound && entry.Score < beta:
-			beta = entry.Score
+		case entry.Flag == transposition.LowerBound && entry.Score > input.Alpha:
+			input.Alpha = entry.Score
+		case entry.Flag == transposition.UpperBound && entry.Score < input.Beta:
+			input.Beta = entry.Score
 		}
 
-		if alpha >= beta {
+		if input.Alpha >= input.Beta {
 			return &Output{
 				Nodes: 1,
 				Score: entry.Score,
@@ -90,8 +92,8 @@ func alphaBeta(ctx context.Context, input Input, alpha, beta int) (*Output, erro
 		output, err := input.Quiescence.Search(ctx, quiescence.Input{
 			Position:      input.Position,
 			Depth:         quiescence.MaxDepth,
-			Alpha:         -beta,
-			Beta:          -alpha,
+			Alpha:         -input.Beta,
+			Beta:          -input.Alpha,
 			Evaluation:    input.Evaluation,
 			Transposition: input.Transposition,
 		})
@@ -115,10 +117,12 @@ func alphaBeta(ctx context.Context, input Input, alpha, beta int) (*Output, erro
 		current, err := alphaBeta(ctx, Input{
 			Position:      input.Position.Update(move),
 			Depth:         input.Depth - 1,
+			Alpha:         -input.Beta,
+			Beta:          -input.Alpha,
 			Evaluation:    input.Evaluation,
 			Quiescence:    input.Quiescence,
 			Transposition: input.Transposition,
-		}, -beta, -alpha)
+		})
 		if err != nil {
 			return nil, err
 		}
@@ -130,11 +134,11 @@ func alphaBeta(ctx context.Context, input Input, alpha, beta int) (*Output, erro
 		}
 		result.Nodes += current.Nodes
 
-		if current.Score > alpha {
-			alpha = current.Score
+		if current.Score > input.Alpha {
+			input.Alpha = current.Score
 		}
 
-		if alpha >= beta {
+		if input.Alpha >= input.Beta {
 			break
 		}
 	}
@@ -145,7 +149,7 @@ func alphaBeta(ctx context.Context, input Input, alpha, beta int) (*Output, erro
 	switch {
 	case result.Score <= alphaOriginal:
 		flag = transposition.UpperBound
-	case result.Score >= beta:
+	case result.Score >= input.Beta:
 		flag = transposition.LowerBound
 	}
 	input.Transposition.Set(input.Position, transposition.Entry{

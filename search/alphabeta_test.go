@@ -56,10 +56,12 @@ func TestAlphaBeta(t *testing.T) {
 			o, err := alphaBeta(context.Background(), Input{
 				Position:      position(tt.args.fen),
 				Depth:         tt.args.depth,
+				Alpha:         -evaluation.Mate,
+				Beta:          evaluation.Mate,
 				Evaluation:    evaluation.Simplified{},
 				Quiescence:    quiescence.None{},
 				Transposition: transposition.None{},
-			}, -evaluation.Mate, evaluation.Mate)
+			})
 
 			output := *o
 			pv := output.PV
