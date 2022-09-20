@@ -19,7 +19,7 @@ func TestCommandUCI(t *testing.T) {
 	rc := make(chan response)
 	wg := assertResponses(t, e, rc, []response{
 		responseID{"NAME", "AUTHOR"},
-		responseOption{option},
+		option,
 		responseUCIOK{},
 	})
 
@@ -247,7 +247,7 @@ func TestCommandGo(t *testing.T) {
 		{
 			"go",
 			args{commandGo{Input{Depth: 3}}, []Output{output1, output2}, nil},
-			[]response{responseInfo{output1}, responseInfo{output2}, responseBestMove{output2.PV[0]}},
+			[]response{output1, output2, responseBestMove{output2.PV[0]}},
 		},
 	}
 

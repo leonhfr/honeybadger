@@ -30,7 +30,7 @@ func (commandUCI) run(ctx context.Context, e Engine, rc chan<- response) {
 	}
 
 	for _, option := range e.Options() {
-		rc <- responseOption{option}
+		rc <- option
 	}
 
 	rc <- responseUCIOK{}
@@ -242,7 +242,7 @@ func (c commandGo) run(ctx context.Context, e Engine, rc chan<- response) {
 	go func() {
 		var output Output
 		for output = range oc {
-			rc <- responseInfo{output}
+			rc <- output
 		}
 		if len(output.PV) > 0 {
 			rc <- responseBestMove{output.PV[0]}

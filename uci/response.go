@@ -180,30 +180,26 @@ func (r responseBestMove) String() string {
 // If the engine is just using one cpu, <cpunr> can be omitted.
 // If <cpunr> is greater than 1, always send all k lines in k strings together.
 // The engine should only send this if the option "UCI_ShowCurrLine" is set to true.
-type responseInfo struct {
-	output Output
-}
-
-func (r responseInfo) String() string {
+func (o Output) String() string {
 	var res []string
 
-	if r.output.Depth > 0 {
-		res = append(res, "depth", fmt.Sprint(r.output.Depth))
+	if o.Depth > 0 {
+		res = append(res, "depth", fmt.Sprint(o.Depth))
 	}
-	if r.output.Nodes > 0 {
-		res = append(res, "nodes", fmt.Sprint(r.output.Nodes))
+	if o.Nodes > 0 {
+		res = append(res, "nodes", fmt.Sprint(o.Nodes))
 	}
-	if r.output.Mate != 0 {
-		res = append(res, "score mate", fmt.Sprint(r.output.Mate))
-	} else if r.output.Score != 0 {
-		res = append(res, "score cp", fmt.Sprint(r.output.Score))
+	if o.Mate != 0 {
+		res = append(res, "score mate", fmt.Sprint(o.Mate))
+	} else if o.Score != 0 {
+		res = append(res, "score cp", fmt.Sprint(o.Score))
 	}
-	if len(r.output.PV) > 0 {
+	if len(o.PV) > 0 {
 		res = append(res, "pv")
-		res = append(res, r.output.PV...)
+		res = append(res, o.PV...)
 	}
-	if r.output.Time > 0 {
-		res = append(res, "time", fmt.Sprint(r.output.Time.Milliseconds()))
+	if o.Time > 0 {
+		res = append(res, "time", fmt.Sprint(o.Time.Milliseconds()))
 	}
 
 	return fmt.Sprintf("info %s", strings.Join(res, " "))
@@ -286,37 +282,33 @@ func (r responseComment) String() string {
 //   - "option name Style type combo default Normal var Solid var Normal var Risky\n"
 //   - "option name NalimovPath type string default c:\\n"
 //   - "option name Clear Hash type button\n"
-type responseOption struct {
-	option Option
-}
-
-func (r responseOption) String() string {
-	switch r.option.Type {
+func (o Option) String() string {
+	switch o.Type {
 	case OptionBoolean:
 		return fmt.Sprintf(
 			"option name %s type check default %s",
-			r.option.Name, r.option.Default,
+			o.Name, o.Default,
 		)
 	case OptionInteger:
 		var min, max string
-		if len(r.option.Min) > 0 {
-			min = fmt.Sprintf(" min %s", r.option.Min)
+		if len(o.Min) > 0 {
+			min = fmt.Sprintf(" min %s", o.Min)
 		}
-		if len(r.option.Max) > 0 {
-			max = fmt.Sprintf(" max %s", r.option.Max)
+		if len(o.Max) > 0 {
+			max = fmt.Sprintf(" max %s", o.Max)
 		}
 		return fmt.Sprintf(
 			"option name %s type spin default %s%s%s",
-			r.option.Name, r.option.Default, min, max,
+			o.Name, o.Default, min, max,
 		)
 	case OptionEnum:
 		var vars []string
-		for _, v := range r.option.Vars {
+		for _, v := range o.Vars {
 			vars = append(vars, fmt.Sprintf("var %s", v))
 		}
 		return fmt.Sprintf(
 			"option name %s type combo default %s %s",
-			r.option.Name, r.option.Default, strings.Join(vars, " "),
+			o.Name, o.Default, strings.Join(vars, " "),
 		)
 	default:
 		return ""
