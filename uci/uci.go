@@ -30,7 +30,7 @@ type Engine interface {
 //
 // Run parses command from the reader, executes them with the provided engine
 // and writes the responses on the writer.
-func Run(e Engine, r io.Reader, w io.Writer) {
+func Run(ctx context.Context, e Engine, r io.Reader, w io.Writer) {
 	responses := make(chan response)
 	wg := sync.WaitGroup{}
 	wg.Add(1)
@@ -48,7 +48,7 @@ func Run(e Engine, r io.Reader, w io.Writer) {
 		if c == nil {
 			continue
 		}
-		c.run(e, responses)
+		c.run(ctx, e, responses)
 		if _, ok := c.(commandQuit); ok {
 			break
 		}

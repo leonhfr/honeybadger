@@ -1,6 +1,7 @@
 package uci
 
 import (
+	"context"
 	"errors"
 	"sync"
 	"testing"
@@ -22,7 +23,7 @@ func TestCommandUCI(t *testing.T) {
 		responseUCIOK{},
 	})
 
-	commandUCI{}.run(e, rc)
+	commandUCI{}.run(context.Background(), e, rc)
 	close(rc)
 
 	e.AssertExpectations(t)
@@ -35,7 +36,7 @@ func TestCommandDebug(t *testing.T) {
 
 	rc := make(chan response)
 
-	commandDebug{}.run(e, rc)
+	commandDebug{}.run(context.Background(), e, rc)
 	close(rc)
 
 	e.AssertExpectations(t)
@@ -80,7 +81,7 @@ func TestCommandIsReady(t *testing.T) {
 				assert.Equal(t, tt.want, r)
 			}()
 
-			commandIsReady{}.run(e, rc)
+			commandIsReady{}.run(context.Background(), e, rc)
 
 			wg.Wait()
 		})
@@ -118,7 +119,7 @@ func TestCommandSetOption(t *testing.T) {
 			rc := make(chan response)
 			wg := assertResponses(t, e, rc, tt.want)
 
-			tt.args.cmd.run(e, rc)
+			tt.args.cmd.run(context.Background(), e, rc)
 			close(rc)
 
 			e.AssertExpectations(t)
@@ -132,7 +133,7 @@ func TestCommandUCINewGame(t *testing.T) {
 
 	rc := make(chan response)
 
-	commandUCINewGame{}.run(e, rc)
+	commandUCINewGame{}.run(context.Background(), e, rc)
 	close(rc)
 
 	e.AssertExpectations(t)
@@ -170,7 +171,7 @@ func TestCommandPosition_ResetPosition(t *testing.T) {
 			rc := make(chan response)
 			wg := assertResponses(t, e, rc, tt.want)
 
-			tt.args.cmd.run(e, rc)
+			tt.args.cmd.run(context.Background(), e, rc)
 			close(rc)
 
 			e.AssertExpectations(t)
@@ -214,7 +215,7 @@ func TestCommandPosition_SetPosition(t *testing.T) {
 			rc := make(chan response)
 			wg := assertResponses(t, e, rc, tt.want)
 
-			tt.args.cmd.run(e, rc)
+			tt.args.cmd.run(context.Background(), e, rc)
 			close(rc)
 
 			e.AssertExpectations(t)
@@ -276,7 +277,7 @@ func TestCommandGo(t *testing.T) {
 				assert.Equal(t, tt.want, responses)
 			}()
 
-			tt.args.cmd.run(e, rc)
+			tt.args.cmd.run(context.Background(), e, rc)
 
 			wg.Wait()
 		})
@@ -289,7 +290,7 @@ func TestCommandStop(t *testing.T) {
 
 	rc := make(chan response)
 
-	commandStop{}.run(e, rc)
+	commandStop{}.run(context.Background(), e, rc)
 	close(rc)
 
 	e.AssertExpectations(t)
@@ -301,7 +302,7 @@ func TestCommandQuit(t *testing.T) {
 
 	rc := make(chan response)
 
-	commandQuit{}.run(e, rc)
+	commandQuit{}.run(context.Background(), e, rc)
 	close(rc)
 
 	e.AssertExpectations(t)

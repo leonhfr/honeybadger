@@ -5,7 +5,7 @@ import "context"
 // command is the interface implemented by objects that represent
 // UCI commands from the GUI to the Engine.
 type command interface {
-	run(e Engine, rc chan<- response)
+	run(ctx context.Context, e Engine, rc chan<- response)
 }
 
 // commandUCI represents a "uci" command.
@@ -22,7 +22,7 @@ type command interface {
 type commandUCI struct{}
 
 // run implements the command interface.
-func (commandUCI) run(e Engine, rc chan<- response) {
+func (commandUCI) run(ctx context.Context, e Engine, rc chan<- response) {
 	name, author := e.Info()
 	rc <- responseID{
 		name:   name,
@@ -49,7 +49,7 @@ type commandDebug struct {
 }
 
 // run implements the command interface.
-func (c commandDebug) run(e Engine, rc chan<- response) {
+func (c commandDebug) run(ctx context.Context, e Engine, rc chan<- response) {
 	e.Debug(c.on)
 }
 
@@ -69,7 +69,7 @@ func (c commandDebug) run(e Engine, rc chan<- response) {
 type commandIsReady struct{}
 
 // run implements the command interface.
-func (commandIsReady) run(e Engine, rc chan<- response) {
+func (commandIsReady) run(ctx context.Context, e Engine, rc chan<- response) {
 	go func() {
 		err := e.Init()
 		if err != nil {
@@ -103,7 +103,7 @@ type commandSetOption struct {
 }
 
 // run implements the command interface.
-func (c commandSetOption) run(e Engine, rc chan<- response) {
+func (c commandSetOption) run(ctx context.Context, e Engine, rc chan<- response) {
 	err := e.SetOption(c.name, c.value)
 	if err != nil {
 		rc <- responseComment{err.Error()}
@@ -125,7 +125,7 @@ func (c commandSetOption) run(e Engine, rc chan<- response) {
 type commandUCINewGame struct{}
 
 // run implements the command interface.
-func (commandUCINewGame) run(e Engine, rc chan<- response) {
+func (commandUCINewGame) run(ctx context.Context, e Engine, rc chan<- response) {
 }
 
 // commandPosition represents a "position" command.
@@ -146,7 +146,7 @@ type commandPosition struct {
 }
 
 // run implements the command interface.
-func (c commandPosition) run(e Engine, rc chan<- response) {
+func (c commandPosition) run(ctx context.Context, e Engine, rc chan<- response) {
 	if c.startPos {
 		e.ResetPosition()
 	} else if len(c.fen) > 0 {
@@ -233,8 +233,8 @@ type commandGo struct {
 }
 
 // run implements the command interface.
-func (c commandGo) run(e Engine, rc chan<- response) {
-	oc, err := e.Search(context.Background(), c.input)
+func (c commandGo) run(ctx context.Context, e Engine, rc chan<- response) {
+	oc, err := e.Search(ctx, c.input)
 	if err != nil {
 		rc <- responseComment{err.Error()}
 	}
@@ -257,7 +257,7 @@ func (c commandGo) run(e Engine, rc chan<- response) {
 type commandStop struct{}
 
 // run implements the command interface.
-func (commandStop) run(e Engine, rc chan<- response) {
+func (commandStop) run(ctx context.Context, e Engine, rc chan<- response) {
 	e.StopSearch()
 }
 
@@ -267,6 +267,6 @@ func (commandStop) run(e Engine, rc chan<- response) {
 type commandQuit struct{}
 
 // run implements the command interface.
-func (commandQuit) run(e Engine, rc chan<- response) {
+func (commandQuit) run(ctx context.Context, e Engine, rc chan<- response) {
 	e.Quit()
 }

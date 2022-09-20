@@ -2,6 +2,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 
@@ -22,5 +23,5 @@ func main() {
 		engine.WithLogger(uci.Logger(os.Stdout)),
 	)
 
-	uci.Run(e, os.Stdin, os.Stdout)
+	uci.Run(context.Background(), e, os.Stdin, os.Stdout)
 }

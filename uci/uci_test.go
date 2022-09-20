@@ -18,7 +18,7 @@ func TestRun(t *testing.T) {
 	r := strings.NewReader("uci\nfake command\nquit")
 	w := &strings.Builder{}
 
-	Run(e, r, w)
+	Run(context.Background(), e, r, w)
 
 	e.AssertExpectations(t)
 	assert.Equal(t, "id name NAME\nid author AUTHOR\nuciok\n", w.String())
