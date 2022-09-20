@@ -287,6 +287,8 @@ func (e *Engine) Quit() {
 	e.StopSearch()
 	// prevents future searches and ensures all search routines have been shut down
 	e.mu.Lock()
+
+	e.options.transposition.Close()
 }
 
 // logger returns the logger to use depending on the debug setting
