@@ -69,7 +69,7 @@ func Execute(ctx context.Context) error {
 }
 
 func init() {
-	rootCmd.AddCommand(optionsCmd)
+	rootCmd.AddCommand(optionsCmd, searchCmd)
 }
 
 // name returns the name value from the context.

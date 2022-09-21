@@ -4,6 +4,7 @@ package uci
 import (
 	"bufio"
 	"context"
+	"fmt"
 	"io"
 	"log"
 	"strings"
@@ -75,6 +76,23 @@ type Input struct {
 	Nodes          int           // Search <x> nodes only.
 	MoveTime       time.Duration // Search exactly <x> ms.
 	Infinite       bool          // Search until the stop command. Do not exit before.
+}
+
+func (i Input) String() string {
+	var res []string
+	if i.Depth > 0 {
+		res = append(res, fmt.Sprintf("depth %v", i.Depth))
+	}
+	if i.MoveTime > 0 {
+		res = append(res, fmt.Sprintf("movetime %v", i.MoveTime.Milliseconds()))
+	}
+	if i.Infinite {
+		res = append(res, "infinite")
+	}
+	if len(i.SearchMoves) > 0 {
+		res = append(res, fmt.Sprintf("searchmoves %s", strings.Join(i.SearchMoves, " ")))
+	}
+	return fmt.Sprintf("go %v", strings.Join(res, " "))
 }
 
 // Output holds a search result.

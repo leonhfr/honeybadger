@@ -6,6 +6,7 @@ require (
 	github.com/notnil/chess v1.9.0
 	github.com/spf13/cobra v1.5.0
 	github.com/stretchr/testify v1.8.0
+	golang.org/x/exp v0.0.0-20220921164117-439092de6870
 )
 
 require (

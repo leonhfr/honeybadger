@@ -85,6 +85,7 @@ Usage:
 Available Commands:
   help        Help about any command
   options     Lists the available options
+  search      Runs a single search on a FEN
 
 Flags:
   -h, --help      help for honeybadger

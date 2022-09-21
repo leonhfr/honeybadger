@@ -4,6 +4,7 @@ import (
 	"context"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -22,6 +23,24 @@ func TestRun(t *testing.T) {
 
 	e.AssertExpectations(t)
 	assert.Equal(t, "id name NAME\nid author AUTHOR\nuciok\n", w.String())
+}
+
+func TestInputString(t *testing.T) {
+	tests := []struct {
+		name string
+		args Input
+		want string
+	}{
+		{"1", Input{Depth: 0, MoveTime: 0, Infinite: true, SearchMoves: []string{}}, "go infinite"},
+		{"2", Input{Depth: 5, MoveTime: time.Second, Infinite: false, SearchMoves: []string{}}, "go depth 5 movetime 1000"},
+		{"3", Input{Depth: 5, MoveTime: 0, Infinite: false, SearchMoves: []string{"d2d4", "a1b2"}}, "go depth 5 searchmoves d2d4 a1b2"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, tt.args.String())
+		})
+	}
 }
 
 // mockEngine is a mock that implements the Engine interface
