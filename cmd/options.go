@@ -4,6 +4,8 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+
+	"github.com/leonhfr/honeybadger/engine"
 )
 
 // optionsCmd represents the options command.
@@ -22,8 +24,7 @@ Fields:
   var         one of enum possible value`,
 	Args: cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		ctx := cmd.Context()
-		e := newEngine(ctx)
+		e := engine.New()
 
 		options := e.Options()
 		for _, option := range options {

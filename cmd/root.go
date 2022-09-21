@@ -38,7 +38,13 @@ Fair warning: it is not very strong.`,
 	CompletionOptions: cobra.CompletionOptions{DisableDefaultCmd: true},
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := cmd.Context()
-		e := newEngine(ctx)
+		name, version, author := name(ctx), version(ctx), author(ctx)
+
+		e := engine.New(
+			engine.WithName(fmt.Sprintf("%s v%s", name, version)),
+			engine.WithAuthor(author),
+			engine.WithLogger(uci.Logger(os.Stdout)),
+		)
 
 		uci.Run(ctx, e, os.Stdin, os.Stdout)
 
@@ -55,17 +61,6 @@ func Execute(ctx context.Context) error {
 
 func init() {
 	rootCmd.AddCommand(optionsCmd)
-}
-
-// newEngine returns a new engine.
-func newEngine(ctx context.Context) *engine.Engine {
-	name, version, author := name(ctx), version(ctx), author(ctx)
-
-	return engine.New(
-		engine.WithName(fmt.Sprintf("%s v%s", name, version)),
-		engine.WithAuthor(author),
-		engine.WithLogger(uci.Logger(os.Stdout)),
-	)
 }
 
 // name returns the name value from the context.
