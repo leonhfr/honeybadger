@@ -74,8 +74,8 @@ func TestInit(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tr := new(mockTransposition)
-			tr.On("Init").Return(tt.args).Times(1)
 			e := New(WithTransposition(tr))
+			tr.On("Init", e.options.hash).Return(tt.args).Times(1)
 
 			err := e.Init()
 			_ = e.Init() // test sync.Once
@@ -252,8 +252,8 @@ func (m *mockTransposition) String() string {
 	return args.String(0)
 }
 
-func (m *mockTransposition) Init() error {
-	args := m.Called()
+func (m *mockTransposition) Init(size int) error {
+	args := m.Called(size)
 	return args.Error(0)
 }
 

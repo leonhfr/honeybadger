@@ -11,7 +11,7 @@ func (None) String() string {
 }
 
 // Init implements the Interface interface.
-func (None) Init() error {
+func (None) Init(size int) error {
 	return nil
 }
 

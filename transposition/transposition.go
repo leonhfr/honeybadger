@@ -28,7 +28,7 @@ const (
 // Interface is the interface implemented by objects that can memoize search results.
 type Interface interface {
 	fmt.Stringer
-	Init() error                           // Init initializes the transposition hash table.
+	Init(size int) error                   // Init initializes the transposition hash table.
 	Set(key *chess.Position, value Entry)  // Set adds an entry to the cache for the given position. If an entry already exists for the position, it is replaced. The addition is not guaranteed.
 	Get(key *chess.Position) (Entry, bool) // Get returns the entry (if any) and a boolean representing whether the value was found or not.
 	Close()                                // Close initiates a graceful shutdown of the transposition table.
