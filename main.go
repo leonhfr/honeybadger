@@ -4,6 +4,8 @@ package main
 import (
 	"context"
 	"log"
+	"os"
+	"os/signal"
 
 	"github.com/leonhfr/honeybadger/cmd"
 )
@@ -15,7 +17,9 @@ var (
 )
 
 func main() {
-	ctx := context.Background()
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
+	defer stop()
+
 	ctx = context.WithValue(ctx, cmd.NameKey, name)
 	ctx = context.WithValue(ctx, cmd.VersionKey, version)
 	ctx = context.WithValue(ctx, cmd.AuthorKey, author)

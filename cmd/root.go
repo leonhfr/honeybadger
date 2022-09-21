@@ -4,6 +4,7 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"io"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -40,13 +41,21 @@ Fair warning: it is not very strong.`,
 		ctx := cmd.Context()
 		name, version, author := name(ctx), version(ctx), author(ctx)
 
+		uciOut := os.Stdout
+		uciIn, pipe := io.Pipe()
+
+		// graceful shutdown when context canceled
+		// sending EOF to the UCI scanner by closing the pipe
+		go func() { _, _ = io.Copy(pipe, os.Stdin) }()
+		go func() { <-ctx.Done(); pipe.Close() }()
+
 		e := engine.New(
 			engine.WithName(fmt.Sprintf("%s v%s", name, version)),
 			engine.WithAuthor(author),
-			engine.WithLogger(uci.Logger(os.Stdout)),
+			engine.WithLogger(uci.Logger(uciOut)),
 		)
 
-		uci.Run(ctx, e, os.Stdin, os.Stdout)
+		uci.Run(ctx, e, uciIn, uciOut)
 
 		return nil
 	},
