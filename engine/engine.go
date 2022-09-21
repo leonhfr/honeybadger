@@ -12,6 +12,7 @@ import (
 	"github.com/notnil/chess"
 
 	"github.com/leonhfr/honeybadger/evaluation"
+	"github.com/leonhfr/honeybadger/oracle"
 	"github.com/leonhfr/honeybadger/quiescence"
 	"github.com/leonhfr/honeybadger/search"
 	"github.com/leonhfr/honeybadger/transposition"
@@ -46,6 +47,7 @@ type Engine struct {
 type engineOptions struct {
 	search        search.Interface        // Search strategy.
 	evaluation    evaluation.Interface    // Evaluation strategy.
+	oracle        oracle.Interface        // Oracle strategy.
 	quiescence    quiescence.Interface    // Quiescence strategy.
 	transposition transposition.Interface // Transposition strategy.
 	hash          int                     // Size of the transposition hash table in MB.
@@ -116,6 +118,13 @@ func WithSearch(si search.Interface) func(*Engine) {
 func WithEvaluation(ei evaluation.Interface) func(*Engine) {
 	return func(e *Engine) {
 		e.options.evaluation = ei
+	}
+}
+
+// WithOracle sets the oracle strategy.
+func WithOracle(oi oracle.Interface) func(*Engine) {
+	return func(e *Engine) {
+		e.options.oracle = oi
 	}
 }
 

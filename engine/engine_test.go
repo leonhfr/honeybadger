@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/mock"
 
 	"github.com/leonhfr/honeybadger/evaluation"
+	"github.com/leonhfr/honeybadger/oracle"
 	"github.com/leonhfr/honeybadger/quiescence"
 	"github.com/leonhfr/honeybadger/search"
 	"github.com/leonhfr/honeybadger/transposition"
@@ -22,6 +23,7 @@ func TestNew(t *testing.T) {
 	assert.Equal(t, chess.UCINotation{}, e.notation)
 	assert.Equal(t, search.AlphaBeta{}, e.options.search)
 	assert.Equal(t, evaluation.Simplified{}, e.options.evaluation)
+	assert.Equal(t, oracle.None{}, e.options.oracle)
 	assert.Equal(t, quiescence.None{}, e.options.quiescence)
 	assert.Equal(t, transposition.None{}, e.options.transposition)
 	assert.Equal(t, 32, e.options.hash)
@@ -99,6 +101,12 @@ func TestOptions(t *testing.T) {
 			Name:    "EvaluationStrategy",
 			Default: "Simplified",
 			Vars:    []string{"Values", "Simplified"},
+		},
+		{
+			Type:    uci.OptionEnum,
+			Name:    "OracleStrategy",
+			Default: "None",
+			Vars:    []string{"None", "Order"},
 		},
 		{
 			Type:    uci.OptionEnum,

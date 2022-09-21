@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/leonhfr/honeybadger/evaluation"
+	"github.com/leonhfr/honeybadger/oracle"
 	"github.com/leonhfr/honeybadger/quiescence"
 	"github.com/leonhfr/honeybadger/search"
 	"github.com/leonhfr/honeybadger/transposition"
@@ -19,6 +20,7 @@ var (
 	availableOptions = []option{
 		searchStrategy,
 		evaluationStrategy,
+		oracleStrategy,
 		quiescenceStrategy,
 		transpositionStrategy,
 		hashOption,
@@ -44,6 +46,16 @@ var (
 			evaluation.Simplified{},
 		},
 		fn: WithEvaluation,
+	}
+
+	oracleStrategy = optionStrategy[oracle.Interface]{
+		name: "OracleStrategy",
+		def:  oracle.None{},
+		vars: []oracle.Interface{
+			oracle.None{},
+			oracle.Order{},
+		},
+		fn: WithOracle,
 	}
 
 	quiescenceStrategy = optionStrategy[quiescence.Interface]{

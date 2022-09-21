@@ -110,6 +110,13 @@ Flags:
   - Values: difference between the piece values of each side.
   - Simplified (default): combination of piece values and positional advantage.
 
+- **OracleStrategy**
+
+  Oracle strategy to use. Available strategies are:
+
+  - None (default): no move ordering is performed.
+  - Order: move ordering is performed based on promotions, castling, checks, and capture.
+
 - **QuiescenceStrategy**
 
   Quiescence strategy to use. Available strategies are:
