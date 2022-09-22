@@ -74,13 +74,17 @@ func alphaBeta(ctx context.Context, input Input) (*Output, error) {
 		Score: -evaluation.Mate,
 	}
 
-	for _, move := range loudMoves(input.Position) {
+	moves := loudMoves(input.Position)
+	input.Oracle.Order(moves)
+
+	for _, move := range moves {
 		current, err := alphaBeta(ctx, Input{
 			Position:   input.Position.Update(move),
 			Depth:      input.Depth - 1,
-			Evaluation: input.Evaluation,
 			Alpha:      -input.Beta,
 			Beta:       -input.Alpha,
+			Evaluation: input.Evaluation,
+			Oracle:     input.Oracle,
 		})
 		if err != nil {
 			return nil, err

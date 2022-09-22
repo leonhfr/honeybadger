@@ -8,6 +8,7 @@ import (
 	"github.com/notnil/chess"
 
 	"github.com/leonhfr/honeybadger/evaluation"
+	"github.com/leonhfr/honeybadger/oracle"
 	"github.com/leonhfr/honeybadger/transposition"
 )
 
@@ -18,6 +19,7 @@ type Input struct {
 	Alpha         int                     // Best score that the maximizer can guarantee.
 	Beta          int                     // Best score that the minimizer can guarantee.
 	Evaluation    evaluation.Interface    // Evaluation strategy to use.
+	Oracle        oracle.Interface        // Oracle strategy to use.
 	Transposition transposition.Interface // Transposition hash table strategy to use.
 }
 

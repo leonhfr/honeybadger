@@ -50,7 +50,7 @@ var (
 
 	oracleStrategy = optionStrategy[oracle.Interface]{
 		name: "OracleStrategy",
-		def:  oracle.None{},
+		def:  oracle.Order{},
 		vars: []oracle.Interface{
 			oracle.None{},
 			oracle.Order{},

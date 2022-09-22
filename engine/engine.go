@@ -255,6 +255,7 @@ func (e *Engine) Search(ctx context.Context, input uci.Input) (<-chan uci.Output
 		Depth:         input.Depth,
 		Search:        e.options.search,
 		Evaluation:    e.options.evaluation,
+		Oracle:        e.options.oracle,
 		Quiescence:    e.options.quiescence,
 		Transposition: e.options.transposition,
 	})

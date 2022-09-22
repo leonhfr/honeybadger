@@ -23,7 +23,7 @@ func TestNew(t *testing.T) {
 	assert.Equal(t, chess.UCINotation{}, e.notation)
 	assert.Equal(t, search.AlphaBeta{}, e.options.search)
 	assert.Equal(t, evaluation.Simplified{}, e.options.evaluation)
-	assert.Equal(t, oracle.None{}, e.options.oracle)
+	assert.Equal(t, oracle.Order{}, e.options.oracle)
 	assert.Equal(t, quiescence.None{}, e.options.quiescence)
 	assert.Equal(t, transposition.None{}, e.options.transposition)
 	assert.Equal(t, 32, e.options.hash)
@@ -105,7 +105,7 @@ func TestOptions(t *testing.T) {
 		{
 			Type:    uci.OptionEnum,
 			Name:    "OracleStrategy",
-			Default: "None",
+			Default: "Order",
 			Vars:    []string{"None", "Order"},
 		},
 		{

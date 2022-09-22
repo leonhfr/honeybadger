@@ -29,6 +29,7 @@ func (AlphaBeta) Search(ctx context.Context, input Input, output chan<- *Output)
 			Alpha:         -evaluation.Mate,
 			Beta:          evaluation.Mate,
 			Evaluation:    input.Evaluation,
+			Oracle:        input.Oracle,
 			Quiescence:    input.Quiescence,
 			Transposition: input.Transposition,
 		})
@@ -95,6 +96,7 @@ func alphaBeta(ctx context.Context, input Input) (*Output, error) {
 			Alpha:         -input.Beta,
 			Beta:          -input.Alpha,
 			Evaluation:    input.Evaluation,
+			Oracle:        input.Oracle,
 			Transposition: input.Transposition,
 		})
 		if err != nil {
@@ -113,13 +115,17 @@ func alphaBeta(ctx context.Context, input Input) (*Output, error) {
 		Score: -evaluation.Mate,
 	}
 
-	for _, move := range searchMoves(input) {
+	moves := searchMoves(input)
+	input.Oracle.Order(moves)
+
+	for _, move := range moves {
 		current, err := alphaBeta(ctx, Input{
 			Position:      input.Position.Update(move),
 			Depth:         input.Depth - 1,
 			Alpha:         -input.Beta,
 			Beta:          -input.Alpha,
 			Evaluation:    input.Evaluation,
+			Oracle:        input.Oracle,
 			Quiescence:    input.Quiescence,
 			Transposition: input.Transposition,
 		})
