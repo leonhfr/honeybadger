@@ -10,17 +10,18 @@ Key features include:
 
 - fully compliant UCI interface
 - alpha-beta search with iterative deepening
+- quiescence search
+- oracle (move ordering)
 - simple evaluation function combining piece values and positional advantage
+- transposition table for memoizing search results
 - ability to use different search and evaluation strategies with options
+- cli mode for quick searches
 
 Future (planned) features:
 
-- quiescence search with null move pruning
-- move ordering (oracle)
+- null move pruning
 - better evaluation function with game phase knowledge
-- transposition table for memoizing search results
 - integrated opening book
-- cli mode for quick analyses
 - playable bot on Lichess
 
 ## Installation
@@ -114,8 +115,8 @@ Flags:
 
   Oracle strategy to use. Available strategies are:
 
-  - None (default): no move ordering is performed.
-  - Order: move ordering is performed based on promotions, castling, checks, and capture.
+  - None: no move ordering is performed.
+  - Order (default): move ordering is performed based on promotions, castling, checks, and captures.
 
 - **QuiescenceStrategy**
 
