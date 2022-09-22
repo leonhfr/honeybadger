@@ -118,7 +118,7 @@ func TestOptions(t *testing.T) {
 			Type:    uci.OptionEnum,
 			Name:    "TranspositionStrategy",
 			Default: "None",
-			Vars:    []string{"None"},
+			Vars:    []string{"None", "Ristretto"},
 		},
 		{
 			Type:    uci.OptionInteger,

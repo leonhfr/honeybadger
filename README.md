@@ -130,6 +130,7 @@ Flags:
   Transposition hash table strategy to use. Available strategies are:
 
   - None (default): no transposition hash table is used.
+  - Ristretto: transposition hash table implemented using the [ristretto](https://github.com/dgraph-io/ristretto) library.
 
 - **Hash**
 

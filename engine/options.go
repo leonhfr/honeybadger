@@ -73,6 +73,7 @@ var (
 		def:  transposition.None{},
 		vars: []transposition.Interface{
 			transposition.None{},
+			&transposition.Ristretto{},
 		},
 		fn: WithTransposition,
 	}
