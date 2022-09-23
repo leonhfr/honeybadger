@@ -65,12 +65,12 @@ Using [cete](https://github.com/leonhfr/honeybadger), you can quickly make UCI e
 ```sh
 # This will play a game between two Honey Badger, one playing randomly
 # and the other using negamax with alpha-beta pruning
-cete game ./test/data/random-alphabeta.yaml
+cete game ./test/data/cete/random-alphabeta.yaml
 
 
 # This will play a game with the same options and will also broadcast
 # the game in a web view
-cete game -b ./test/data/random-alphabeta.yaml
+cete game -b ./test/data/cete/random-alphabeta.yaml
 
 ```
 
