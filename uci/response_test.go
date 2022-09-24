@@ -63,7 +63,7 @@ func TestResponseString(t *testing.T) {
 			},
 			want: "info depth 8 nodes 1024 score mate -5 pv b1a3 b1c3 time 5000",
 		},
-		{name: "comment", args: responseComment{comment: "COMMENT"}, want: "info COMMENT"},
+		{name: "comment", args: responseComment{comment: "COMMENT"}, want: "info string COMMENT"},
 		{
 			name: "option boolean",
 			args: Option{

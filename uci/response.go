@@ -211,7 +211,7 @@ type responseComment struct {
 }
 
 func (r responseComment) String() string {
-	return fmt.Sprintf("info %s", r.comment)
+	return fmt.Sprintf("info string %s", r.comment)
 }
 
 // responseOption represents an "option" command.
