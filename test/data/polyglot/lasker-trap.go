@@ -1,3 +1,4 @@
+// Package polyglot exports test polyglot data.
 package polyglot
 
 import _ "embed"
