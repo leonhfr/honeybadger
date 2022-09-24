@@ -64,27 +64,37 @@ func TestInfo(t *testing.T) {
 }
 
 func TestInit(t *testing.T) {
-	err := errors.New("test error")
+	transpositionErr := errors.New("test transposition error")
+	openingErr := errors.New("test opening error")
 
-	type want struct {
-		err         error
-		initialized bool
-	}
+	type (
+		args struct {
+			transpositionErr error
+			openingErr       error
+		}
+		want struct {
+			err         error
+			initialized bool
+		}
+	)
 
 	tests := []struct {
 		name string
-		args error
+		args args
 		want want
 	}{
-		{"no error", nil, want{nil, true}},
-		{"error", err, want{err, false}},
+		{"no error", args{nil, nil}, want{nil, true}},
+		{"transposition error", args{transpositionErr, nil}, want{transpositionErr, false}},
+		{"opening error", args{nil, openingErr}, want{openingErr, false}},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tr := new(mockTransposition)
-			e := New(WithTransposition(tr))
-			tr.On("Init", e.options.hash).Return(tt.args).Times(1)
+			op := new(mockOpening)
+			e := New(WithTransposition(tr), WithOpening(op))
+			tr.On("Init", e.options.hash).Return(tt.args.transpositionErr).Times(1)
+			op.On("Init", mock.Anything).Return(tt.args.openingErr).Times(1)
 
 			err := e.Init()
 			_ = e.Init() // test sync.Once
@@ -290,4 +300,24 @@ func (m *mockTransposition) Get(key *chess.Position) (transposition.Entry, bool)
 
 func (m *mockTransposition) Close() {
 	m.Called()
+}
+
+// mockOpening is a mock that implements opening.Interface
+type mockOpening struct {
+	mock.Mock
+}
+
+func (m *mockOpening) String() string {
+	args := m.Called()
+	return args.String(0)
+}
+
+func (m *mockOpening) Init(book []byte) error {
+	args := m.Called(book)
+	return args.Error(0)
+}
+
+func (m *mockOpening) Move(position *chess.Position) *chess.Move {
+	args := m.Called(position)
+	return args.Get(0).(*chess.Move)
 }

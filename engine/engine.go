@@ -13,6 +13,7 @@ import (
 
 	"github.com/leonhfr/honeybadger/evaluation"
 	"github.com/leonhfr/honeybadger/opening"
+	"github.com/leonhfr/honeybadger/opening/book"
 	"github.com/leonhfr/honeybadger/oracle"
 	"github.com/leonhfr/honeybadger/quiescence"
 	"github.com/leonhfr/honeybadger/search"
@@ -173,6 +174,9 @@ func (e *Engine) Init() error {
 	var err error
 	e.once.Do(func() {
 		if err = e.options.transposition.Init(e.options.hash); err != nil {
+			return
+		}
+		if err = e.options.opening.Init(book.Performance); err != nil {
 			return
 		}
 		e.initialized = true
