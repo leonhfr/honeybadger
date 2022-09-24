@@ -3,6 +3,7 @@ package uci
 import (
 	"context"
 	"errors"
+	"strings"
 	"sync"
 	"testing"
 
@@ -10,34 +11,34 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func TestCommandUCI(t *testing.T) {
+func TestCommandUCI2(t *testing.T) {
 	option := Option{Type: OptionBoolean, Name: "OPTION"}
 	e := new(mockEngine)
 	e.On("Info").Return("NAME", "AUTHOR")
 	e.On("Options").Return([]Option{option})
 
-	rc := make(chan response)
-	wg := assertResponses(t, e, rc, []response{
+	stdout := &strings.Builder{}
+	respond := newResponder(stdout)
+
+	commandUCI{}.run(context.Background(), e, respond)
+
+	expected := concatenate([]response{
 		responseID{"NAME", "AUTHOR"},
 		option,
 		responseUCIOK{},
 	})
-
-	commandUCI{}.run(context.Background(), e, rc)
-	close(rc)
-
 	e.AssertExpectations(t)
-	wg.Wait()
+	assert.Equal(t, expected, stdout.String())
 }
 
 func TestCommandDebug(t *testing.T) {
 	e := new(mockEngine)
 	e.On("Debug", mock.Anything)
 
-	rc := make(chan response)
+	stdout := &strings.Builder{}
+	respond := newResponder(stdout)
 
-	commandDebug{}.run(context.Background(), e, rc)
-	close(rc)
+	commandDebug{}.run(context.Background(), e, respond)
 
 	e.AssertExpectations(t)
 }
@@ -57,33 +58,15 @@ func TestCommandIsReady(t *testing.T) {
 			e := new(mockEngine)
 			e.On("Init").Return(tt.args)
 
-			rc := make(chan response)
-			wg := &sync.WaitGroup{}
-			wg.Add(1)
+			expected := concatenate(tt.want)
+			stdout := newMockStdOut(len(expected))
+			respond := newResponder(stdout)
 
-			// testing asynchronously
-			go func() {
-				defer wg.Done()
-				defer close(rc)
-				var r []response
+			commandIsReady{}.run(context.Background(), e, respond)
 
-				for i := 0; i < len(tt.want); i++ {
-					r = append(r, <-rc)
-				}
-
-				select {
-				case empty := <-rc:
-					assert.Fail(t, "channel should be empty", empty)
-				default:
-				}
-
-				e.AssertExpectations(t)
-				assert.Equal(t, tt.want, r)
-			}()
-
-			commandIsReady{}.run(context.Background(), e, rc)
-
-			wg.Wait()
+			stdout.Wait()
+			e.AssertExpectations(t)
+			assert.Equal(t, expected, stdout.String())
 		})
 	}
 }
@@ -116,14 +99,13 @@ func TestCommandSetOption(t *testing.T) {
 			e := new(mockEngine)
 			e.On("SetOption", tt.args.cmd.name, tt.args.cmd.value).Return(tt.args.err)
 
-			rc := make(chan response)
-			wg := assertResponses(t, e, rc, tt.want)
+			stdout := &strings.Builder{}
+			respond := newResponder(stdout)
 
-			tt.args.cmd.run(context.Background(), e, rc)
-			close(rc)
+			tt.args.cmd.run(context.Background(), e, respond)
 
 			e.AssertExpectations(t)
-			wg.Wait()
+			assert.Equal(t, concatenate(tt.want), stdout.String())
 		})
 	}
 }
@@ -131,10 +113,10 @@ func TestCommandSetOption(t *testing.T) {
 func TestCommandUCINewGame(t *testing.T) {
 	e := new(mockEngine)
 
-	rc := make(chan response)
+	stdout := &strings.Builder{}
+	respond := newResponder(stdout)
 
-	commandUCINewGame{}.run(context.Background(), e, rc)
-	close(rc)
+	commandUCINewGame{}.run(context.Background(), e, respond)
 
 	e.AssertExpectations(t)
 }
@@ -168,14 +150,13 @@ func TestCommandPosition_ResetPosition(t *testing.T) {
 			e.On("ResetPosition")
 			e.On("Move", tt.args.cmd.moves).Return(tt.args.errMove)
 
-			rc := make(chan response)
-			wg := assertResponses(t, e, rc, tt.want)
+			stdout := &strings.Builder{}
+			respond := newResponder(stdout)
 
-			tt.args.cmd.run(context.Background(), e, rc)
-			close(rc)
+			tt.args.cmd.run(context.Background(), e, respond)
 
 			e.AssertExpectations(t)
-			wg.Wait()
+			assert.Equal(t, concatenate(tt.want), stdout.String())
 		})
 	}
 }
@@ -212,14 +193,13 @@ func TestCommandPosition_SetPosition(t *testing.T) {
 			e.On("SetPosition", tt.args.cmd.fen).Return(tt.args.errPos)
 			e.On("Move", tt.args.cmd.moves).Return(tt.args.errMove)
 
-			rc := make(chan response)
-			wg := assertResponses(t, e, rc, tt.want)
+			stdout := &strings.Builder{}
+			respond := newResponder(stdout)
 
-			tt.args.cmd.run(context.Background(), e, rc)
-			close(rc)
+			tt.args.cmd.run(context.Background(), e, respond)
 
 			e.AssertExpectations(t)
-			wg.Wait()
+			assert.Equal(t, concatenate(tt.want), stdout.String())
 		})
 	}
 }
@@ -261,25 +241,15 @@ func TestCommandGo(t *testing.T) {
 			close(oc)
 			e.On("Search", mock.Anything, tt.args.cmd.input).Return(oc, tt.args.err)
 
-			rc := make(chan response)
-			wg := &sync.WaitGroup{}
-			wg.Add(1)
+			expected := concatenate(tt.want)
+			stdout := newMockStdOut(len(expected))
+			respond := newResponder(stdout)
 
-			// testing asynchronously
-			go func() {
-				defer wg.Done()
-				defer close(rc)
-				var responses []response
-				for i := 0; i < len(tt.want); i++ {
-					responses = append(responses, <-rc)
-				}
-				e.AssertExpectations(t)
-				assert.Equal(t, tt.want, responses)
-			}()
+			tt.args.cmd.run(context.Background(), e, respond)
 
-			tt.args.cmd.run(context.Background(), e, rc)
-
-			wg.Wait()
+			stdout.Wait()
+			e.AssertExpectations(t)
+			assert.Equal(t, expected, stdout.String())
 		})
 	}
 }
@@ -288,10 +258,10 @@ func TestCommandStop(t *testing.T) {
 	e := new(mockEngine)
 	e.On("StopSearch")
 
-	rc := make(chan response)
+	stdout := &strings.Builder{}
+	respond := newResponder(stdout)
 
-	commandStop{}.run(context.Background(), e, rc)
-	close(rc)
+	commandStop{}.run(context.Background(), e, respond)
 
 	e.AssertExpectations(t)
 }
@@ -300,26 +270,50 @@ func TestCommandQuit(t *testing.T) {
 	e := new(mockEngine)
 	e.On("Quit")
 
-	rc := make(chan response)
+	stdout := &strings.Builder{}
+	respond := newResponder(stdout)
 
-	commandQuit{}.run(context.Background(), e, rc)
-	close(rc)
+	commandQuit{}.run(context.Background(), e, respond)
 
 	e.AssertExpectations(t)
 }
 
-func assertResponses(t *testing.T, e *mockEngine, rc chan response, expected []response) *sync.WaitGroup {
-	wg := &sync.WaitGroup{}
-	wg.Add(1)
+func concatenate(responses []response) string {
+	var s []string
+	for _, r := range responses {
+		s = append(s, r.String(), "\n")
+	}
+	return strings.Join(s, "")
+}
 
-	go func() {
-		defer wg.Done()
-		responses := []response{}
-		for r := range rc {
-			responses = append(responses, r)
-		}
-		assert.Equal(t, expected, responses)
-	}()
+type mockStdout struct {
+	b   *strings.Builder
+	wg  *sync.WaitGroup
+	lim int
+}
 
-	return wg
+func newMockStdOut(lim int) *mockStdout {
+	ms := &mockStdout{
+		b:   &strings.Builder{},
+		wg:  &sync.WaitGroup{},
+		lim: lim,
+	}
+	ms.wg.Add(1)
+	return ms
+}
+
+func (ms *mockStdout) Write(p []byte) (n int, err error) {
+	n, err = ms.b.Write(p)
+	if ms.b.Len() >= ms.lim {
+		ms.wg.Done()
+	}
+	return n, err
+}
+
+func (ms *mockStdout) String() string {
+	return ms.b.String()
+}
+
+func (ms *mockStdout) Wait() {
+	ms.wg.Wait()
 }

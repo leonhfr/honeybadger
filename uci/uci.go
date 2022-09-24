@@ -8,7 +8,6 @@ import (
 	"io"
 	"log"
 	"strings"
-	"sync"
 	"time"
 )
 
@@ -32,31 +31,26 @@ type Engine interface {
 // Run parses command from the reader, executes them with the provided engine
 // and writes the responses on the writer.
 func Run(ctx context.Context, e Engine, r io.Reader, w io.Writer) {
-	responses := make(chan response)
-	wg := sync.WaitGroup{}
-	wg.Add(1)
-
-	logger := log.New(w, "", 0)
-	go func() {
-		defer wg.Done()
-		for response := range responses {
-			logger.Println(response)
-		}
-	}()
+	respond := newResponder(w)
 
 	for scanner := bufio.NewScanner(r); scanner.Scan(); {
 		c := parse(strings.Fields(scanner.Text()))
 		if c == nil {
 			continue
 		}
-		c.run(ctx, e, responses)
+		c.run(ctx, e, respond)
 		if _, ok := c.(commandQuit); ok {
 			break
 		}
 	}
+}
 
-	close(responses)
-	wg.Wait()
+type responder func(v fmt.Stringer)
+
+func newResponder(w io.Writer) responder {
+	return func(v fmt.Stringer) {
+		fmt.Fprintln(w, v.String())
+	}
 }
 
 // Logger returns a logger that is able to log UCI-compliant output.
