@@ -172,7 +172,9 @@ func (e *Engine) Info() (name, author string) {
 func (e *Engine) Init() error {
 	var err error
 	e.once.Do(func() {
-		err = e.options.transposition.Init(e.options.hash)
+		if err = e.options.transposition.Init(e.options.hash); err != nil {
+			return
+		}
 		e.initialized = true
 	})
 	return err

@@ -66,13 +66,18 @@ func TestInfo(t *testing.T) {
 func TestInit(t *testing.T) {
 	err := errors.New("test error")
 
+	type want struct {
+		err         error
+		initialized bool
+	}
+
 	tests := []struct {
 		name string
 		args error
-		want error
+		want want
 	}{
-		{"no error", nil, nil},
-		{"error", err, err},
+		{"no error", nil, want{nil, true}},
+		{"error", err, want{err, false}},
 	}
 
 	for _, tt := range tests {
@@ -83,7 +88,8 @@ func TestInit(t *testing.T) {
 
 			err := e.Init()
 			_ = e.Init() // test sync.Once
-			assert.Equal(t, tt.want, err)
+			assert.Equal(t, tt.want.err, err)
+			assert.Equal(t, tt.want.initialized, e.initialized)
 		})
 	}
 }
