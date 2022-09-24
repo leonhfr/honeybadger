@@ -1,10 +1,9 @@
 package evaluation
 
-import (
-	"github.com/notnil/chess"
-)
+import "github.com/notnil/chess"
 
 // Simplified implements the evaluation function from Tomasz Michniewski.
+//
 // Source: https://www.chessprogramming.org/Simplified_Evaluation_Function
 type Simplified struct{}
 

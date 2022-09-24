@@ -46,6 +46,7 @@ var (
 		vars: []evaluation.Interface{
 			evaluation.Values{},
 			evaluation.Simplified{},
+			evaluation.Pesto{},
 		},
 		fn: WithEvaluation,
 	}

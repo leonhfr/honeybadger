@@ -118,7 +118,7 @@ func TestOptions(t *testing.T) {
 			Type:    uci.OptionEnum,
 			Name:    "EvaluationStrategy",
 			Default: "Simplified",
-			Vars:    []string{"Values", "Simplified"},
+			Vars:    []string{"Values", "Simplified", "Pesto"},
 		},
 		{
 			Type:    uci.OptionEnum,
