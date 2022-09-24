@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/mock"
 
 	"github.com/leonhfr/honeybadger/evaluation"
+	"github.com/leonhfr/honeybadger/opening"
 	"github.com/leonhfr/honeybadger/oracle"
 	"github.com/leonhfr/honeybadger/quiescence"
 	"github.com/leonhfr/honeybadger/search"
@@ -26,6 +27,7 @@ func TestNew(t *testing.T) {
 	assert.Equal(t, oracle.Order{}, e.options.oracle)
 	assert.Equal(t, quiescence.None{}, e.options.quiescence)
 	assert.Equal(t, transposition.None{}, e.options.transposition)
+	assert.Equal(t, opening.NewNone().String(), e.options.opening.String())
 	assert.Equal(t, 32, e.options.hash)
 }
 
@@ -119,6 +121,12 @@ func TestOptions(t *testing.T) {
 			Name:    "TranspositionStrategy",
 			Default: "None",
 			Vars:    []string{"None", "Ristretto"},
+		},
+		{
+			Type:    uci.OptionEnum,
+			Name:    "OpeningStrategy",
+			Default: "None",
+			Vars:    []string{"None"},
 		},
 		{
 			Type:    uci.OptionInteger,

@@ -12,6 +12,7 @@ import (
 	"github.com/notnil/chess"
 
 	"github.com/leonhfr/honeybadger/evaluation"
+	"github.com/leonhfr/honeybadger/opening"
 	"github.com/leonhfr/honeybadger/oracle"
 	"github.com/leonhfr/honeybadger/quiescence"
 	"github.com/leonhfr/honeybadger/search"
@@ -50,6 +51,7 @@ type engineOptions struct {
 	oracle        oracle.Interface        // Oracle strategy.
 	quiescence    quiescence.Interface    // Quiescence strategy.
 	transposition transposition.Interface // Transposition strategy.
+	opening       opening.Interface       // Opening strategy.
 	hash          int                     // Size of the transposition hash table in MB.
 }
 
@@ -139,6 +141,13 @@ func WithQuiescence(qi quiescence.Interface) func(*Engine) {
 func WithTransposition(ti transposition.Interface) func(*Engine) {
 	return func(e *Engine) {
 		e.options.transposition = ti
+	}
+}
+
+// WithOpening sets the opening strategy.
+func WithOpening(oi opening.Interface) func(*Engine) {
+	return func(e *Engine) {
+		e.options.opening = oi
 	}
 }
 

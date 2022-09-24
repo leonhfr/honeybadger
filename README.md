@@ -132,6 +132,12 @@ Flags:
   - None (default): no transposition hash table is used.
   - Ristretto: transposition hash table implemented using the [ristretto](https://github.com/dgraph-io/ristretto) library.
 
+- **OpeningStrategy**
+
+  Opening strategy to use. This defines how moves will be selected from the opening book. Available strategies are:
+
+  - None (default): no opening strategy is used. The engine will not used any opening book and will only use the defined search strategy to determine which move to play.
+
 - **Hash**
 
   Size of the transposition hash table in megabytes (MB).

@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/leonhfr/honeybadger/evaluation"
+	"github.com/leonhfr/honeybadger/opening"
 	"github.com/leonhfr/honeybadger/oracle"
 	"github.com/leonhfr/honeybadger/quiescence"
 	"github.com/leonhfr/honeybadger/search"
@@ -23,6 +24,7 @@ var (
 		oracleStrategy,
 		quiescenceStrategy,
 		transpositionStrategy,
+		openingStrategy,
 		hashOption,
 	}
 
@@ -76,6 +78,15 @@ var (
 			&transposition.Ristretto{},
 		},
 		fn: WithTransposition,
+	}
+
+	openingStrategy = optionStrategy[opening.Interface]{
+		name: "OpeningStrategy",
+		def:  opening.NewNone(),
+		vars: []opening.Interface{
+			opening.NewNone(),
+		},
+		fn: WithOpening,
 	}
 
 	hashOption = optionInteger{
