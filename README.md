@@ -138,6 +138,7 @@ Flags:
 
   - None (default): no opening strategy is used. The engine will not used any opening book and will only use the defined search strategy to determine which move to play.
   - Best: the best move from the opening book is played.
+  - UniformRandom: moves have an equal probability of being chosen.
   - WeightedRandom: moves with a higher weight (quality) have a higher probability of being chosen.
 
 - **Hash**

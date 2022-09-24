@@ -86,6 +86,7 @@ var (
 		vars: []opening.Interface{
 			opening.NewNone(),
 			opening.NewBest(),
+			opening.NewUniformRandom(),
 			opening.NewWeightedRandom(),
 		},
 		fn: WithOpening,

@@ -75,6 +75,37 @@ func (b *Best) Move(position *chess.Position) *chess.Move {
 	return moves[0].Move
 }
 
+// UniformRandom returns a random move with uniform probabilities.
+type UniformRandom struct {
+	book *polyglot.Book
+}
+
+// NewUniformRandom returns a new UniformRandom opening strategy.
+func NewUniformRandom() *UniformRandom {
+	return &UniformRandom{polyglot.New()}
+}
+
+// String implements the Interface interface.
+func (*UniformRandom) String() string {
+	return "UniformRandom"
+}
+
+// Init implements the Interface interface.
+func (ur *UniformRandom) Init(data []byte) error {
+	r := bytes.NewReader(data)
+	return ur.book.Init(r)
+}
+
+// Move implements the Interface interface.
+func (ur *UniformRandom) Move(position *chess.Position) *chess.Move {
+	moves := ur.book.Lookup(position)
+	if len(moves) == 0 {
+		return nil
+	}
+	index := rand.Intn(len(moves)) //nolint
+	return moves[index].Move
+}
+
 // WeightedRandom returns a random move with weighted probabilities from the
 // opening book.
 type WeightedRandom struct {
