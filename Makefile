@@ -13,6 +13,10 @@ run:
 test:
 	go test ./...
 
+.PHONY: lint
+lint:
+	golangci-lint run
+
 .PHONY: coverage-html
 coverage-html: coverage
 	go tool cover -html=coverage.out
