@@ -111,8 +111,8 @@ func hasPawnForCapture(position *chess.Position) bool {
 
 	epFile, epRank := epSquare.File(), epSquare.Rank()
 
-	leftSquare := chess.Square(chess.File(epFile-1) + 8*chess.File(epRank+offset))
-	rightSquare := chess.Square(chess.File(epFile+1) + 8*chess.File(epRank+offset))
+	leftSquare := chess.Square(epFile - 1 + 8*chess.File(epRank+offset))
+	rightSquare := chess.Square(epFile + 1 + 8*chess.File(epRank+offset))
 
 	switch epFile {
 	case chess.FileA:
