@@ -109,9 +109,10 @@ func (wr *WeightedRandom) Move(position *chess.Position) *chess.Move {
 	}
 	index := rand.Intn(sum) //nolint
 	for _, move := range moves {
-		if move.Weight < index {
+		if index < move.Weight {
 			return move.Move
 		}
+		index -= move.Weight
 	}
 	return nil
 }
