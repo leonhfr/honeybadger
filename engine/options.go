@@ -85,6 +85,8 @@ var (
 		def:  opening.NewNone(),
 		vars: []opening.Interface{
 			opening.NewNone(),
+			opening.NewBest(),
+			opening.NewWeightedRandom(),
 		},
 		fn: WithOpening,
 	}

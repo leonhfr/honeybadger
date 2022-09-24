@@ -142,7 +142,7 @@ func TestOptions(t *testing.T) {
 			Type:    uci.OptionEnum,
 			Name:    "OpeningStrategy",
 			Default: "None",
-			Vars:    []string{"None"},
+			Vars:    []string{"None", "Best", "WeightedRandom"},
 		},
 		{
 			Type:    uci.OptionInteger,

@@ -256,6 +256,17 @@ func (e *Engine) Search(ctx context.Context, input uci.Input) (<-chan uci.Output
 		return engineOutput, errSearch
 	}
 
+	if move := e.options.opening.Move(e.game.Position()); move != nil {
+		e.log("playing move from opening book")
+		go func() {
+			defer close(engineOutput)
+			engineOutput <- uci.Output{
+				PV: []string{e.notation.Encode(e.game.Position(), move)},
+			}
+		}()
+		return engineOutput, nil
+	}
+
 	e.mu.Lock()
 	start := time.Now()
 	ctx, cancel := searchContext(ctx, input, e.stopSearch)
