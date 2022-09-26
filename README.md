@@ -1,6 +1,6 @@
 # honeybadger
 
-[![GoReportCard example](https://goreportcard.com/badge/github.com/leonhfr/honeybadger)](https://goreportcard.com/report/github.com/leonhfr/honeybadger)
+[![Lichess bot](https://img.shields.io/endpoint?style=flat&url=https%3A%2F%2Fpeppy-khapse-155e06.netlify.app%2F.netlify%2Ffunctions%2Fshield)](https://lichess.org/?user=honeybadger-bot#friend) [![GoReportCard](https://goreportcard.com/badge/github.com/leonhfr/honeybadger)](https://goreportcard.com/report/github.com/leonhfr/honeybadger)
 
 Honey Badger is a UCI-compliant chess engine written in Go. Honey Badger is not a complete chess software and requires a UCI-compatible graphical user interface (GUI) to be used comfortably.
 
