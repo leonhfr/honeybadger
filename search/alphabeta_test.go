@@ -57,8 +57,8 @@ func TestAlphaBeta(t *testing.T) {
 			o, err := alphaBeta(context.Background(), Input{
 				Position:      position(tt.args.fen),
 				Depth:         tt.args.depth,
-				Alpha:         -evaluation.Mate,
-				Beta:          evaluation.Mate,
+				alpha:         -evaluation.Mate,
+				beta:          evaluation.Mate,
 				Evaluation:    evaluation.Simplified{},
 				Oracle:        oracle.None{},
 				Quiescence:    quiescence.None{},
@@ -126,8 +126,8 @@ func TestAlphaBetaWithOrder(t *testing.T) {
 			o, err := alphaBeta(context.Background(), Input{
 				Position:      position(tt.args.fen),
 				Depth:         tt.args.depth,
-				Alpha:         -evaluation.Mate,
-				Beta:          evaluation.Mate,
+				alpha:         -evaluation.Mate,
+				beta:          evaluation.Mate,
 				Evaluation:    evaluation.Simplified{},
 				Oracle:        oracle.Order{},
 				Quiescence:    quiescence.None{},

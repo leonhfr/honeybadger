@@ -26,8 +26,8 @@ func (AlphaBeta) Search(ctx context.Context, input Input, output chan<- *Output)
 			Position:      input.Position,
 			SearchMoves:   input.SearchMoves,
 			Depth:         depth,
-			Alpha:         -evaluation.Mate,
-			Beta:          evaluation.Mate,
+			alpha:         -evaluation.Mate,
+			beta:          evaluation.Mate,
 			Evaluation:    input.Evaluation,
 			Oracle:        input.Oracle,
 			Quiescence:    input.Quiescence,
@@ -50,7 +50,7 @@ func alphaBeta(ctx context.Context, input Input) (*Output, error) {
 	default:
 	}
 
-	alphaOriginal := input.Alpha
+	alphaOriginal := input.alpha
 
 	entry, cached := input.Transposition.Get(input.Position)
 	if cached && entry.Depth >= input.Depth {
@@ -60,13 +60,13 @@ func alphaBeta(ctx context.Context, input Input) (*Output, error) {
 				Nodes: 1,
 				Score: entry.Score,
 			}, nil
-		case entry.Flag == transposition.LowerBound && entry.Score > input.Alpha:
-			input.Alpha = entry.Score
-		case entry.Flag == transposition.UpperBound && entry.Score < input.Beta:
-			input.Beta = entry.Score
+		case entry.Flag == transposition.LowerBound && entry.Score > input.alpha:
+			input.alpha = entry.Score
+		case entry.Flag == transposition.UpperBound && entry.Score < input.beta:
+			input.beta = entry.Score
 		}
 
-		if input.Alpha >= input.Beta {
+		if input.alpha >= input.beta {
 			return &Output{
 				Nodes: 1,
 				Score: entry.Score,
@@ -93,8 +93,8 @@ func alphaBeta(ctx context.Context, input Input) (*Output, error) {
 		output, err := input.Quiescence.Search(ctx, quiescence.Input{
 			Position:      input.Position,
 			Depth:         quiescence.MaxDepth,
-			Alpha:         -input.Beta,
-			Beta:          -input.Alpha,
+			Alpha:         -input.beta,
+			Beta:          -input.alpha,
 			Evaluation:    input.Evaluation,
 			Oracle:        input.Oracle,
 			Transposition: input.Transposition,
@@ -122,8 +122,8 @@ func alphaBeta(ctx context.Context, input Input) (*Output, error) {
 		current, err := alphaBeta(ctx, Input{
 			Position:      input.Position.Update(move),
 			Depth:         input.Depth - 1,
-			Alpha:         -input.Beta,
-			Beta:          -input.Alpha,
+			alpha:         -input.beta,
+			beta:          -input.alpha,
 			Evaluation:    input.Evaluation,
 			Oracle:        input.Oracle,
 			Quiescence:    input.Quiescence,
@@ -140,11 +140,11 @@ func alphaBeta(ctx context.Context, input Input) (*Output, error) {
 		}
 		result.Nodes += current.Nodes
 
-		if current.Score > input.Alpha {
-			input.Alpha = current.Score
+		if current.Score > input.alpha {
+			input.alpha = current.Score
 		}
 
-		if input.Alpha >= input.Beta {
+		if input.alpha >= input.beta {
 			break
 		}
 	}
@@ -155,7 +155,7 @@ func alphaBeta(ctx context.Context, input Input) (*Output, error) {
 	switch {
 	case result.Score <= alphaOriginal:
 		flag = transposition.UpperBound
-	case result.Score >= input.Beta:
+	case result.Score >= input.beta:
 		flag = transposition.LowerBound
 	}
 	input.Transposition.Set(input.Position, transposition.Entry{

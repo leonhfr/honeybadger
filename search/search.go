@@ -20,8 +20,8 @@ type Input struct {
 	Position      *chess.Position         // Current board position.
 	SearchMoves   []*chess.Move           // Restrict search to those moves only.
 	Depth         int                     // Search <x> plies only.
-	Alpha         int                     // Best score that the maximizer can guarantee.
-	Beta          int                     // Best score that the minimizer can guarantee.
+	alpha         int                     // Best score that the maximizer can guarantee.
+	beta          int                     // Best score that the minimizer can guarantee.
 	Search        Interface               // Search strategy to use.
 	Evaluation    evaluation.Interface    // Evaluation strategy to use.
 	Oracle        oracle.Interface        // Oracle strategy to use.
