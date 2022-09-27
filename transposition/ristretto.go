@@ -1,6 +1,7 @@
 package transposition
 
 import (
+	"encoding/binary"
 	"unsafe"
 
 	"github.com/dgraph-io/ristretto"
@@ -27,6 +28,12 @@ func (r *Ristretto) Init(size int) error {
 		NumCounters: 10 * maxCost,
 		MaxCost:     maxCost,
 		BufferItems: 64,
+		KeyToHash: func(key interface{}) (uint64, uint64) {
+			k := key.([16]byte)
+			a := binary.BigEndian.Uint64(k[:8])
+			b := binary.BigEndian.Uint64(k[8:])
+			return a, b
+		},
 	})
 	if err != nil {
 		return err
