@@ -42,7 +42,7 @@ var (
 
 	evaluationStrategy = optionStrategy[evaluation.Interface]{
 		name: "EvaluationStrategy",
-		def:  evaluation.Simplified{},
+		def:  evaluation.Pesto{},
 		vars: []evaluation.Interface{
 			evaluation.Values{},
 			evaluation.Simplified{},
@@ -73,7 +73,7 @@ var (
 
 	transpositionStrategy = optionStrategy[transposition.Interface]{
 		name: "TranspositionStrategy",
-		def:  transposition.None{},
+		def:  &transposition.Ristretto{},
 		vars: []transposition.Interface{
 			transposition.None{},
 			&transposition.Ristretto{},
@@ -83,7 +83,7 @@ var (
 
 	openingStrategy = optionStrategy[opening.Interface]{
 		name: "OpeningStrategy",
-		def:  opening.NewNone(),
+		def:  opening.NewWeightedRandom(),
 		vars: []opening.Interface{
 			opening.NewNone(),
 			opening.NewBest(),

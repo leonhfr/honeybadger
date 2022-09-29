@@ -13,7 +13,7 @@ Key features include:
 - quiescence search
 - oracle (move ordering)
 - integrated opening book
-- simple evaluation function combining piece values and positional advantage
+- evaluation function combining piece values and positional advantage with game phase knowledge
 - transposition table for memoizing search results
 - ability to use different search and evaluation strategies with options
 - cli mode for quick searches
@@ -21,7 +21,6 @@ Key features include:
 Future (planned) features:
 
 - null move pruning
-- better evaluation function with game phase knowledge
 - playable bot on Lichess
 
 ## Installation
@@ -109,7 +108,8 @@ Flags:
   Evaluation strategy to use. Available strategies are:
 
   - Values: difference between the piece values of each side.
-  - Simplified (default): combination of piece values and positional advantage.
+  - Simplified: combination of piece values and positional advantage.
+  - Petso (default): combination of piece values and positional advantage with game phase knowledge.
 
 - **OracleStrategy**
 
@@ -129,17 +129,17 @@ Flags:
 
   Transposition hash table strategy to use. Available strategies are:
 
-  - None (default): no transposition hash table is used.
-  - Ristretto: transposition hash table implemented using the [ristretto](https://github.com/dgraph-io/ristretto) library.
+  - None: no transposition hash table is used.
+  - Ristretto (default): transposition hash table implemented using the [ristretto](https://github.com/dgraph-io/ristretto) library.
 
 - **OpeningStrategy**
 
   Opening strategy to use. This defines how moves will be selected from the opening book. Available strategies are:
 
-  - None (default): no opening strategy is used. The engine will not used any opening book and will only use the defined search strategy to determine which move to play.
+  - None: no opening strategy is used. The engine will not used any opening book and will only use the defined search strategy to determine which move to play.
   - Best: the best move from the opening book is played.
   - UniformRandom: moves have an equal probability of being chosen.
-  - WeightedRandom: moves with a higher weight (quality) have a higher probability of being chosen.
+  - WeightedRandom (default): moves with a higher weight (quality) have a higher probability of being chosen.
 
 - **Hash**
 

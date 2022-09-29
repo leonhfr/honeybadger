@@ -23,11 +23,11 @@ func TestNew(t *testing.T) {
 	assert.Equal(t, chess.StartingPosition().String(), e.game.Position().String())
 	assert.Equal(t, chess.UCINotation{}, e.notation)
 	assert.Equal(t, search.AlphaBeta{}, e.options.search)
-	assert.Equal(t, evaluation.Simplified{}, e.options.evaluation)
+	assert.Equal(t, evaluation.Pesto{}, e.options.evaluation)
 	assert.Equal(t, oracle.Order{}, e.options.oracle)
 	assert.Equal(t, quiescence.None{}, e.options.quiescence)
-	assert.Equal(t, transposition.None{}, e.options.transposition)
-	assert.Equal(t, opening.NewNone().String(), e.options.opening.String())
+	assert.Equal(t, &transposition.Ristretto{}, e.options.transposition)
+	assert.Equal(t, opening.NewWeightedRandom().String(), e.options.opening.String())
 	assert.Equal(t, 32, e.options.hash)
 }
 
@@ -117,7 +117,7 @@ func TestOptions(t *testing.T) {
 		{
 			Type:    uci.OptionEnum,
 			Name:    "EvaluationStrategy",
-			Default: "Simplified",
+			Default: "Pesto",
 			Vars:    []string{"Values", "Simplified", "Pesto"},
 		},
 		{
@@ -135,13 +135,13 @@ func TestOptions(t *testing.T) {
 		{
 			Type:    uci.OptionEnum,
 			Name:    "TranspositionStrategy",
-			Default: "None",
+			Default: "Ristretto",
 			Vars:    []string{"None", "Ristretto"},
 		},
 		{
 			Type:    uci.OptionEnum,
 			Name:    "OpeningStrategy",
-			Default: "None",
+			Default: "WeightedRandom",
 			Vars:    []string{"None", "Best", "UniformRandom", "WeightedRandom"},
 		},
 		{
