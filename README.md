@@ -4,7 +4,7 @@
 
 Honey Badger is a UCI-compliant chess engine written in Go. Honey Badger is not a complete chess software and requires a UCI-compatible graphical user interface (GUI) to be used comfortably.
 
-While it is a toy project used for learning, it's working and is actively maintained. Fair warning: it is not very strong.
+Honey Badger is (sometimes) available as a [Lichess bot](https://lichess.org/?user=honeybadger-bot#friend), running on a Raspberry Pi 3. Fair warning: it is not very strong.
 
 Key features include:
 
@@ -20,8 +20,9 @@ Key features include:
 
 Future (planned) features:
 
+- better quiescence
 - null move pruning
-- playable bot on Lichess
+- parallel search
 
 ## Installation
 
@@ -145,3 +146,11 @@ Flags:
 
   Size of the transposition hash table in megabytes (MB).
   Defaults to 32 MB, can range from 1 to 1024 MB.
+
+## Lichess bot
+
+Honey badger can be played with on [Lichess](https://lichess.org/?user=honeybadger-bot#friend). It's running on a Raspberry Pi 3, with the bot configuration also [open sourced](https://github.com/leonhfr/honeybadger-bot).
+
+Below is Honey Badger's rating graph updated daily.
+
+![](https://raw.githubusercontent.com/leonhfr/honeybadger-bot/output/rating-graph-dark.png#gh-dark-mode-only)![](https://raw.githubusercontent.com/leonhfr/honeybadger-bot/output/rating-graph-light.png#gh-light-mode-only)
