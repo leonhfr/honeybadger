@@ -79,12 +79,13 @@ func alphaBeta(ctx context.Context, input Input) (*Output, error) {
 
 	for _, move := range moves {
 		current, err := alphaBeta(ctx, Input{
-			Position:   input.Position.Update(move),
-			Depth:      input.Depth - 1,
-			Alpha:      -input.Beta,
-			Beta:       -input.Alpha,
-			Evaluation: input.Evaluation,
-			Oracle:     input.Oracle,
+			Position:      input.Position.Update(move),
+			Depth:         input.Depth - 1,
+			Alpha:         -input.Beta,
+			Beta:          -input.Alpha,
+			Evaluation:    input.Evaluation,
+			Oracle:        input.Oracle,
+			Transposition: input.Transposition,
 		})
 		if err != nil {
 			return nil, err
