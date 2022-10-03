@@ -13,6 +13,10 @@ run:
 test:
 	go test ./...
 
+.PHONY: bench
+bench:
+	go test -bench . ./...
+
 .PHONY: lint
 lint:
 	golangci-lint run
