@@ -17,6 +17,8 @@ const (
 
 const colorName = "wb"
 
+// String implements the Stringer interface.
+// Returns an UCI-compatible representation.
 func (c Color) String() string {
 	return colorName[c : c+1]
 }
@@ -37,10 +39,14 @@ const (
 	Queen
 	// King represents a king.
 	King
+	// NoPieceType represents an absence of PieceType.
+	NoPieceType
 )
 
-const pieceTypeName = "pnbrqk"
+const pieceTypeName = "pnbrqk-"
 
+// String implements the Stringer interface.
+// Returns an UCI-compatible representation.
 func (p PieceType) String() string {
 	return pieceTypeName[p/2 : p/2+1]
 }
@@ -73,10 +79,14 @@ const (
 	BlackQueen Piece = Piece(Black) | Piece(Queen)
 	// BlackKing represents a black king.
 	BlackKing Piece = Piece(Black) | Piece(King)
+	// NoPiece represents an absence of Piece.
+	NoPiece Piece = 12
 )
 
-const pieceName = "PpNnBbRrQqKk"
+const pieceName = "PpNnBbRrQqKk-"
 
+// String implements the Stringer interface.
+// Returns an UCI-compatible representation.
 func (p Piece) String() string {
 	return pieceName[p : p+1]
 }

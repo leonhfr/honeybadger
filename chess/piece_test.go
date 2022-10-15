@@ -35,6 +35,7 @@ func TestPieceType_String(t *testing.T) {
 		{"r", Rook, "r"},
 		{"q", Queen, "q"},
 		{"k", King, "k"},
+		{"-", NoPieceType, "-"},
 	}
 
 	for _, tt := range tests {
@@ -62,6 +63,7 @@ func TestPiece_String(t *testing.T) {
 		{"r", BlackRook, "r"},
 		{"q", BlackQueen, "q"},
 		{"k", BlackKing, "k"},
+		{"-", NoPiece, "-"},
 	}
 
 	for _, tt := range tests {
