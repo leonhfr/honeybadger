@@ -6,6 +6,23 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestColor_String(t *testing.T) {
+	tests := []struct {
+		name string
+		args Color
+		want string
+	}{
+		{"w", White, "w"},
+		{"b", Black, "b"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, tt.args.String())
+		})
+	}
+}
+
 func TestPieceType_String(t *testing.T) {
 	tests := []struct {
 		name string
@@ -18,6 +35,33 @@ func TestPieceType_String(t *testing.T) {
 		{"r", Rook, "r"},
 		{"q", Queen, "q"},
 		{"k", King, "k"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, tt.args.String())
+		})
+	}
+}
+
+func TestPiece_String(t *testing.T) {
+	tests := []struct {
+		name string
+		args Piece
+		want string
+	}{
+		{"P", WhitePawn, "P"},
+		{"N", WhiteKnight, "N"},
+		{"B", WhiteBishop, "B"},
+		{"R", WhiteRook, "R"},
+		{"Q", WhiteQueen, "Q"},
+		{"K", WhiteKing, "K"},
+		{"p", BlackPawn, "p"},
+		{"n", BlackKnight, "n"},
+		{"b", BlackBishop, "b"},
+		{"r", BlackRook, "r"},
+		{"q", BlackQueen, "q"},
+		{"k", BlackKing, "k"},
 	}
 
 	for _, tt := range tests {

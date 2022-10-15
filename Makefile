@@ -1,9 +1,5 @@
 .PHONY: default
-default: generate build
-
-.PHONY: generate
-generate:
-	go generate ./...
+default: build
 
 .PHONY: build
 build:

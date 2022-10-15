@@ -1,7 +1,5 @@
 package chess
 
-//go:generate go run golang.org/x/tools/cmd/stringer -type=Piece,Color
-
 var pieces = []Piece{
 	WhiteKing, WhiteQueen, WhiteRook, WhiteBishop, WhiteKnight, WhitePawn,
 	BlackKing, BlackQueen, BlackRook, BlackBishop, BlackKnight, BlackPawn,
@@ -16,6 +14,12 @@ const (
 	// Black represents the black color.
 	Black
 )
+
+const colorName = "wb"
+
+func (c Color) String() string {
+	return colorName[c : c+1]
+}
 
 // PieceType is the type of a piece.
 type PieceType uint8
@@ -70,6 +74,12 @@ const (
 	// BlackKing represents a black king.
 	BlackKing Piece = Piece(Black) | Piece(King)
 )
+
+const pieceName = "PpNnBbRrQqKk"
+
+func (p Piece) String() string {
+	return pieceName[p : p+1]
+}
 
 // Color returns the color of the piece.
 func (p Piece) Color() Color {
