@@ -6,6 +6,27 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestPieceType_String(t *testing.T) {
+	tests := []struct {
+		name string
+		args PieceType
+		want string
+	}{
+		{"p", Pawn, "p"},
+		{"n", Knight, "n"},
+		{"b", Bishop, "b"},
+		{"r", Rook, "r"},
+		{"q", Queen, "q"},
+		{"k", King, "k"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, tt.args.String())
+		})
+	}
+}
+
 func TestPiece_Color(t *testing.T) {
 	tests := []struct {
 		name string
