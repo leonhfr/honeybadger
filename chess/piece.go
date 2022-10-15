@@ -2,6 +2,11 @@ package chess
 
 //go:generate go run golang.org/x/tools/cmd/stringer -type=Piece,PieceType,Color
 
+var pieces = []Piece{
+	WhiteKing, WhiteQueen, WhiteRook, WhiteBishop, WhiteKnight, WhitePawn,
+	BlackKing, BlackQueen, BlackRook, BlackBishop, BlackKnight, BlackPawn,
+}
+
 // Color represents the color of a chess piece.
 type Color uint8
 
