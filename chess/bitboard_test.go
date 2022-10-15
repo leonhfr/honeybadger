@@ -9,17 +9,17 @@ import (
 func TestNewBitboard(t *testing.T) {
 	tests := []struct {
 		name string
-		args squareMap
+		args squareSet
 		want string
 	}{
 		{
 			"A1",
-			squareMap{A1: struct{}{}},
+			squareSet{A1: struct{}{}},
 			"0000000000000000000000000000000000000000000000000000000000000001",
 		},
 		{
 			"A1A8H1H8",
-			squareMap{A1: struct{}{}, A8: struct{}{}, H1: struct{}{}, H8: struct{}{}},
+			squareSet{A1: struct{}{}, A8: struct{}{}, H1: struct{}{}, H8: struct{}{}},
 			"1000000100000000000000000000000000000000000000000000000010000001",
 		},
 	}
@@ -35,17 +35,17 @@ func TestBitboard_Mapping(t *testing.T) {
 	tests := []struct {
 		name string
 		args bitboard
-		want squareMap
+		want squareSet
 	}{
 		{
 			"A1",
 			1,
-			squareMap{A1: struct{}{}},
+			squareSet{A1: struct{}{}},
 		},
 		{
 			"A1A8H1H8",
 			bitboard(9295429630892703873),
-			squareMap{A1: struct{}{}, A8: struct{}{}, H1: struct{}{}, H8: struct{}{}},
+			squareSet{A1: struct{}{}, A8: struct{}{}, H1: struct{}{}, H8: struct{}{}},
 		},
 	}
 

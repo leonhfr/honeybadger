@@ -5,28 +5,28 @@ import (
 	"math/bits"
 )
 
-type squareMap map[Square]struct{}
+type squareSet map[Square]struct{}
 
 // bitboard is a board representation encoded in an unsigned 64-bit integer. The
 // 64 board positions have A1 as the least significant bit and H8 as the most.
 type bitboard uint64
 
-func newBitboard(m squareMap) bitboard {
+func newBitboard(s squareSet) bitboard {
 	var bb bitboard
-	for sq := range m {
+	for sq := range s {
 		bb |= 1 << sq
 	}
 	return bb
 }
 
-func (b bitboard) mapping() squareMap {
-	m := squareMap{}
+func (b bitboard) mapping() squareSet {
+	s := squareSet{}
 	for sq := A1; sq <= H8; sq++ {
 		if b.occupied(sq) {
-			m[sq] = struct{}{}
+			s[sq] = struct{}{}
 		}
 	}
-	return m
+	return s
 }
 
 func (b bitboard) reverse() bitboard {
