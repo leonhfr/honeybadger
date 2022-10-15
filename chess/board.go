@@ -42,6 +42,16 @@ func (b *board) squareMap() SquareMap {
 	return m
 }
 
+func (b *board) piece(sq Square) Piece {
+	for _, p := range pieces {
+		bb := b.getBitboard(p)
+		if bb.occupied(sq) {
+			return p
+		}
+	}
+	return NoPiece
+}
+
 func (b *board) computeConvenienceBitboards() {
 	b.bbWhite = b.bbWhiteKing | b.bbWhiteQueen | b.bbWhiteRook |
 		b.bbWhiteBishop | b.bbWhiteKnight | b.bbWhitePawn
