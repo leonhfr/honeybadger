@@ -31,6 +31,9 @@ var (
 		bbBlackBishop: 2594073385365405696,
 		bbBlackKnight: 4755801206503243776,
 		bbBlackPawn:   71776119061217280,
+		bbWhite:       65535,
+		bbBlack:       18446462598732840960,
+		bbEmpty:       281474976645120,
 	}
 )
 

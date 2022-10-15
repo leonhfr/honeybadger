@@ -17,6 +17,9 @@ type board struct {
 	bbBlackBishop bitboard
 	bbBlackKnight bitboard
 	bbBlackPawn   bitboard
+	bbWhite       bitboard
+	bbBlack       bitboard
+	bbEmpty       bitboard
 }
 
 func newBoard(m SquareMap) *board {
@@ -24,6 +27,7 @@ func newBoard(m SquareMap) *board {
 	for sq, p := range m {
 		b.setPiece(sq, p)
 	}
+	b.computeConvenienceBitboards()
 	return b
 }
 
@@ -36,6 +40,14 @@ func (b *board) squareMap() SquareMap {
 		}
 	}
 	return m
+}
+
+func (b *board) computeConvenienceBitboards() {
+	b.bbWhite = b.bbWhiteKing | b.bbWhiteQueen | b.bbWhiteRook |
+		b.bbWhiteBishop | b.bbWhiteKnight | b.bbWhitePawn
+	b.bbBlack = b.bbBlackKing | b.bbBlackQueen | b.bbBlackRook |
+		b.bbBlackBishop | b.bbBlackKnight | b.bbBlackPawn
+	b.bbEmpty = ^(b.bbWhite | b.bbBlack)
 }
 
 func (b *board) setPiece(sq Square, p Piece) {
