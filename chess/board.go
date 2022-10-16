@@ -1,5 +1,7 @@
 package chess
 
+import "strings"
+
 // SquareMap represents a mapping between squares and pieces.
 type SquareMap map[Square]Piece
 
@@ -58,6 +60,27 @@ func (b *board) computeConvenienceBitboards() {
 	b.bbBlack = b.bbBlackKing | b.bbBlackQueen | b.bbBlackRook |
 		b.bbBlackBishop | b.bbBlackKnight | b.bbBlackPawn
 	b.bbEmpty = ^(b.bbWhite | b.bbBlack)
+}
+
+func (b *board) String() string {
+	var fields []string
+	for i := 7; i >= 0; i-- {
+		r := Rank(8 * i)
+		var field []byte
+		for f := FileA; f <= FileH; f++ {
+			if p := b.piece(NewSquare(f, r)); p != NoPiece {
+				field = append(field, []byte(p.String())...)
+			} else if len(field) == 0 {
+				field = append(field, '1')
+			} else if r := field[len(field)-1]; r < '1' || '8' < r {
+				field = append(field, '1')
+			} else {
+				field[len(field)-1]++
+			}
+		}
+		fields = append(fields, string(field))
+	}
+	return strings.Join(fields, "/")
 }
 
 func (b *board) setPiece(sq Square, p Piece) {

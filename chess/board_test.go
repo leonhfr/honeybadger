@@ -44,3 +44,7 @@ func TestNewBoard(t *testing.T) {
 func TestBoard_SquareMap(t *testing.T) {
 	assert.Equal(t, startingSquareMap, startingBoard.squareMap())
 }
+
+func TestBoard_string(t *testing.T) {
+	assert.Equal(t, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR", startingBoard.String())
+}
