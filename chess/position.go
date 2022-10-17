@@ -32,89 +32,89 @@ func FromFEN(fen string) (*Position, error) {
 	}
 
 	var err error
-	p := &Position{}
+	pos := &Position{}
 
-	p.board, err = fenBoard(fields[0])
+	pos.board, err = fenBoard(fields[0])
 	if err != nil {
 		return nil, err
 	}
 
-	p.turn, err = fenTurn(fields[1])
+	pos.turn, err = fenTurn(fields[1])
 	if err != nil {
 		return nil, err
 	}
 
-	p.castlingRights, err = fenCastlingRights(fields[2])
+	pos.castlingRights, err = fenCastlingRights(fields[2])
 	if err != nil {
 		return nil, err
 	}
 
-	p.enPassantSquare, err = fenEnPassantSquare(fields[3])
+	pos.enPassantSquare, err = fenEnPassantSquare(fields[3])
 	if err != nil {
 		return nil, err
 	}
 
-	p.halfMoveClock, err = fenHalfMoveClock(fields[4])
+	pos.halfMoveClock, err = fenHalfMoveClock(fields[4])
 	if err != nil {
 		return nil, err
 	}
 
-	p.fullMoves, err = fenFullMoves(fields[5])
+	pos.fullMoves, err = fenFullMoves(fields[5])
 	if err != nil {
 		return nil, err
 	}
 
-	return p, nil
+	return pos, nil
 }
 
 // SquareMap returns the map from square to pieces.
-func (p Position) SquareMap() SquareMap {
-	return p.board.squareMap()
+func (pos Position) SquareMap() SquareMap {
+	return pos.board.squareMap()
 }
 
 // Piece returns the piece present in square sq. Returns NoPiece if there aren't any.
-func (p Position) Piece(sq Square) Piece {
-	return p.board.piece(sq)
+func (pos Position) Piece(sq Square) Piece {
+	return pos.board.piece(sq)
 }
 
 // Turn returns the color of the next player to move in this position.
-func (p Position) Turn() Color {
-	return p.turn
+func (pos Position) Turn() Color {
+	return pos.turn
 }
 
 // CastlingRights returns the castling rights of the position.
-func (p Position) CastlingRights() CastlingRights {
-	return p.castlingRights
+func (pos Position) CastlingRights() CastlingRights {
+	return pos.castlingRights
 }
 
 // EnPassantSquare returns the en passant square.
-func (p Position) EnPassantSquare() Square {
-	return p.enPassantSquare
+func (pos Position) EnPassantSquare() Square {
+	return pos.enPassantSquare
 }
 
 // HalfMoveClock returns the half-move clock.
-func (p Position) HalfMoveClock() int {
-	return p.halfMoveClock
+func (pos Position) HalfMoveClock() int {
+	return pos.halfMoveClock
 }
 
 // FullMoves returns the full moves count.
-func (p Position) FullMoves() int {
-	return p.fullMoves
+func (pos Position) FullMoves() int {
+	return pos.fullMoves
 }
 
-func (p *Position) String() string {
+func (pos *Position) String() string {
 	sq := "-"
-	if p.enPassantSquare != NoSquare {
-		sq = p.enPassantSquare.String()
+	if pos.enPassantSquare != NoSquare {
+		sq = pos.enPassantSquare.String()
 	}
 
 	return fmt.Sprintf(
 		"%s %s %s %s %d %d",
-		p.board.String(),
-		p.turn.String(),
-		p.castlingRights.String(),
+		pos.board.String(),
+		pos.turn.String(),
+		pos.castlingRights.String(),
 		sq,
-		p.halfMoveClock,
-		p.fullMoves,
+		pos.halfMoveClock,
+		pos.fullMoves,
 	)
 }
