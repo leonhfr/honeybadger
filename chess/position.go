@@ -15,6 +15,15 @@ type Position struct {
 	fullMoves       int
 }
 
+const startFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+
+// StartingPosition returns the starting position.
+// FEN: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
+func StartingPosition() *Position {
+	p, _ := FromFEN(startFEN)
+	return p
+}
+
 // FromFEN creates a Position from a FEN string.
 func FromFEN(fen string) (*Position, error) {
 	fields := strings.Fields(strings.TrimSpace(fen))

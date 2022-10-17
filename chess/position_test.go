@@ -7,6 +7,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestStartingPosition(t *testing.T) {
+	assert.Equal(t, startFEN, StartingPosition().String())
+}
+
 func TestFromFEN(t *testing.T) {
 	tests := []struct {
 		args string
