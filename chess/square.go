@@ -32,6 +32,10 @@ func (sq Square) Rank() Rank {
 	return Rank(sq & 56)
 }
 
+func (sq Square) bitboard() bitboard {
+	return 1 << sq
+}
+
 func (sq Square) String() string {
 	return sq.File().String() + sq.Rank().String()
 }

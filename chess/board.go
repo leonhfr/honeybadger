@@ -92,13 +92,13 @@ func (b *board) update(m *Move) {
 	// castle (only move rook)
 	switch c := p1.Color(); {
 	case c == White && m.HasTag(KingSideCastle):
-		b.bbWhiteRook = b.bbWhiteRook & ^bbForSquare(H1) | bbForSquare(F1)
+		b.bbWhiteRook = b.bbWhiteRook & ^H1.bitboard() | F1.bitboard()
 	case c == White && m.HasTag(QueenSideCastle):
-		b.bbWhiteRook = b.bbWhiteRook & ^bbForSquare(A1) | bbForSquare(D1)
+		b.bbWhiteRook = b.bbWhiteRook & ^A1.bitboard() | D1.bitboard()
 	case c == Black && m.HasTag(KingSideCastle):
-		b.bbBlackRook = b.bbBlackRook & ^bbForSquare(H8) | bbForSquare(F8)
+		b.bbBlackRook = b.bbBlackRook & ^H8.bitboard() | F8.bitboard()
 	case c == Black && m.HasTag(QueenSideCastle):
-		b.bbBlackRook = b.bbBlackRook & ^bbForSquare(A8) | bbForSquare(D8)
+		b.bbBlackRook = b.bbBlackRook & ^A8.bitboard() | D8.bitboard()
 	}
 
 	b.computeConvenienceBitboards()
@@ -126,7 +126,7 @@ func (b *board) String() string {
 }
 
 func (b *board) setPiece(p Piece, sq Square) {
-	switch bb := bbForSquare(sq); p {
+	switch bb := sq.bitboard(); p {
 	case WhiteKing:
 		b.bbWhiteKing |= bb
 	case WhiteQueen:
@@ -155,7 +155,7 @@ func (b *board) setPiece(p Piece, sq Square) {
 }
 
 func (b *board) removePiece(p Piece, sq Square) {
-	bb := b.getBitboard(p) & ^bbForSquare(sq)
+	bb := b.getBitboard(p) & ^sq.bitboard()
 	b.setBitboard(p, bb)
 }
 
@@ -237,8 +237,4 @@ func (b *board) copy() *board {
 		bbBlack:       b.bbBlack,
 		bbEmpty:       b.bbEmpty,
 	}
-}
-
-func bbForSquare(sq Square) bitboard {
-	return 1 << sq
 }

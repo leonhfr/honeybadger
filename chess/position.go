@@ -173,12 +173,12 @@ func (pos *Position) moveEnPassantSquare(m *Move) Square {
 
 	switch {
 	case pos.turn == White &&
-		(bbForSquare(m.s1)&bbRank2) > 0 &&
-		(bbForSquare(m.s2)&bbRank4) > 0:
+		(m.s1.bitboard()&bbRank2) > 0 &&
+		(m.s2.bitboard()&bbRank4) > 0:
 		return m.s2 - 8
 	case pos.turn == Black &&
-		(bbForSquare(m.s1)&bbRank7) > 0 &&
-		(bbForSquare(m.s2)&bbRank5) > 0:
+		(m.s1.bitboard()&bbRank7) > 0 &&
+		(m.s2.bitboard()&bbRank5) > 0:
 		return m.s2 + 8
 	default:
 		return NoSquare
