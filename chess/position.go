@@ -9,7 +9,7 @@ import (
 type Position struct {
 	board           *board
 	turn            Color
-	castlingRights  CastlingRight
+	castlingRights  CastlingRights
 	enPassantSquare Square
 	halfMoveClock   int
 	fullMoves       int

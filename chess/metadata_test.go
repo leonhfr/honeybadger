@@ -9,7 +9,7 @@ import (
 
 func TestCastlingRight_String(t *testing.T) {
 	tests := []struct {
-		args CastlingRight
+		args CastlingRights
 		want string
 	}{
 		{0, "-"},

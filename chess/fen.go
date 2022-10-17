@@ -55,13 +55,13 @@ func fenTurn(field string) (Color, error) {
 	return turn, nil
 }
 
-func fenCastlingRights(field string) (CastlingRight, error) {
+func fenCastlingRights(field string) (CastlingRights, error) {
 	for _, s := range []string{"K", "Q", "k", "q", "-"} {
 		if strings.Count(field, s) > 1 {
 			return 0, fmt.Errorf("invalid fen castling rights (%s)", field)
 		}
 	}
-	var castlingRights CastlingRight
+	var castlingRights CastlingRights
 	for _, r := range field {
 		switch r {
 		case 'K':

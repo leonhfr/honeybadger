@@ -1,11 +1,11 @@
 package chess
 
-// CastlingRight represents the castling right of one combination of side and color.
-type CastlingRight uint8
+// CastlingRights represents the castling right of one combination of side and color.
+type CastlingRights uint8
 
 const (
 	// CastleWhiteKing represents white's king castle.
-	CastleWhiteKing CastlingRight = 1 << iota
+	CastleWhiteKing CastlingRights = 1 << iota
 	// CastleWhiteQueen represents white's queen castle.
 	CastleWhiteQueen
 	// CastleBlackKing represents black's king castle.
@@ -14,7 +14,7 @@ const (
 	CastleBlackQueen
 )
 
-func (cr CastlingRight) String() string {
+func (cr CastlingRights) String() string {
 	var rights string
 	if (cr & CastleWhiteKing) > 0 {
 		rights += "K"

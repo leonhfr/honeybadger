@@ -104,7 +104,7 @@ func TestFENTurn(t *testing.T) {
 
 func TestFENCastlingRights(t *testing.T) {
 	type want struct {
-		cr  CastlingRight
+		cr  CastlingRights
 		err error
 	}
 
