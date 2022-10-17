@@ -91,13 +91,13 @@ func (b *board) update(m *Move) {
 
 	// castle (only move rook)
 	switch c := p1.Color(); {
-	case m.HasTag(KingSideCastle) && c == White:
+	case c == White && m.HasTag(KingSideCastle):
 		b.bbWhiteRook = b.bbWhiteRook & ^bbForSquare(H1) | bbForSquare(F1)
-	case m.HasTag(QueenSideCastle) && c == White:
+	case c == White && m.HasTag(QueenSideCastle):
 		b.bbWhiteRook = b.bbWhiteRook & ^bbForSquare(A1) | bbForSquare(D1)
-	case m.HasTag(KingSideCastle) && c == Black:
+	case c == Black && m.HasTag(KingSideCastle):
 		b.bbBlackRook = b.bbBlackRook & ^bbForSquare(H8) | bbForSquare(F8)
-	case m.HasTag(QueenSideCastle) && c == Black:
+	case c == Black && m.HasTag(QueenSideCastle):
 		b.bbBlackRook = b.bbBlackRook & ^bbForSquare(A8) | bbForSquare(D8)
 	}
 
@@ -216,6 +216,26 @@ func (b *board) setBitboard(p Piece, bb bitboard) {
 		b.bbBlackKnight = bb
 	case BlackPawn:
 		b.bbBlackPawn = bb
+	}
+}
+
+func (b *board) copy() *board {
+	return &board{
+		bbWhiteKing:   b.bbWhiteKing,
+		bbWhiteQueen:  b.bbWhiteQueen,
+		bbWhiteRook:   b.bbWhiteRook,
+		bbWhiteBishop: b.bbWhiteBishop,
+		bbWhiteKnight: b.bbWhiteKnight,
+		bbWhitePawn:   b.bbWhitePawn,
+		bbBlackKing:   b.bbBlackKing,
+		bbBlackQueen:  b.bbBlackQueen,
+		bbBlackRook:   b.bbBlackRook,
+		bbBlackBishop: b.bbBlackBishop,
+		bbBlackKnight: b.bbBlackKnight,
+		bbBlackPawn:   b.bbBlackPawn,
+		bbWhite:       b.bbWhite,
+		bbBlack:       b.bbBlack,
+		bbEmpty:       b.bbEmpty,
 	}
 }
 

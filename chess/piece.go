@@ -15,6 +15,14 @@ const (
 	Black
 )
 
+// Other returns the other color.
+func (c Color) Other() Color {
+	if c == White {
+		return Black
+	}
+	return White
+}
+
 const colorName = "wb"
 
 // String implements the Stringer interface.

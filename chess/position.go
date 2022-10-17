@@ -118,3 +118,69 @@ func (pos *Position) String() string {
 		pos.fullMoves,
 	)
 }
+
+// Move plays a move on a position.
+// Moves are assumed valid.
+func (pos Position) Move(m *Move) *Position {
+	board := pos.board.copy()
+	board.update(m)
+
+	halfMoveClock := pos.halfMoveClock
+	if pos.board.piece(m.s1).Type() == Pawn || m.HasTag(Capture) {
+		halfMoveClock = 0
+	} else {
+		halfMoveClock++
+	}
+
+	fullMoves := pos.fullMoves
+	if pos.turn == Black {
+		fullMoves++
+	}
+
+	return &Position{
+		board:           board,
+		turn:            pos.turn.Other(),
+		castlingRights:  pos.moveCastlingRights(m),
+		enPassantSquare: pos.moveEnPassantSquare(m),
+		halfMoveClock:   halfMoveClock,
+		fullMoves:       fullMoves,
+	}
+}
+
+func (pos *Position) moveCastlingRights(m *Move) CastlingRights {
+	switch p := pos.board.piece(m.s1); {
+	case p == WhiteKing:
+		return pos.castlingRights & ^(CastleWhiteKing | CastleWhiteQueen)
+	case p == BlackKing:
+		return pos.castlingRights & ^(CastleBlackKing | CastleBlackQueen)
+	case p == WhiteRook && m.s1 == A1:
+		return pos.castlingRights & ^CastleWhiteQueen
+	case p == WhiteRook && m.s1 == H1:
+		return pos.castlingRights & ^CastleWhiteKing
+	case p == BlackRook && m.s1 == A8:
+		return pos.castlingRights & ^CastleBlackQueen
+	case p == BlackRook && m.s1 == H8:
+		return pos.castlingRights & ^CastleBlackKing
+	default:
+		return pos.castlingRights
+	}
+}
+
+func (pos *Position) moveEnPassantSquare(m *Move) Square {
+	if p := pos.board.piece(m.s1); p.Type() != Pawn {
+		return NoSquare
+	}
+
+	switch {
+	case pos.turn == White &&
+		(bbForSquare(m.s1)&bbRank2) > 0 &&
+		(bbForSquare(m.s2)&bbRank4) > 0:
+		return m.s2 - 8
+	case pos.turn == Black &&
+		(bbForSquare(m.s1)&bbRank7) > 0 &&
+		(bbForSquare(m.s2)&bbRank5) > 0:
+		return m.s2 + 8
+	default:
+		return NoSquare
+	}
+}
