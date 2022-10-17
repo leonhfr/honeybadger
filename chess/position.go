@@ -67,6 +67,41 @@ func FromFEN(fen string) (*Position, error) {
 	return p, nil
 }
 
+// SquareMap returns the map from square to pieces.
+func (p Position) SquareMap() SquareMap {
+	return p.board.squareMap()
+}
+
+// Piece returns the piece present in square sq. Returns NoPiece if there aren't any.
+func (p Position) Piece(sq Square) Piece {
+	return p.board.piece(sq)
+}
+
+// Turn returns the color of the next player to move in this position.
+func (p Position) Turn() Color {
+	return p.turn
+}
+
+// CastlingRights returns the castling rights of the position.
+func (p Position) CastlingRights() CastlingRights {
+	return p.castlingRights
+}
+
+// EnPassantSquare returns the en passant square.
+func (p Position) EnPassantSquare() Square {
+	return p.enPassantSquare
+}
+
+// HalfMoveClock returns the half-move clock.
+func (p Position) HalfMoveClock() int {
+	return p.halfMoveClock
+}
+
+// FullMoves returns the full moves count.
+func (p Position) FullMoves() int {
+	return p.fullMoves
+}
+
 func (p *Position) String() string {
 	sq := "-"
 	if p.enPassantSquare != NoSquare {
