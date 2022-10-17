@@ -27,10 +27,18 @@ type board struct {
 func newBoard(m SquareMap) *board {
 	b := &board{}
 	for sq, p := range m {
-		b.setPiece(sq, p)
+		b.setPiece(p, sq)
 	}
 	b.computeConvenienceBitboards()
 	return b
+}
+
+func (b *board) computeConvenienceBitboards() {
+	b.bbWhite = b.bbWhiteKing | b.bbWhiteQueen | b.bbWhiteRook |
+		b.bbWhiteBishop | b.bbWhiteKnight | b.bbWhitePawn
+	b.bbBlack = b.bbBlackKing | b.bbBlackQueen | b.bbBlackRook |
+		b.bbBlackBishop | b.bbBlackKnight | b.bbBlackPawn
+	b.bbEmpty = ^(b.bbWhite | b.bbBlack)
 }
 
 func (b *board) squareMap() SquareMap {
@@ -54,12 +62,46 @@ func (b *board) piece(sq Square) Piece {
 	return NoPiece
 }
 
-func (b *board) computeConvenienceBitboards() {
-	b.bbWhite = b.bbWhiteKing | b.bbWhiteQueen | b.bbWhiteRook |
-		b.bbWhiteBishop | b.bbWhiteKnight | b.bbWhitePawn
-	b.bbBlack = b.bbBlackKing | b.bbBlackQueen | b.bbBlackRook |
-		b.bbBlackBishop | b.bbBlackKnight | b.bbBlackPawn
-	b.bbEmpty = ^(b.bbWhite | b.bbBlack)
+func (b *board) update(m *Move) {
+	p1, p2 := b.piece(m.s1), b.piece(m.s2)
+	// remove s1 piece
+	b.removePiece(p1, m.s1)
+
+	// remove s2 piece if any
+	if p2 != NoPiece {
+		b.removePiece(p2, m.s2)
+	}
+
+	// add s1 piece in s2
+	b.setPiece(p1, m.s2)
+
+	// promotion if any
+	if m.promo != NoPieceType {
+		b.removePiece(newPiece(p1.Color(), Pawn), m.s2)
+		b.setPiece(newPiece(p1.Color(), m.promo), m.s2)
+	}
+
+	// en passant
+	switch c := p1.Color(); {
+	case m.HasTag(EnPassant) && c == White:
+		b.removePiece(BlackPawn, m.s2-8)
+	case m.HasTag(EnPassant) && c == Black:
+		b.removePiece(WhitePawn, m.s2+8)
+	}
+
+	// castle (only move rook)
+	switch c := p1.Color(); {
+	case m.HasTag(KingSideCastle) && c == White:
+		b.bbWhiteRook = b.bbWhiteRook & ^bbForSquare(H1) | bbForSquare(F1)
+	case m.HasTag(QueenSideCastle) && c == White:
+		b.bbWhiteRook = b.bbWhiteRook & ^bbForSquare(A1) | bbForSquare(D1)
+	case m.HasTag(KingSideCastle) && c == Black:
+		b.bbBlackRook = b.bbBlackRook & ^bbForSquare(H8) | bbForSquare(F8)
+	case m.HasTag(QueenSideCastle) && c == Black:
+		b.bbBlackRook = b.bbBlackRook & ^bbForSquare(A8) | bbForSquare(D8)
+	}
+
+	b.computeConvenienceBitboards()
 }
 
 func (b *board) String() string {
@@ -83,33 +125,38 @@ func (b *board) String() string {
 	return strings.Join(fields, "/")
 }
 
-func (b *board) setPiece(sq Square, p Piece) {
-	switch p {
+func (b *board) setPiece(p Piece, sq Square) {
+	switch bb := bbForSquare(sq); p {
 	case WhiteKing:
-		b.bbWhiteKing |= 1 << sq
+		b.bbWhiteKing |= bb
 	case WhiteQueen:
-		b.bbWhiteQueen |= 1 << sq
+		b.bbWhiteQueen |= bb
 	case WhiteRook:
-		b.bbWhiteRook |= 1 << sq
+		b.bbWhiteRook |= bb
 	case WhiteBishop:
-		b.bbWhiteBishop |= 1 << sq
+		b.bbWhiteBishop |= bb
 	case WhiteKnight:
-		b.bbWhiteKnight |= 1 << sq
+		b.bbWhiteKnight |= bb
 	case WhitePawn:
-		b.bbWhitePawn |= 1 << sq
+		b.bbWhitePawn |= bb
 	case BlackKing:
-		b.bbBlackKing |= 1 << sq
+		b.bbBlackKing |= bb
 	case BlackQueen:
-		b.bbBlackQueen |= 1 << sq
+		b.bbBlackQueen |= bb
 	case BlackRook:
-		b.bbBlackRook |= 1 << sq
+		b.bbBlackRook |= bb
 	case BlackBishop:
-		b.bbBlackBishop |= 1 << sq
+		b.bbBlackBishop |= bb
 	case BlackKnight:
-		b.bbBlackKnight |= 1 << sq
+		b.bbBlackKnight |= bb
 	case BlackPawn:
-		b.bbBlackPawn |= 1 << sq
+		b.bbBlackPawn |= bb
 	}
+}
+
+func (b *board) removePiece(p Piece, sq Square) {
+	bb := b.getBitboard(p) & ^bbForSquare(sq)
+	b.setBitboard(p, bb)
 }
 
 func (b *board) getBitboard(p Piece) bitboard {
@@ -141,4 +188,37 @@ func (b *board) getBitboard(p Piece) bitboard {
 	default:
 		panic("unknown piece")
 	}
+}
+
+func (b *board) setBitboard(p Piece, bb bitboard) {
+	switch p {
+	case WhiteKing:
+		b.bbWhiteKing = bb
+	case WhiteQueen:
+		b.bbWhiteQueen = bb
+	case WhiteRook:
+		b.bbWhiteRook = bb
+	case WhiteBishop:
+		b.bbWhiteBishop = bb
+	case WhiteKnight:
+		b.bbWhiteKnight = bb
+	case WhitePawn:
+		b.bbWhitePawn = bb
+	case BlackKing:
+		b.bbBlackKing = bb
+	case BlackQueen:
+		b.bbBlackQueen = bb
+	case BlackRook:
+		b.bbBlackRook = bb
+	case BlackBishop:
+		b.bbBlackBishop = bb
+	case BlackKnight:
+		b.bbBlackKnight = bb
+	case BlackPawn:
+		b.bbBlackPawn = bb
+	}
+}
+
+func bbForSquare(sq Square) bitboard {
+	return 1 << sq
 }

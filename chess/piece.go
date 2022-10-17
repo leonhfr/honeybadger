@@ -47,8 +47,8 @@ const pieceTypeName = "pnbrqk-"
 
 // String implements the Stringer interface.
 // Returns an UCI-compatible representation.
-func (p PieceType) String() string {
-	return pieceTypeName[p/2 : p/2+1]
+func (pt PieceType) String() string {
+	return pieceTypeName[pt/2 : pt/2+1]
 }
 
 // Piece is a piece type with a color.
@@ -82,6 +82,10 @@ const (
 	// NoPiece represents an absence of Piece.
 	NoPiece Piece = 12
 )
+
+func newPiece(c Color, pt PieceType) Piece {
+	return Piece(c) | Piece(pt)
+}
 
 const pieceName = "PpNnBbRrQqKk-"
 
