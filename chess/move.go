@@ -88,7 +88,11 @@ func moveTags(p *Position, m *Move) MoveTag {
 // String implements the Stringer interface.
 // Returns the move in UCI notation.
 func (m Move) String() string {
-	return m.s1.String() + m.S2().String() + m.promo.String()
+	base := m.s1.String() + m.S2().String()
+	if m.promo != Pawn {
+		base += m.promo.String()
+	}
+	return base
 }
 
 // S1 returns the origin square of the move.
