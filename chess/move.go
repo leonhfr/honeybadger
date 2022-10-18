@@ -113,7 +113,7 @@ func moveTags(p *Position, s1, s2 Square) MoveTag {
 // Returns the move in UCI notation.
 func (m Move) String() string {
 	base := m.s1.String() + m.S2().String()
-	if m.promo != Pawn {
+	if m.promo != NoPieceType {
 		base += m.promo.String()
 	}
 	return base

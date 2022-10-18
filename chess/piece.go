@@ -1,9 +1,15 @@
 package chess
 
-var pieces = []Piece{
-	WhiteKing, WhiteQueen, WhiteRook, WhiteBishop, WhiteKnight, WhitePawn,
-	BlackKing, BlackQueen, BlackRook, BlackBishop, BlackKnight, BlackPawn,
-}
+var (
+	pieces = [12]Piece{
+		WhiteKing, WhiteQueen, WhiteRook, WhiteBishop, WhiteKnight, WhitePawn,
+		BlackKing, BlackQueen, BlackRook, BlackBishop, BlackKnight, BlackPawn,
+	}
+	piecesByColor = [2][6]Piece{
+		{WhiteKing, WhiteQueen, WhiteRook, WhiteBishop, WhiteKnight, WhitePawn},
+		{BlackKing, BlackQueen, BlackRook, BlackBishop, BlackKnight, BlackPawn},
+	}
+)
 
 // Color represents the color of a chess piece.
 type Color uint8

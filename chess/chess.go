@@ -1,6 +1,30 @@
 // Package chess provides types and functions to handle chess positions.
 package chess
 
+var promoPieceTypes = []PieceType{Queen, Rook, Bishop, Knight}
+
+func pseudoMoves(pos *Position) []*Move {
+	bbAllowed := ^pos.board.bbWhite
+	if pos.turn == Black {
+		bbAllowed = ^pos.board.bbBlack
+	}
+
+	moves := []*Move{}
+	for s1, p := range pos.board.squareMapByColor(pos.turn) {
+		pseudoS2 := moveBitboard(s1, pos, p.Type()) & bbAllowed
+		for s2 := range pseudoS2.mapping() {
+			if p == WhitePawn && s2.Rank() == Rank8 || p == BlackPawn && s2.Rank() == Rank1 {
+				for _, pt := range promoPieceTypes {
+					moves = append(moves, newMove(pos, s1, s2, pt))
+				}
+			} else {
+				moves = append(moves, newMove(pos, s1, s2, NoPieceType))
+			}
+		}
+	}
+	return moves
+}
+
 func isInCheck(pos *Position) bool {
 	king := pos.board.sqWhiteKing
 	if pos.turn == Black {

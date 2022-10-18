@@ -1,10 +1,39 @@
 package chess
 
 import (
+	"sort"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
+
+func TestPseudoMoves(t *testing.T) {
+	tests := []struct {
+		args string
+		want []string
+	}{
+		{
+			"1k2q3/8/8/8/8/8/4R3/4K3 w - - 0 1",
+			[]string{
+				"e1d1", "e1d2", "e1f1", "e1f2", "e2a2",
+				"e2b2", "e2c2", "e2d2", "e2e3", "e2e4",
+				"e2e5", "e2e6", "e2e7", "e2e8", "e2f2",
+				"e2g2", "e2h2",
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.args, func(t *testing.T) {
+			var moves []string
+			for _, m := range pseudoMoves(unsafeFEN(tt.args)) {
+				moves = append(moves, m.String())
+			}
+			sort.Strings(moves)
+			assert.Equal(t, tt.want, moves)
+		})
+	}
+}
 
 func TestIsAttacked(t *testing.T) {
 	fen := "k6q/8/8/8/8/8/8/K7 w - - 0 1"
