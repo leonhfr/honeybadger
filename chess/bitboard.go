@@ -54,19 +54,19 @@ const (
 )
 
 const (
-	bbFile1 bitboard = (1<<A1 + 1<<A2 + 1<<A3 + 1<<A4 + 1<<A5 + 1<<A6 + 1<<A7 + 1<<A8) << iota
-	bbFile2
-	bbFile3
-	bbFile4
-	bbFile5
-	bbFile6
-	bbFile7
-	bbFile8
+	bbFileA bitboard = (1<<A1 + 1<<A2 + 1<<A3 + 1<<A4 + 1<<A5 + 1<<A6 + 1<<A7 + 1<<A8) << iota
+	bbFileB
+	bbFileC
+	bbFileD
+	bbFileE
+	bbFileF
+	bbFileG
+	bbFileH
 )
 
 var (
 	bbRanks = [8]bitboard{bbRank1, bbRank2, bbRank3, bbRank4, bbRank5, bbRank6, bbRank7, bbRank8}
-	bbFiles = [8]bitboard{bbFile1, bbFile2, bbFile3, bbFile4, bbFile5, bbFile6, bbFile7, bbFile8}
+	bbFiles = [8]bitboard{bbFileA, bbFileB, bbFileC, bbFileD, bbFileE, bbFileF, bbFileG, bbFileH}
 
 	bbDiagonals     = [64]bitboard{}
 	bbAntiDiagonals = [64]bitboard{}
