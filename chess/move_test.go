@@ -47,6 +47,10 @@ func TestFromUCI(t *testing.T) {
 			want{&Move{s1: E2, s2: B2, promo: NoPieceType, tags: Check}, nil},
 		},
 		{
+			args{"1k2q3/8/8/8/8/8/4R3/4K3 w - - 0 1", "e2b2"},
+			want{nil, errIllegalMove},
+		},
+		{
 			args{"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", "e2"},
 			want{nil, errInvalidMove},
 		},

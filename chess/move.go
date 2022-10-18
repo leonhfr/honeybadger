@@ -3,6 +3,7 @@ package chess
 import "errors"
 
 var (
+	errIllegalMove     = errors.New("illegal move")
 	errInvalidMove     = errors.New("invalid move in UCI notation")
 	errMissingPosition = errors.New("missing position")
 )
@@ -21,6 +22,8 @@ const (
 	EnPassant
 	// Check indicates that the move puts the opposing player in check.
 	Check
+	// inCheck indicates the the move puts the moving player in check. Illegal move.
+	inCheck
 )
 
 // Move represents a move from a square to another.
@@ -31,8 +34,20 @@ type Move struct {
 	tags  MoveTag
 }
 
-func newMove(s1, s2 Square, promo PieceType, tags MoveTag) *Move {
-	return &Move{s1, s2, promo, tags}
+func newMove(pos *Position, s1, s2 Square, promo PieceType) *Move {
+	tags := moveTags(pos, s1, s2)
+	m := &Move{s1, s2, promo, tags}
+
+	next := pos.Move(m)
+	if isInCheck(next) {
+		m.tags |= Check
+	}
+	next.turn = next.turn.Other()
+	if isInCheck(next) {
+		m.tags |= inCheck
+	}
+
+	return m
 }
 
 // FromUCI creates a move from a string in UCI notation.
@@ -63,11 +78,9 @@ func FromUCI(pos *Position, s string) (*Move, error) {
 		}
 	}
 
-	tags := moveTags(pos, s1, s2)
-	m := newMove(s1, s2, promo, tags)
-
-	if next := pos.Move(m); inCheck(next) {
-		m.tags |= Check
+	m := newMove(pos, s1, s2, promo)
+	if m.HasTag(inCheck) {
+		return nil, errIllegalMove
 	}
 
 	return m, nil
