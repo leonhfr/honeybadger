@@ -35,6 +35,8 @@ var (
 		bbWhite:       65535,
 		bbBlack:       18446462598732840960,
 		bbEmpty:       281474976645120,
+		sqWhiteKing:   E1,
+		sqBlackKing:   E8,
 	}
 
 	testPositions = []struct {

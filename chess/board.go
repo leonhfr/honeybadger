@@ -22,6 +22,8 @@ type board struct {
 	bbWhite       bitboard
 	bbBlack       bitboard
 	bbEmpty       bitboard
+	sqWhiteKing   Square
+	sqBlackKing   Square
 }
 
 func newBoard(m SquareMap) *board {
@@ -39,6 +41,13 @@ func (b *board) computeConvenienceBitboards() {
 	b.bbBlack = b.bbBlackKing | b.bbBlackQueen | b.bbBlackRook |
 		b.bbBlackBishop | b.bbBlackKnight | b.bbBlackPawn
 	b.bbEmpty = ^(b.bbWhite | b.bbBlack)
+
+	for sq := range b.getBitboard(WhiteKing).mapping() {
+		b.sqWhiteKing = sq
+	}
+	for sq := range b.getBitboard(BlackKing).mapping() {
+		b.sqBlackKing = sq
+	}
 }
 
 func (b *board) squareMap() SquareMap {
