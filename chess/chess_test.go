@@ -6,6 +6,63 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestMoveBitboard(t *testing.T) {
+	fen := "k7/8/8/8/8/8/5P2/KQRBN3 w - - 0 1"
+	pos := unsafeFEN(fen)
+
+	type args struct {
+		sq Square
+		pt PieceType
+	}
+	tests := []struct {
+		args args
+		want squareSet
+	}{
+		{args{A1, King}, squareSet{
+			A2: struct{}{}, B2: struct{}{},
+			B1: struct{}{}, // will be removed
+		}},
+		{args{B1, Queen}, squareSet{
+			A2: struct{}{}, B2: struct{}{},
+			B3: struct{}{}, B4: struct{}{},
+			B5: struct{}{}, B6: struct{}{},
+			B7: struct{}{}, B8: struct{}{},
+			C2: struct{}{}, D3: struct{}{},
+			E4: struct{}{}, F5: struct{}{},
+			G6: struct{}{}, H7: struct{}{},
+			A1: struct{}{}, C1: struct{}{}, // will be removed
+		}},
+		{args{C1, Rook}, squareSet{
+			C2: struct{}{}, C3: struct{}{},
+			C4: struct{}{}, C5: struct{}{},
+			C6: struct{}{}, C7: struct{}{},
+			C8: struct{}{},
+			B1: struct{}{}, D1: struct{}{}, // will be removed
+		}},
+		{args{D1, Bishop}, squareSet{
+			A4: struct{}{}, B3: struct{}{},
+			C2: struct{}{}, E2: struct{}{},
+			F3: struct{}{}, G4: struct{}{},
+			H5: struct{}{},
+		}},
+		{args{E1, Knight}, squareSet{
+			C2: struct{}{}, D3: struct{}{},
+			F3: struct{}{}, G2: struct{}{},
+		}},
+		{args{F2, Pawn}, squareSet{
+			F3: struct{}{}, F4: struct{}{},
+		}},
+		{args{F2, NoPieceType}, squareSet{}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.args.pt.String(), func(t *testing.T) {
+			got := moveBitboard(tt.args.sq, pos, tt.args.pt)
+			assert.Equal(t, tt.want, got.mapping())
+		})
+	}
+}
+
 func TestPawnBitboards(t *testing.T) {
 	fenWhite := "k7/p7/1p6/2N5/2n2pP1/1P6/P7/K7 w - - 0 1"
 	fenBlack := "k7/p7/1p6/2N5/2n2pP1/1P6/P7/K7 b - g3 0 1"

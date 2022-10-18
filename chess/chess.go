@@ -1,6 +1,25 @@
 // Package chess provides types and functions to handle chess positions.
 package chess
 
+func moveBitboard(sq Square, pos *Position, pt PieceType) bitboard {
+	switch pt {
+	case King:
+		return bbKingMoves[sq]
+	case Queen:
+		return hvBitboard(sq, ^pos.board.bbEmpty) | diagonalBitboard(sq, ^pos.board.bbEmpty)
+	case Rook:
+		return hvBitboard(sq, ^pos.board.bbEmpty)
+	case Bishop:
+		return diagonalBitboard(sq, ^pos.board.bbEmpty)
+	case Knight:
+		return bbKnightMoves[sq]
+	case Pawn:
+		return pawnBitboard(sq, pos)
+	default:
+		return 0
+	}
+}
+
 func pawnBitboard(sq Square, pos *Position) bitboard {
 	bbSquare := sq.bitboard()
 	var bbEnPassant bitboard
