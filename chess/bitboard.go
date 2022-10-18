@@ -37,6 +37,10 @@ func (b bitboard) occupied(sq Square) bool {
 	return (b & (1 << sq)) > 0
 }
 
+func (b bitboard) ones() int {
+	return bits.OnesCount64(uint64(b))
+}
+
 // String returns a 64 character string of 1s and 0s starting with the most significant bit.
 func (b bitboard) String() string {
 	return fmt.Sprintf("%064b", b)

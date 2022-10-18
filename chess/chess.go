@@ -1,6 +1,59 @@
 // Package chess provides types and functions to handle chess positions.
 package chess
 
+func isAttacked(sq Square, pos *Position) bool {
+	for _, pt := range []PieceType{Queen, Rook, Bishop, Knight, Pawn, King} {
+		if isAttackedByCount(sq, pos, pt) > 0 {
+			return true
+		}
+	}
+	return false
+}
+
+func isAttackedByCount(sq Square, pos *Position, by PieceType) int {
+	switch bb := pos.board.getBitboard(newPiece(pos.turn.Other(), by)); by {
+	case King:
+		if (bb & bbKingMoves[sq]) != 0 {
+			return 1
+		}
+		return 0
+	case Queen:
+		return ((diagonalBitboard(sq, ^pos.board.bbEmpty) | hvBitboard(sq, ^pos.board.bbEmpty)) & bb).ones()
+	case Rook:
+		return (hvBitboard(sq, ^pos.board.bbEmpty) & bb).ones()
+	case Bishop:
+		return (diagonalBitboard(sq, ^pos.board.bbEmpty) & bb).ones()
+	case Knight:
+		return (bbKnightMoves[sq] & bb).ones()
+	case Pawn:
+		return isAttackedByPawnCount(sq, pos)
+	default:
+		return 0
+	}
+}
+
+func isAttackedByPawnCount(sq Square, pos *Position) int {
+	bbSquare := sq.bitboard()
+	var bbEnPassant bitboard
+	if pos.enPassantSquare != NoSquare {
+		bbEnPassant = pos.enPassantSquare.bitboard()
+	}
+
+	if pos.turn == White {
+		captureR := (bbSquare & ^bbFileH & ^bbRank8) << 9
+		captureL := (bbSquare & ^bbFileA & ^bbRank8) << 7
+		enPassantR := (bbSquare & (bbEnPassant << 8) & ^bbFileH) >> 1
+		enPassantL := (bbSquare & (bbEnPassant << 8) & ^bbFileA) << 1
+		return (pos.board.bbBlackPawn & (captureR | captureL | enPassantR | enPassantL)).ones()
+	}
+
+	captureR := (bbSquare & ^bbFileH & ^bbRank1) >> 7
+	captureL := (bbSquare & ^bbFileA & ^bbRank1) >> 9
+	enPassantR := (bbSquare & (bbEnPassant >> 8) & ^bbFileH) << 1
+	enPassantL := (bbSquare & (bbEnPassant >> 8) & ^bbFileA) >> 1
+	return (pos.board.bbWhitePawn & (captureR | captureL | enPassantR | enPassantL)).ones()
+}
+
 func moveBitboard(sq Square, pos *Position, pt PieceType) bitboard {
 	switch pt {
 	case King:

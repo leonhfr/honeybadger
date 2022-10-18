@@ -6,6 +6,62 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestIsAttacked(t *testing.T) {
+	fen := "k6q/8/8/8/8/8/8/K7 w - - 0 1"
+	pos := unsafeFEN(fen)
+	assert.True(t, isAttacked(pos.board.sqWhiteKing, pos))
+}
+
+func TestIsAttackedByCount(t *testing.T) {
+	fen := "K2r3q/8/8/2p5/r2Q4/2k2n2/4n3/6b1 w - - 0 1"
+	pos := unsafeFEN(fen)
+	sq := D4
+
+	tests := []struct {
+		args PieceType
+		want int
+	}{
+		{King, 1},
+		{Queen, 1},
+		{Rook, 2},
+		{Bishop, 1},
+		{Knight, 2},
+		{Pawn, 1},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.args.String(), func(t *testing.T) {
+			assert.Equal(t, tt.want, isAttackedByCount(sq, pos, tt.args))
+		})
+	}
+}
+
+func TestIsAttackedByPawnCount(t *testing.T) {
+	type args struct {
+		sq  Square
+		fen string
+	}
+
+	tests := []struct {
+		args args
+		want int
+	}{
+		{args{A2, "k7/p1p5/1P1P3P/8/8/1p1p3p/P1P5/K7 w - - 0 1"}, 1},
+		{args{C2, "k7/p1p5/1P1P3P/8/8/1p1p3p/P1P5/K7 w - - 0 1"}, 2},
+		{args{A7, "k7/p1p5/1P1P3P/8/8/1p1p3p/P1P5/K7 b - - 0 1"}, 1},
+		{args{C7, "k7/p1p5/1P1P3P/8/8/1p1p3p/P1P5/K7 b - - 0 1"}, 2},
+		{args{G4, "k7/p1p5/1P1P3P/5Pp1/5pP1/1p1p3p/P1P5/K7 w - g3 0 1"}, 1},
+		{args{G5, "k7/p1p5/1P1P3P/5Pp1/5pP1/1p1p3p/P1P5/K7 b - g6 0 1"}, 1},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.args.sq.String(), func(t *testing.T) {
+			got := isAttackedByPawnCount(tt.args.sq, unsafeFEN(tt.args.fen))
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
 func TestMoveBitboard(t *testing.T) {
 	fen := "k7/8/8/8/8/8/5P2/KQRBN3 w - - 0 1"
 	pos := unsafeFEN(fen)
