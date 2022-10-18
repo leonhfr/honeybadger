@@ -1,6 +1,15 @@
 // Package chess provides types and functions to handle chess positions.
 package chess
 
+func inCheck(pos *Position) bool {
+	king := pos.board.sqWhiteKing
+	if pos.turn == Black {
+		king = pos.board.sqBlackKing
+	}
+
+	return isAttacked(king, pos)
+}
+
 func isAttacked(sq Square, pos *Position) bool {
 	for _, pt := range []PieceType{Queen, Rook, Bishop, Knight, Pawn, King} {
 		if isAttackedByCount(sq, pos, pt) > 0 {

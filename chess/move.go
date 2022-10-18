@@ -2,7 +2,10 @@ package chess
 
 import "errors"
 
-var errInvalidMove = errors.New("invalid move in UCI notation")
+var (
+	errInvalidMove     = errors.New("invalid move in UCI notation")
+	errMissingPosition = errors.New("missing position")
+)
 
 // MoveTag represents a notable consequence of a move.
 type MoveTag uint8
@@ -28,8 +31,16 @@ type Move struct {
 	tags  MoveTag
 }
 
+func newMove(s1, s2 Square, promo PieceType, tags MoveTag) *Move {
+	return &Move{s1, s2, promo, tags}
+}
+
 // FromUCI creates a move from a string in UCI notation.
-func FromUCI(p *Position, s string) (*Move, error) {
+func FromUCI(pos *Position, s string) (*Move, error) {
+	if pos == nil {
+		return nil, errMissingPosition
+	}
+
 	if len(s) < 4 || len(s) > 5 {
 		return nil, errInvalidMove
 	}
@@ -52,33 +63,33 @@ func FromUCI(p *Position, s string) (*Move, error) {
 		}
 	}
 
-	m := &Move{s1, s2, promo, 0}
-	if p == nil {
-		return m, nil
+	tags := moveTags(pos, s1, s2)
+	m := newMove(s1, s2, promo, tags)
+
+	if next := pos.Move(m); inCheck(next) {
+		m.tags |= Check
 	}
 
-	m.tags = moveTags(p, m)
 	return m, nil
 }
 
-func moveTags(p *Position, m *Move) MoveTag {
+func moveTags(p *Position, s1, s2 Square) MoveTag {
 	var tags MoveTag
-	p1, p2 := p.board.piece(m.s1), p.board.piece(m.s2)
-	c1, c2 := p1.Color(), p2.Color()
+	p1, p2 := p.board.piece(s1), p.board.piece(s2)
 	t1 := p1.Type()
 
 	if t1 == King {
-		if (m.s1 == E1 && m.s2 == G1) || (m.s1 == E8 && m.s2 == G8) {
+		if (s1 == E1 && s2 == G1) || (s1 == E8 && s2 == G8) {
 			tags |= KingSideCastle
-		} else if (m.s1 == E1 && m.s2 == C1) || (m.s1 == E8 && m.s2 == C8) {
+		} else if (s1 == E1 && s2 == C1) || (s1 == E8 && s2 == C8) {
 			tags |= QueenSideCastle
 		}
-	} else if t1 == Pawn && m.s2 == p.enPassantSquare {
+	} else if t1 == Pawn && s2 == p.enPassantSquare {
 		tags |= EnPassant
 		tags |= Capture
 	}
 
-	if p2 != NoPiece && c1 != c2 {
+	if p2 != NoPiece {
 		tags |= Capture
 	}
 
