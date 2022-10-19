@@ -7,6 +7,27 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestCastlingMoves(t *testing.T) {
+	tests := []struct {
+		args string
+		want []string
+	}{
+		{"r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1", []string{"e1c1", "e1g1"}},
+		{"r3k2r/8/8/8/8/8/8/R3K2R b KQkq - 0 1", []string{"e8c8", "e8g8"}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.args, func(t *testing.T) {
+			var moves []string
+			for _, m := range castlingMoves(unsafeFEN(tt.args)) {
+				moves = append(moves, m.String())
+			}
+			sort.Strings(moves)
+			assert.Equal(t, tt.want, moves)
+		})
+	}
+}
+
 func TestPseudoMoves(t *testing.T) {
 	tests := []struct {
 		args string

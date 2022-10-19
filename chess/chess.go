@@ -1,7 +1,48 @@
 // Package chess provides types and functions to handle chess positions.
 package chess
 
-var promoPieceTypes = []PieceType{Queen, Rook, Bishop, Knight}
+type castleCheck struct {
+	color              Color
+	side               Side
+	s1, s2             Square
+	emptyBitboards     bitboard
+	notAttackedSquares []Square
+}
+
+func (cc castleCheck) possible(pos *Position) bool {
+	if pos.turn != cc.color ||
+		!pos.castlingRights.CanCastle(pos.turn, cc.side) ||
+		^pos.board.bbEmpty&cc.emptyBitboards > 0 {
+		return false
+	}
+
+	for _, sq := range cc.notAttackedSquares {
+		if isAttacked(sq, pos) {
+			return false
+		}
+	}
+
+	return true
+}
+
+var castleChecks = [4]castleCheck{
+	{White, KingSide, E1, G1, F1.bitboard() | G1.bitboard(), []Square{F1, G1}},
+	{White, QueenSide, E1, C1, B1.bitboard() | C1.bitboard() | D1.bitboard(), []Square{C1, D1}},
+	{Black, KingSide, E8, G8, F8.bitboard() | G8.bitboard(), []Square{F8, G8}},
+	{Black, QueenSide, E8, C8, B8.bitboard() | C8.bitboard() | D8.bitboard(), []Square{C8, D8}},
+}
+
+func castlingMoves(pos *Position) []*Move {
+	moves := []*Move{}
+	for _, check := range castleChecks {
+		if check.possible(pos) {
+			moves = append(moves, newMove(pos, check.s1, check.s2, NoPieceType))
+		}
+	}
+	return moves
+}
+
+var promoPieceTypes = [4]PieceType{Queen, Rook, Bishop, Knight}
 
 func pseudoMoves(pos *Position) []*Move {
 	bbAllowed := ^pos.board.bbWhite
