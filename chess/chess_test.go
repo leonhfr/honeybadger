@@ -182,6 +182,21 @@ func TestIsAttackedByCount(t *testing.T) {
 	}
 }
 
+func benchmarkAttackByCount(pt PieceType, b *testing.B) {
+	pos := unsafeFEN("K2r3q/8/8/2p5/r2Q4/2k2n2/4n3/6b1 w - - 0 1")
+	sq := D4
+	for n := 0; n < b.N; n++ {
+		isAttackedByCount(sq, pos, pt)
+	}
+}
+
+func BenchmarkAttackByCountKing(b *testing.B)   { benchmarkAttackByCount(King, b) }
+func BenchmarkAttackByCountQueen(b *testing.B)  { benchmarkAttackByCount(Queen, b) }
+func BenchmarkAttackByCountRook(b *testing.B)   { benchmarkAttackByCount(Rook, b) }
+func BenchmarkAttackByCountBishop(b *testing.B) { benchmarkAttackByCount(Bishop, b) }
+func BenchmarkAttackByCountKnight(b *testing.B) { benchmarkAttackByCount(Knight, b) }
+func BenchmarkAttackByCountPawn(b *testing.B)   { benchmarkAttackByCount(Pawn, b) }
+
 func TestIsAttackedByPawnCount(t *testing.T) {
 	type args struct {
 		sq  Square

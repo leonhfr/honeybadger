@@ -66,13 +66,26 @@ const (
 	bbFileH
 )
 
+const (
+	bbNotRank1 = ^bbRank1
+	bbNotRank8 = ^bbRank8
+	bbNotFileA = ^bbFileA
+	bbNotFileH = ^bbFileH
+)
+
 var (
-	bbRanks         = [64]bitboard{}
-	bbFiles         = [64]bitboard{}
-	bbDiagonals     = [64]bitboard{}
-	bbAntiDiagonals = [64]bitboard{}
-	bbKingMoves     = [64]bitboard{}
-	bbKnightMoves   = [64]bitboard{}
+	bbRanks                = [64]bitboard{}
+	bbFiles                = [64]bitboard{}
+	bbDiagonals            = [64]bitboard{}
+	bbAntiDiagonals        = [64]bitboard{}
+	bbKingMoves            = [64]bitboard{}
+	bbKnightMoves          = [64]bitboard{}
+	bbWhitePawnPushes      = [64]bitboard{}
+	bbBlackPawnPushes      = [64]bitboard{}
+	bbWhitePawnCaptures    = [64]bitboard{}
+	bbBlackPawnCaptures    = [64]bitboard{}
+	bbDoubleSquares        = [64]bitboard{}
+	bbReverseDoubleSquares = [64]bitboard{}
 )
 
 func init() {
@@ -83,6 +96,12 @@ func init() {
 		bbAntiDiagonals[sq] = initAntiDiagonalBitboard(sq)
 		bbKingMoves[sq] = initKingBitboard(sq)
 		bbKnightMoves[sq] = initKnightBitboard(sq)
+		bbWhitePawnPushes[sq] = initWhitePawnPushBitboard(sq)
+		bbBlackPawnPushes[sq] = initBlackPawnPushBitboard(sq)
+		bbWhitePawnCaptures[sq] = initWhitePawnCaptureBitboard(sq)
+		bbBlackPawnCaptures[sq] = initBlackPawnCaptureBitboard(sq)
+		bbDoubleSquares[sq] = initDoubleBitboard(sq)
+		bbReverseDoubleSquares[sq] = initReverseDoubleBitboard(sq)
 	}
 }
 
@@ -170,6 +189,34 @@ func initKnightBitboard(sq Square) bitboard {
 		}
 	}
 	return newBitboard(squareSetToSlice(set))
+}
+
+func initWhitePawnPushBitboard(sq Square) bitboard {
+	return (sq.bitboard() & bbNotRank8) << 8
+}
+
+func initBlackPawnPushBitboard(sq Square) bitboard {
+	return (sq.bitboard() & bbNotRank1) >> 8
+}
+
+func initWhitePawnCaptureBitboard(sq Square) bitboard {
+	captureR := (sq.bitboard() & bbNotFileH & bbNotRank8) << 9
+	captureL := (sq.bitboard() & bbNotFileA & bbNotRank8) << 7
+	return captureR | captureL
+}
+
+func initBlackPawnCaptureBitboard(sq Square) bitboard {
+	captureR := (sq.bitboard() & bbNotFileH & bbNotRank1) >> 7
+	captureL := (sq.bitboard() & bbNotFileA & bbNotRank1) >> 9
+	return captureR | captureL
+}
+
+func initDoubleBitboard(sq Square) bitboard {
+	return 2 * sq.bitboard()
+}
+
+func initReverseDoubleBitboard(sq Square) bitboard {
+	return 2 * sq.bitboard().reverse()
 }
 
 func squareSetToSlice(set map[Square]struct{}) []Square {

@@ -22,7 +22,7 @@ type castleCheck struct {
 func (cc castleCheck) possible(pos *Position) bool {
 	if pos.turn != cc.color ||
 		!pos.castlingRights.CanCastle(pos.turn, cc.side) ||
-		^pos.board.bbEmpty&cc.travelBitboard > 0 {
+		pos.board.bbOccupied&cc.travelBitboard > 0 {
 		return false
 	}
 
@@ -121,11 +121,11 @@ func isAttackedByCount(sq Square, pos *Position, by PieceType) int {
 		}
 		return 0
 	case Queen:
-		return ((diagonalBitboard(sq, ^pos.board.bbEmpty) | hvBitboard(sq, ^pos.board.bbEmpty)) & bb).ones()
+		return ((diagonalBitboard(sq, pos.board.bbOccupied) | hvBitboard(sq, pos.board.bbOccupied)) & bb).ones()
 	case Rook:
-		return (hvBitboard(sq, ^pos.board.bbEmpty) & bb).ones()
+		return (hvBitboard(sq, pos.board.bbOccupied) & bb).ones()
 	case Bishop:
-		return (diagonalBitboard(sq, ^pos.board.bbEmpty) & bb).ones()
+		return (diagonalBitboard(sq, pos.board.bbOccupied) & bb).ones()
 	case Knight:
 		return (bbKnightMoves[sq] & bb).ones()
 	case Pawn:
@@ -143,18 +143,16 @@ func isAttackedByPawnCount(sq Square, pos *Position) int {
 	}
 
 	if pos.turn == White {
-		captureR := (bbSquare & ^bbFileH & ^bbRank8) << 9
-		captureL := (bbSquare & ^bbFileA & ^bbRank8) << 7
-		enPassantR := (bbSquare & (bbEnPassant << 8) & ^bbFileH) >> 1
-		enPassantL := (bbSquare & (bbEnPassant << 8) & ^bbFileA) << 1
-		return (pos.board.bbBlackPawn & (captureR | captureL | enPassantR | enPassantL)).ones()
+		captures := bbWhitePawnCaptures[sq]
+		enPassantR := (bbSquare & (bbEnPassant << 8) & bbNotFileH) >> 1
+		enPassantL := (bbSquare & (bbEnPassant << 8) & bbNotFileA) << 1
+		return (pos.board.bbBlackPawn & (captures | enPassantR | enPassantL)).ones()
 	}
 
-	captureR := (bbSquare & ^bbFileH & ^bbRank1) >> 7
-	captureL := (bbSquare & ^bbFileA & ^bbRank1) >> 9
-	enPassantR := (bbSquare & (bbEnPassant >> 8) & ^bbFileH) << 1
-	enPassantL := (bbSquare & (bbEnPassant >> 8) & ^bbFileA) >> 1
-	return (pos.board.bbWhitePawn & (captureR | captureL | enPassantR | enPassantL)).ones()
+	captures := bbBlackPawnCaptures[sq]
+	enPassantR := (bbSquare & (bbEnPassant >> 8) & bbNotFileH) << 1
+	enPassantL := (bbSquare & (bbEnPassant >> 8) & bbNotFileA) >> 1
+	return (pos.board.bbWhitePawn & (captures | enPassantR | enPassantL)).ones()
 }
 
 func moveBitboard(sq Square, pos *Position, pt PieceType) bitboard {
@@ -162,11 +160,11 @@ func moveBitboard(sq Square, pos *Position, pt PieceType) bitboard {
 	case King:
 		return bbKingMoves[sq]
 	case Queen:
-		return hvBitboard(sq, ^pos.board.bbEmpty) | diagonalBitboard(sq, ^pos.board.bbEmpty)
+		return hvBitboard(sq, pos.board.bbOccupied) | diagonalBitboard(sq, pos.board.bbOccupied)
 	case Rook:
-		return hvBitboard(sq, ^pos.board.bbEmpty)
+		return hvBitboard(sq, pos.board.bbOccupied)
 	case Bishop:
-		return diagonalBitboard(sq, ^pos.board.bbEmpty)
+		return diagonalBitboard(sq, pos.board.bbOccupied)
 	case Knight:
 		return bbKnightMoves[sq]
 	case Pawn:
@@ -177,40 +175,35 @@ func moveBitboard(sq Square, pos *Position, pt PieceType) bitboard {
 }
 
 func pawnBitboard(sq Square, pos *Position) bitboard {
-	bbSquare := sq.bitboard()
 	var bbEnPassant bitboard
 	if pos.enPassantSquare != NoSquare {
 		bbEnPassant = pos.enPassantSquare.bitboard()
 	}
 
 	if pos.turn == White {
-		captureR := (pos.board.bbBlack | bbEnPassant) & ((bbSquare & ^bbFileH & ^bbRank8) << 9)
-		captureL := (pos.board.bbBlack | bbEnPassant) & ((bbSquare & ^bbFileA & ^bbRank8) << 7)
-		upOne := pos.board.bbEmpty & ((bbSquare & ^bbRank8) << 8)
+		captures := (pos.board.bbBlack | bbEnPassant) & bbWhitePawnCaptures[sq]
+		upOne := pos.board.bbEmpty & bbWhitePawnPushes[sq]
 		upTwo := pos.board.bbEmpty & ((upOne & bbRank3) << 8)
-		return captureR | captureL | upOne | upTwo
+		return captures | upOne | upTwo
 	}
 
-	captureR := (pos.board.bbWhite | bbEnPassant) & ((bbSquare & ^bbFileH & ^bbRank1) >> 7)
-	captureL := (pos.board.bbWhite | bbEnPassant) & ((bbSquare & ^bbFileA & ^bbRank1) >> 9)
-	upOne := pos.board.bbEmpty & ((bbSquare & ^bbRank1) >> 8)
+	captures := (pos.board.bbWhite | bbEnPassant) & bbBlackPawnCaptures[sq]
+	upOne := pos.board.bbEmpty & bbBlackPawnPushes[sq]
 	upTwo := pos.board.bbEmpty & ((upOne & bbRank6) >> 8)
-	return captureR | captureL | upOne | upTwo
+	return captures | upOne | upTwo
 }
 
 func diagonalBitboard(sq Square, occupied bitboard) bitboard {
-	square := sq.bitboard()
-	return linearBitboard(square, occupied, bbDiagonals[sq]) |
-		linearBitboard(square, occupied, bbAntiDiagonals[sq])
+	return linearBitboard(sq, occupied, bbDiagonals[sq]) |
+		linearBitboard(sq, occupied, bbAntiDiagonals[sq])
 }
 
 func hvBitboard(sq Square, occupied bitboard) bitboard {
-	square := sq.bitboard()
-	return linearBitboard(square, occupied, bbRanks[sq]) |
-		linearBitboard(square, occupied, bbFiles[sq])
+	return linearBitboard(sq, occupied, bbRanks[sq]) |
+		linearBitboard(sq, occupied, bbFiles[sq])
 }
 
-func linearBitboard(square, occupied, mask bitboard) bitboard {
+func linearBitboard(sq Square, occupied, mask bitboard) bitboard {
 	inMask := occupied & mask
-	return ((inMask - 2*square) ^ (inMask.reverse() - 2*square.reverse()).reverse()) & mask
+	return ((inMask - bbDoubleSquares[sq]) ^ (inMask.reverse() - bbReverseDoubleSquares[sq]).reverse()) & mask
 }

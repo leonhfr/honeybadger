@@ -22,6 +22,7 @@ type board struct {
 	bbWhite       bitboard
 	bbBlack       bitboard
 	bbEmpty       bitboard
+	bbOccupied    bitboard
 	sqWhiteKing   Square
 	sqBlackKing   Square
 }
@@ -40,7 +41,8 @@ func (b *board) computeConvenienceBitboards() {
 		b.bbWhiteBishop | b.bbWhiteKnight | b.bbWhitePawn
 	b.bbBlack = b.bbBlackKing | b.bbBlackQueen | b.bbBlackRook |
 		b.bbBlackBishop | b.bbBlackKnight | b.bbBlackPawn
-	b.bbEmpty = ^(b.bbWhite | b.bbBlack)
+	b.bbOccupied = b.bbWhite | b.bbBlack
+	b.bbEmpty = ^b.bbOccupied
 
 	for _, sq := range b.getBitboard(WhiteKing).mapping() {
 		b.sqWhiteKing = sq
