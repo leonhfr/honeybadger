@@ -252,6 +252,20 @@ func TestMoveBitboard(t *testing.T) {
 	}
 }
 
+func benchmarkMoveBitboard(sq Square, pt PieceType, b *testing.B) {
+	pos := unsafeFEN("k7/8/8/8/8/8/5P2/KQRBN3 w - - 0 1")
+	for n := 0; n < b.N; n++ {
+		moveBitboard(sq, pos, pt)
+	}
+}
+
+func BenchmarkMoveBitboardKing(b *testing.B)   { benchmarkMoveBitboard(A1, King, b) }
+func BenchmarkMoveBitboardQueen(b *testing.B)  { benchmarkMoveBitboard(B1, Queen, b) }
+func BenchmarkMoveBitboardRook(b *testing.B)   { benchmarkMoveBitboard(C1, Rook, b) }
+func BenchmarkMoveBitboardBishop(b *testing.B) { benchmarkMoveBitboard(D1, Bishop, b) }
+func BenchmarkMoveBitboardKnight(b *testing.B) { benchmarkMoveBitboard(E1, Knight, b) }
+func BenchmarkMoveBitboardPawn(b *testing.B)   { benchmarkMoveBitboard(F2, Pawn, b) }
+
 func TestPawnBitboards(t *testing.T) {
 	fenWhite := "k7/p7/1p6/2N5/2n2pP1/1P6/P7/K7 w - - 0 1"
 	fenBlack := "k7/p7/1p6/2N5/2n2pP1/1P6/P7/K7 b - g3 0 1"

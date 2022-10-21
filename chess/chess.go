@@ -46,7 +46,7 @@ func castlingMoves(pos *Position) []*Move {
 	moves := []*Move{}
 	for _, check := range castleChecks {
 		if check.possible(pos) {
-			moves = append(moves, newMove(pos, check.s1, check.s2, NoPieceType))
+			moves = append(moves, newMove(pos, King, check.s1, check.s2, NoPieceType))
 		}
 	}
 	return moves
@@ -61,15 +61,34 @@ func pseudoMoves(pos *Position) []*Move {
 	}
 
 	moves := []*Move{}
-	for s1, p := range pos.board.squareMapByColor(pos.turn) {
-		pseudoS2 := moveBitboard(s1, pos, p.Type()) & bbAllowed
-		for _, s2 := range pseudoS2.mapping() {
-			if p == WhitePawn && s2.Rank() == Rank8 || p == BlackPawn && s2.Rank() == Rank1 {
-				for _, pt := range promoPieceTypes {
-					moves = append(moves, newMove(pos, s1, s2, pt))
+	for _, p := range piecesByColor[pos.turn] {
+		s1bb := pos.board.getBitboard(p)
+		if s1bb == 0 {
+			continue
+		}
+
+		for s1 := A1; s1 <= H8; s1++ {
+			if s1bb&s1.bitboard() == 0 {
+				continue
+			}
+
+			s2bb := moveBitboard(s1, pos, p.Type()) & bbAllowed
+			if s2bb == 0 {
+				continue
+			}
+
+			for s2 := A1; s2 <= H8; s2++ {
+				if s2bb&s2.bitboard() == 0 {
+					continue
 				}
-			} else {
-				moves = append(moves, newMove(pos, s1, s2, NoPieceType))
+
+				if p == WhitePawn && s2.Rank() == Rank8 || p == BlackPawn && s2.Rank() == Rank1 {
+					for _, pt := range promoPieceTypes {
+						moves = append(moves, newMove(pos, p.Type(), s1, s2, pt))
+					}
+				} else {
+					moves = append(moves, newMove(pos, p.Type(), s1, s2, NoPieceType))
+				}
 			}
 		}
 	}
@@ -86,7 +105,7 @@ func isInCheck(pos *Position) bool {
 }
 
 func isAttacked(sq Square, pos *Position) bool {
-	for _, pt := range []PieceType{Queen, Rook, Bishop, Knight, Pawn, King} {
+	for _, pt := range [6]PieceType{Queen, Rook, Bishop, Knight, Pawn, King} {
 		if isAttackedByCount(sq, pos, pt) > 0 {
 			return true
 		}
@@ -187,8 +206,8 @@ func diagonalBitboard(sq Square, occupied bitboard) bitboard {
 
 func hvBitboard(sq Square, occupied bitboard) bitboard {
 	square := sq.bitboard()
-	return linearBitboard(square, occupied, bbRanks[sq.Rank()/8]) |
-		linearBitboard(square, occupied, bbFiles[sq.File()])
+	return linearBitboard(square, occupied, bbRanks[sq]) |
+		linearBitboard(square, occupied, bbFiles[sq])
 }
 
 func linearBitboard(square, occupied, mask bitboard) bitboard {

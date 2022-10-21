@@ -60,16 +60,6 @@ func (b *board) squareMap() SquareMap {
 	return m
 }
 
-func (b *board) squareMapByColor(c Color) SquareMap {
-	m := SquareMap{}
-	for _, p := range piecesByColor[c] {
-		for _, sq := range b.getBitboard(p).mapping() {
-			m[sq] = p
-		}
-	}
-	return m
-}
-
 func (b *board) piece(sq Square) Piece {
 	for _, p := range pieces {
 		bb := b.getBitboard(p)

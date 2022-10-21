@@ -67,9 +67,8 @@ const (
 )
 
 var (
-	bbRanks = [8]bitboard{bbRank1, bbRank2, bbRank3, bbRank4, bbRank5, bbRank6, bbRank7, bbRank8}
-	bbFiles = [8]bitboard{bbFileA, bbFileB, bbFileC, bbFileD, bbFileE, bbFileF, bbFileG, bbFileH}
-
+	bbRanks         = [64]bitboard{}
+	bbFiles         = [64]bitboard{}
 	bbDiagonals     = [64]bitboard{}
 	bbAntiDiagonals = [64]bitboard{}
 	bbKingMoves     = [64]bitboard{}
@@ -78,6 +77,8 @@ var (
 
 func init() {
 	for sq := A1; sq <= H8; sq++ {
+		bbRanks[sq] = initRankBitboard(sq)
+		bbFiles[sq] = initFileBitboard(sq)
 		bbDiagonals[sq] = initDiagonalBitboard(sq)
 		bbAntiDiagonals[sq] = initAntiDiagonalBitboard(sq)
 		bbKingMoves[sq] = initKingBitboard(sq)
@@ -85,42 +86,14 @@ func init() {
 	}
 }
 
-func initKingBitboard(sq Square) bitboard {
-	set := map[Square]struct{}{}
-	for dest, ok := range map[Square]bool{
-		sq + 8 - 1: sq.Rank() <= Rank7 && sq.File() >= FileB,
-		sq + 8:     sq.Rank() <= Rank7,
-		sq + 8 + 1: sq.Rank() <= Rank7 && sq.File() <= FileG,
-		sq + 1:     sq.File() <= FileG,
-		sq - 8 + 1: sq.Rank() >= Rank2 && sq.File() <= FileG,
-		sq - 8:     sq.Rank() >= Rank2,
-		sq - 8 - 1: sq.Rank() >= Rank2 && sq.File() >= FileB,
-		sq - 1:     sq.File() >= FileB,
-	} {
-		if ok {
-			set[dest] = struct{}{}
-		}
-	}
-	return newBitboard(squareSetToSlice(set))
+func initRankBitboard(sq Square) bitboard {
+	bbRanks := [8]bitboard{bbRank1, bbRank2, bbRank3, bbRank4, bbRank5, bbRank6, bbRank7, bbRank8}
+	return bbRanks[sq.Rank()/8]
 }
 
-func initKnightBitboard(sq Square) bitboard {
-	set := map[Square]struct{}{}
-	for dest, ok := range map[Square]bool{
-		sq + 8 - 2:  sq.Rank() <= Rank7 && sq.File() >= FileC,
-		sq + 16 - 1: sq.Rank() <= Rank6 && sq.File() >= FileB,
-		sq + 16 + 1: sq.Rank() <= Rank6 && sq.File() <= FileG,
-		sq + 8 + 2:  sq.Rank() <= Rank7 && sq.File() <= FileF,
-		sq - 8 + 2:  sq.Rank() >= Rank2 && sq.File() <= FileF,
-		sq - 16 + 1: sq.Rank() >= Rank3 && sq.File() <= FileG,
-		sq - 16 - 1: sq.Rank() >= Rank3 && sq.File() >= FileB,
-		sq - 8 - 2:  sq.Rank() >= Rank2 && sq.File() >= FileC,
-	} {
-		if ok {
-			set[dest] = struct{}{}
-		}
-	}
-	return newBitboard(squareSetToSlice(set))
+func initFileBitboard(sq Square) bitboard {
+	bbFiles := [8]bitboard{bbFileA, bbFileB, bbFileC, bbFileD, bbFileE, bbFileF, bbFileG, bbFileH}
+	return bbFiles[sq.File()]
 }
 
 func initDiagonalBitboard(sq Square) bitboard {
@@ -156,6 +129,44 @@ func initAntiDiagonalBitboard(sq Square) bitboard {
 		set[downLeft] = struct{}{}
 		if downLeft.File() == FileA || downLeft.Rank() == Rank1 {
 			break
+		}
+	}
+	return newBitboard(squareSetToSlice(set))
+}
+
+func initKingBitboard(sq Square) bitboard {
+	set := map[Square]struct{}{}
+	for dest, ok := range map[Square]bool{
+		sq + 8 - 1: sq.Rank() <= Rank7 && sq.File() >= FileB,
+		sq + 8:     sq.Rank() <= Rank7,
+		sq + 8 + 1: sq.Rank() <= Rank7 && sq.File() <= FileG,
+		sq + 1:     sq.File() <= FileG,
+		sq - 8 + 1: sq.Rank() >= Rank2 && sq.File() <= FileG,
+		sq - 8:     sq.Rank() >= Rank2,
+		sq - 8 - 1: sq.Rank() >= Rank2 && sq.File() >= FileB,
+		sq - 1:     sq.File() >= FileB,
+	} {
+		if ok {
+			set[dest] = struct{}{}
+		}
+	}
+	return newBitboard(squareSetToSlice(set))
+}
+
+func initKnightBitboard(sq Square) bitboard {
+	set := map[Square]struct{}{}
+	for dest, ok := range map[Square]bool{
+		sq + 8 - 2:  sq.Rank() <= Rank7 && sq.File() >= FileC,
+		sq + 16 - 1: sq.Rank() <= Rank6 && sq.File() >= FileB,
+		sq + 16 + 1: sq.Rank() <= Rank6 && sq.File() <= FileG,
+		sq + 8 + 2:  sq.Rank() <= Rank7 && sq.File() <= FileF,
+		sq - 8 + 2:  sq.Rank() >= Rank2 && sq.File() <= FileF,
+		sq - 16 + 1: sq.Rank() >= Rank3 && sq.File() <= FileG,
+		sq - 16 - 1: sq.Rank() >= Rank3 && sq.File() >= FileB,
+		sq - 8 - 2:  sq.Rank() >= Rank2 && sq.File() >= FileC,
+	} {
+		if ok {
+			set[dest] = struct{}{}
 		}
 	}
 	return newBitboard(squareSetToSlice(set))

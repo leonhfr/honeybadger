@@ -49,22 +49,14 @@ const (
 type File uint8
 
 const (
-	// FileA is the file A.
-	FileA File = iota
-	// FileB is the file B.
-	FileB
-	// FileC is the file C.
-	FileC
-	// FileD is the file D.
-	FileD
-	// FileE is the file E.
-	FileE
-	// FileF is the file F.
-	FileF
-	// FileG is the file G.
-	FileG
-	// FileH is the file H.
-	FileH
+	FileA File = iota // FileA is the file A.
+	FileB             // FileB is the file B.
+	FileC             // FileC is the file C.
+	FileD             // FileD is the file D.
+	FileE             // FileE is the file E.
+	FileF             // FileF is the file F.
+	FileG             // FileG is the file G.
+	FileH             // FileH is the file H.
 )
 
 func (f File) String() string {
@@ -75,22 +67,14 @@ func (f File) String() string {
 type Rank uint8
 
 const (
-	// Rank1 is the rank 1.
-	Rank1 Rank = 8 * iota
-	// Rank2 is the rank 2.
-	Rank2
-	// Rank3 is the rank 3.
-	Rank3
-	// Rank4 is the rank 4.
-	Rank4
-	// Rank5 is the rank 5.
-	Rank5
-	// Rank6 is the rank 6.
-	Rank6
-	// Rank7 is the rank 7.
-	Rank7
-	// Rank8 is the rank 8.
-	Rank8
+	Rank1 Rank = 8 * iota // Rank1 is the rank 1.
+	Rank2                 // Rank2 is the rank 2.
+	Rank3                 // Rank3 is the rank 3.
+	Rank4                 // Rank4 is the rank 4.
+	Rank5                 // Rank5 is the rank 5.
+	Rank6                 // Rank6 is the rank 6.
+	Rank7                 // Rank7 is the rank 7.
+	Rank8                 // Rank8 is the rank 8.
 )
 
 func (r Rank) String() string {

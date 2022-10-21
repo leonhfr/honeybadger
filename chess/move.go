@@ -34,8 +34,8 @@ type Move struct {
 	tags  MoveTag
 }
 
-func newMove(pos *Position, s1, s2 Square, promo PieceType) *Move {
-	tags := moveTags(pos, s1, s2)
+func newMove(pos *Position, pt PieceType, s1, s2 Square, promo PieceType) *Move {
+	tags := moveTags(pos, pt, s1, s2)
 	m := &Move{s1, s2, promo, tags}
 
 	next := pos.Move(m)
@@ -78,7 +78,7 @@ func FromUCI(pos *Position, s string) (*Move, error) {
 		}
 	}
 
-	m := newMove(pos, s1, s2, promo)
+	m := newMove(pos, NoPieceType, s1, s2, promo)
 	if m.HasTag(inCheck) {
 		return nil, errIllegalMove
 	}
@@ -86,18 +86,21 @@ func FromUCI(pos *Position, s string) (*Move, error) {
 	return m, nil
 }
 
-func moveTags(p *Position, s1, s2 Square) MoveTag {
-	var tags MoveTag
-	p1, p2 := p.board.piece(s1), p.board.piece(s2)
-	t1 := p1.Type()
+func moveTags(pos *Position, pt PieceType, s1, s2 Square) MoveTag {
+	if pt == NoPieceType {
+		pt = pos.board.piece(s1).Type()
+	}
 
-	if t1 == King {
+	var tags MoveTag
+	p2 := pos.board.piece(s2)
+
+	if pt == King {
 		if (s1 == E1 && s2 == G1) || (s1 == E8 && s2 == G8) {
 			tags |= KingSideCastle
 		} else if (s1 == E1 && s2 == C1) || (s1 == E8 && s2 == C8) {
 			tags |= QueenSideCastle
 		}
-	} else if t1 == Pawn && s2 == p.enPassantSquare {
+	} else if pt == Pawn && s2 == pos.enPassantSquare {
 		tags |= EnPassant
 		tags |= Capture
 	}
