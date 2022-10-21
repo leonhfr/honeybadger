@@ -9,17 +9,17 @@ import (
 func TestNewBitboard(t *testing.T) {
 	tests := []struct {
 		name string
-		args squareSet
+		args []Square
 		want string
 	}{
 		{
 			"A1",
-			squareSet{A1: struct{}{}},
+			[]Square{A1},
 			"0000000000000000000000000000000000000000000000000000000000000001",
 		},
 		{
 			"A1A8H1H8",
-			squareSet{A1: struct{}{}, A8: struct{}{}, H1: struct{}{}, H8: struct{}{}},
+			[]Square{A1, A8, H1, H8},
 			"1000000100000000000000000000000000000000000000000000000010000001",
 		},
 	}
@@ -35,24 +35,30 @@ func TestBitboard_Mapping(t *testing.T) {
 	tests := []struct {
 		name string
 		args bitboard
-		want squareSet
+		want []Square
 	}{
 		{
 			"A1",
 			1,
-			squareSet{A1: struct{}{}},
+			[]Square{A1},
 		},
 		{
 			"A1A8H1H8",
 			bitboard(9295429630892703873),
-			squareSet{A1: struct{}{}, A8: struct{}{}, H1: struct{}{}, H8: struct{}{}},
+			[]Square{A1, A8, H1, H8},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			assert.Equal(t, tt.want, tt.args.mapping())
+			assert.ElementsMatch(t, tt.want, tt.args.mapping())
 		})
+	}
+}
+
+func BenchmarkBitboard_Mapping(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		bitboard(9223372036854775807).mapping()
 	}
 }
 
@@ -71,6 +77,12 @@ func TestBitboard_Reverse(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			assert.Equal(t, tt.want, tt.args.reverse())
 		})
+	}
+}
+
+func BenchmarkBitboard_Reverse(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		bitboard(9223372036854775807).reverse()
 	}
 }
 

@@ -63,7 +63,7 @@ func pseudoMoves(pos *Position) []*Move {
 	moves := []*Move{}
 	for s1, p := range pos.board.squareMapByColor(pos.turn) {
 		pseudoS2 := moveBitboard(s1, pos, p.Type()) & bbAllowed
-		for s2 := range pseudoS2.mapping() {
+		for _, s2 := range pseudoS2.mapping() {
 			if p == WhitePawn && s2.Rank() == Rank8 || p == BlackPawn && s2.Rank() == Rank1 {
 				for _, pt := range promoPieceTypes {
 					moves = append(moves, newMove(pos, s1, s2, pt))

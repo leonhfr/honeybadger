@@ -42,10 +42,10 @@ func (b *board) computeConvenienceBitboards() {
 		b.bbBlackBishop | b.bbBlackKnight | b.bbBlackPawn
 	b.bbEmpty = ^(b.bbWhite | b.bbBlack)
 
-	for sq := range b.getBitboard(WhiteKing).mapping() {
+	for _, sq := range b.getBitboard(WhiteKing).mapping() {
 		b.sqWhiteKing = sq
 	}
-	for sq := range b.getBitboard(BlackKing).mapping() {
+	for _, sq := range b.getBitboard(BlackKing).mapping() {
 		b.sqBlackKing = sq
 	}
 }
@@ -53,8 +53,7 @@ func (b *board) computeConvenienceBitboards() {
 func (b *board) squareMap() SquareMap {
 	m := SquareMap{}
 	for _, p := range pieces {
-		squares := b.getBitboard(p).mapping()
-		for sq := range squares {
+		for _, sq := range b.getBitboard(p).mapping() {
 			m[sq] = p
 		}
 	}
@@ -64,8 +63,7 @@ func (b *board) squareMap() SquareMap {
 func (b *board) squareMapByColor(c Color) SquareMap {
 	m := SquareMap{}
 	for _, p := range piecesByColor[c] {
-		squares := b.getBitboard(p).mapping()
-		for sq := range squares {
+		for _, sq := range b.getBitboard(p).mapping() {
 			m[sq] = p
 		}
 	}

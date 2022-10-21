@@ -95,11 +95,19 @@ func BenchmarkLegalMoves(b *testing.B) {
 	}
 }
 
+func BenchmarkPseudoMoves(b *testing.B) {
+	pos := StartingPosition()
+	for n := 0; n < b.N; n++ {
+		pseudoMoves(pos)
+	}
+}
+
 func TestCastlingMoves(t *testing.T) {
 	tests := []struct {
 		args string
 		want []string
 	}{
+		{"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", nil},
 		{"r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1", []string{"e1c1", "e1g1"}},
 		{"r3k2r/8/8/8/8/8/8/R3K2R b KQkq - 0 1", []string{"e8c8", "e8g8"}},
 	}
@@ -210,49 +218,36 @@ func TestMoveBitboard(t *testing.T) {
 	}
 	tests := []struct {
 		args args
-		want squareSet
+		want []Square
 	}{
-		{args{A1, King}, squareSet{
-			A2: struct{}{}, B2: struct{}{},
-			B1: struct{}{}, // will be removed
+		{args{A1, King}, []Square{
+			A2, B2,
+			B1, // will be removed
 		}},
-		{args{B1, Queen}, squareSet{
-			A2: struct{}{}, B2: struct{}{},
-			B3: struct{}{}, B4: struct{}{},
-			B5: struct{}{}, B6: struct{}{},
-			B7: struct{}{}, B8: struct{}{},
-			C2: struct{}{}, D3: struct{}{},
-			E4: struct{}{}, F5: struct{}{},
-			G6: struct{}{}, H7: struct{}{},
-			A1: struct{}{}, C1: struct{}{}, // will be removed
+		{args{B1, Queen}, []Square{
+			A2, B2, B3, B4, B5,
+			B6, B7, B8, C2, D3,
+			E4, F5, G6, H7,
+			A1, C1, // will be removed
 		}},
-		{args{C1, Rook}, squareSet{
-			C2: struct{}{}, C3: struct{}{},
-			C4: struct{}{}, C5: struct{}{},
-			C6: struct{}{}, C7: struct{}{},
-			C8: struct{}{},
-			B1: struct{}{}, D1: struct{}{}, // will be removed
+		{args{C1, Rook}, []Square{
+			C2, C3, C4, C5, C6,
+			C7, C8,
+			B1, D1, // will be removed
 		}},
-		{args{D1, Bishop}, squareSet{
-			A4: struct{}{}, B3: struct{}{},
-			C2: struct{}{}, E2: struct{}{},
-			F3: struct{}{}, G4: struct{}{},
-			H5: struct{}{},
+		{args{D1, Bishop}, []Square{
+			A4, B3, C2, E2, F3,
+			G4, H5,
 		}},
-		{args{E1, Knight}, squareSet{
-			C2: struct{}{}, D3: struct{}{},
-			F3: struct{}{}, G2: struct{}{},
-		}},
-		{args{F2, Pawn}, squareSet{
-			F3: struct{}{}, F4: struct{}{},
-		}},
-		{args{F2, NoPieceType}, squareSet{}},
+		{args{E1, Knight}, []Square{C2, D3, F3, G2}},
+		{args{F2, Pawn}, []Square{F3, F4}},
+		{args{F2, NoPieceType}, []Square{}},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.args.pt.String(), func(t *testing.T) {
 			got := moveBitboard(tt.args.sq, pos, tt.args.pt)
-			assert.Equal(t, tt.want, got.mapping())
+			assert.ElementsMatch(t, tt.want, got.mapping())
 		})
 	}
 }
@@ -263,59 +258,37 @@ func TestPawnBitboards(t *testing.T) {
 	posWhite, posBlack := unsafeFEN(fenWhite), unsafeFEN(fenBlack)
 	tests := []struct {
 		sq  Square
-		set squareSet
+		set []Square
 		pos *Position
 	}{
-		{A2, squareSet{A3: struct{}{}, A4: struct{}{}}, posWhite},
-		{B3, squareSet{B4: struct{}{}, C4: struct{}{}}, posWhite},
-		{A7, squareSet{A5: struct{}{}, A6: struct{}{}}, posBlack},
-		{B6, squareSet{B5: struct{}{}, C5: struct{}{}}, posBlack},
-		{F4, squareSet{F3: struct{}{}, G3: struct{}{}}, posBlack},
+		{A2, []Square{A3, A4}, posWhite},
+		{B3, []Square{B4, C4}, posWhite},
+		{A7, []Square{A5, A6}, posBlack},
+		{B6, []Square{B5, C5}, posBlack},
+		{F4, []Square{F3, G3}, posBlack},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.sq.String(), func(t *testing.T) {
-			assert.Equal(t, tt.set, pawnBitboard(tt.sq, tt.pos).mapping())
+			assert.ElementsMatch(t, tt.set, pawnBitboard(tt.sq, tt.pos).mapping())
 		})
 	}
 }
 
 func TestDiagonalBitboard(t *testing.T) {
-	occupied := squareSet{
-		F6: struct{}{},
-		B6: struct{}{},
+	occupied := []Square{F6, B6}
+	want := []Square{
+		B6, F6, C5, E5, C3,
+		E3, B2, F2, A1, G1,
 	}
-	want := squareSet{
-		B6: struct{}{},
-		F6: struct{}{},
-		C5: struct{}{},
-		E5: struct{}{},
-		C3: struct{}{},
-		E3: struct{}{},
-		B2: struct{}{},
-		F2: struct{}{},
-		A1: struct{}{},
-		G1: struct{}{},
-	}
-	assert.Equal(t, want, diagonalBitboard(D4, newBitboard(occupied)).mapping())
+	assert.ElementsMatch(t, want, diagonalBitboard(D4, newBitboard(occupied)).mapping())
 }
 
 func TestHVBitboard(t *testing.T) {
-	occupied := squareSet{
-		D3: struct{}{},
-		F5: struct{}{},
+	occupied := []Square{D3, F5}
+	want := []Square{
+		D8, D7, D6, A5, B5,
+		C5, E5, F5, D4, D3,
 	}
-	want := squareSet{
-		D8: struct{}{},
-		D7: struct{}{},
-		D6: struct{}{},
-		A5: struct{}{},
-		B5: struct{}{},
-		C5: struct{}{},
-		E5: struct{}{},
-		F5: struct{}{},
-		D4: struct{}{},
-		D3: struct{}{},
-	}
-	assert.Equal(t, want, hvBitboard(D5, newBitboard(occupied)).mapping())
+	assert.ElementsMatch(t, want, hvBitboard(D5, newBitboard(occupied)).mapping())
 }

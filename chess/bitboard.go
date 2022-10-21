@@ -5,25 +5,23 @@ import (
 	"math/bits"
 )
 
-type squareSet map[Square]struct{}
-
 // bitboard is a board representation encoded in an unsigned 64-bit integer. The
 // 64 board positions have A1 as the least significant bit and H8 as the most.
 type bitboard uint64
 
-func newBitboard(s squareSet) bitboard {
+func newBitboard(s []Square) bitboard {
 	var bb bitboard
-	for sq := range s {
+	for _, sq := range s {
 		bb |= 1 << sq
 	}
 	return bb
 }
 
-func (b bitboard) mapping() squareSet {
-	s := squareSet{}
+func (b bitboard) mapping() []Square {
+	s := []Square{}
 	for sq := A1; sq <= H8; sq++ {
 		if b.occupied(sq) {
-			s[sq] = struct{}{}
+			s = append(s, sq)
 		}
 	}
 	return s
@@ -88,7 +86,7 @@ func init() {
 }
 
 func initKingBitboard(sq Square) bitboard {
-	set := squareSet{}
+	set := map[Square]struct{}{}
 	for dest, ok := range map[Square]bool{
 		sq + 8 - 1: sq.Rank() <= Rank7 && sq.File() >= FileB,
 		sq + 8:     sq.Rank() <= Rank7,
@@ -103,11 +101,11 @@ func initKingBitboard(sq Square) bitboard {
 			set[dest] = struct{}{}
 		}
 	}
-	return newBitboard(set)
+	return newBitboard(squareSetToSlice(set))
 }
 
 func initKnightBitboard(sq Square) bitboard {
-	set := squareSet{}
+	set := map[Square]struct{}{}
 	for dest, ok := range map[Square]bool{
 		sq + 8 - 2:  sq.Rank() <= Rank7 && sq.File() >= FileC,
 		sq + 16 - 1: sq.Rank() <= Rank6 && sq.File() >= FileB,
@@ -122,11 +120,11 @@ func initKnightBitboard(sq Square) bitboard {
 			set[dest] = struct{}{}
 		}
 	}
-	return newBitboard(set)
+	return newBitboard(squareSetToSlice(set))
 }
 
 func initDiagonalBitboard(sq Square) bitboard {
-	set := squareSet{}
+	set := map[Square]struct{}{}
 	for i := 0; i < 8; i++ {
 		upLeft := sq + 8*Square(i) - Square(i)
 		set[upLeft] = struct{}{}
@@ -141,11 +139,11 @@ func initDiagonalBitboard(sq Square) bitboard {
 			break
 		}
 	}
-	return newBitboard(set)
+	return newBitboard(squareSetToSlice(set))
 }
 
 func initAntiDiagonalBitboard(sq Square) bitboard {
-	set := squareSet{}
+	set := map[Square]struct{}{}
 	for i := 0; i < 8; i++ {
 		upRight := sq + 8*Square(i) + Square(i)
 		set[upRight] = struct{}{}
@@ -160,5 +158,13 @@ func initAntiDiagonalBitboard(sq Square) bitboard {
 			break
 		}
 	}
-	return newBitboard(set)
+	return newBitboard(squareSetToSlice(set))
+}
+
+func squareSetToSlice(set map[Square]struct{}) []Square {
+	s := []Square{}
+	for sq := range set {
+		s = append(s, sq)
+	}
+	return s
 }
