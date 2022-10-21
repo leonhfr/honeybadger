@@ -153,13 +153,13 @@ func (pos *Position) moveCastlingRights(m *Move) CastlingRights {
 		return pos.castlingRights & ^(CastleWhiteKing | CastleWhiteQueen)
 	case p == BlackKing:
 		return pos.castlingRights & ^(CastleBlackKing | CastleBlackQueen)
-	case p == WhiteRook && m.s1 == A1:
+	case (p == WhiteRook && m.s1 == A1) || m.s2 == A1:
 		return pos.castlingRights & ^CastleWhiteQueen
-	case p == WhiteRook && m.s1 == H1:
+	case (p == WhiteRook && m.s1 == H1) || m.s2 == H1:
 		return pos.castlingRights & ^CastleWhiteKing
-	case p == BlackRook && m.s1 == A8:
+	case (p == BlackRook && m.s1 == A8) || m.s2 == A8:
 		return pos.castlingRights & ^CastleBlackQueen
-	case p == BlackRook && m.s1 == H8:
+	case (p == BlackRook && m.s1 == H8) || m.s2 == H8:
 		return pos.castlingRights & ^CastleBlackKing
 	default:
 		return pos.castlingRights

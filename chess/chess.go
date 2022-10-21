@@ -1,22 +1,32 @@
 // Package chess provides types and functions to handle chess positions.
 package chess
 
+func legalMoves(pos *Position) []*Move {
+	var moves []*Move
+	for _, m := range append(pseudoMoves(pos), castlingMoves(pos)...) {
+		if !m.HasTag(inCheck) {
+			moves = append(moves, m)
+		}
+	}
+	return moves
+}
+
 type castleCheck struct {
-	color              Color
-	side               Side
-	s1, s2             Square
-	emptyBitboards     bitboard
-	notAttackedSquares []Square
+	color          Color
+	side           Side
+	s1, s2         Square
+	travelBitboard bitboard
+	checkSquares   []Square
 }
 
 func (cc castleCheck) possible(pos *Position) bool {
 	if pos.turn != cc.color ||
 		!pos.castlingRights.CanCastle(pos.turn, cc.side) ||
-		^pos.board.bbEmpty&cc.emptyBitboards > 0 {
+		^pos.board.bbEmpty&cc.travelBitboard > 0 {
 		return false
 	}
 
-	for _, sq := range cc.notAttackedSquares {
+	for _, sq := range cc.checkSquares {
 		if isAttacked(sq, pos) {
 			return false
 		}
@@ -26,10 +36,10 @@ func (cc castleCheck) possible(pos *Position) bool {
 }
 
 var castleChecks = [4]castleCheck{
-	{White, KingSide, E1, G1, F1.bitboard() | G1.bitboard(), []Square{F1, G1}},
-	{White, QueenSide, E1, C1, B1.bitboard() | C1.bitboard() | D1.bitboard(), []Square{C1, D1}},
-	{Black, KingSide, E8, G8, F8.bitboard() | G8.bitboard(), []Square{F8, G8}},
-	{Black, QueenSide, E8, C8, B8.bitboard() | C8.bitboard() | D8.bitboard(), []Square{C8, D8}},
+	{White, KingSide, E1, G1, F1.bitboard() | G1.bitboard(), []Square{E1, F1, G1}},
+	{White, QueenSide, E1, C1, B1.bitboard() | C1.bitboard() | D1.bitboard(), []Square{C1, D1, E1}},
+	{Black, KingSide, E8, G8, F8.bitboard() | G8.bitboard(), []Square{E8, F8, G8}},
+	{Black, QueenSide, E8, C8, B8.bitboard() | C8.bitboard() | D8.bitboard(), []Square{C8, D8, E8}},
 }
 
 func castlingMoves(pos *Position) []*Move {
