@@ -145,6 +145,33 @@ func TestBoard_Update(t *testing.T) {
 	}
 }
 
+func TestBoard_HasSufficientMaterial(t *testing.T) {
+	tests := []struct {
+		args string
+		want bool
+	}{
+		{"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", true},
+		{"1nb1kbn1/8/8/8/8/8/8/1NB1KBN1 w - - 0 1", true},
+		{"8/1K6/8/8/8/8/6k1/8 w - - 0 1", false},
+		{"8/1K6/8/8/8/8/6k1/8 b - - 0 1", false},
+		{"8/1K6/8/8/8/8/1B4k1/8 b - - 0 1", false},
+		{"8/1K6/8/4N3/8/8/6k1/8 b - - 0 1", false},
+		{"8/1K6/8/6b1/8/8/1B4k1/8 b - - 0 1", false},
+	}
+
+	for _, tt := range tests {
+		pos := unsafeFEN(tt.args)
+		assert.Equal(t, tt.want, pos.board.hasSufficientMaterial())
+	}
+}
+
+func BenchmarkBoard_HasSufficientMaterial(b *testing.B) {
+	pos := unsafeFEN("8/1K6/8/6b1/8/8/1B4k1/8 b - - 0 1")
+	for n := 0; n < b.N; n++ {
+		pos.board.hasSufficientMaterial()
+	}
+}
+
 func TestBoard_String(t *testing.T) {
 	assert.Equal(t, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR", startingBoard.String())
 }

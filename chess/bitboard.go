@@ -73,6 +73,18 @@ const (
 	bbNotFileH = ^bbFileH
 )
 
+const (
+	bbWhiteSquares bitboard = 1<<B1 + 1<<D1 + 1<<F1 + 1<<H1 +
+		1<<B3 + 1<<D3 + 1<<F3 + 1<<H3 +
+		1<<B5 + 1<<D5 + 1<<F5 + 1<<H5 +
+		1<<B7 + 1<<D7 + 1<<F7 + 1<<H7 +
+		1<<A2 + 1<<C2 + 1<<E2 + 1<<G2 +
+		1<<A4 + 1<<C4 + 1<<E4 + 1<<G4 +
+		1<<A6 + 1<<C6 + 1<<E6 + 1<<G6 +
+		1<<A8 + 1<<C8 + 1<<E8 + 1<<G8
+	bbBlackSquares = ^bbWhiteSquares
+)
+
 var (
 	bbRanks                = [64]bitboard{}
 	bbFiles                = [64]bitboard{}

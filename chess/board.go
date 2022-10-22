@@ -124,6 +124,34 @@ func (b *board) update(m Move) {
 	b.computeConvenienceBitboards()
 }
 
+func (b board) hasSufficientMaterial() bool {
+	if (b.bbWhiteQueen | b.bbWhiteRook | b.bbWhitePawn |
+		b.bbBlackQueen | b.bbBlackRook | b.bbBlackPawn) > 0 {
+		return true
+	}
+
+	nWhites, nBlacks := b.bbWhite.ones(), b.bbBlack.ones()
+	nWhiteBishops, nBlackBishops := b.bbWhiteBishop.ones(), b.bbBlackBishop.ones()
+
+	// king versus king
+	// king and bishop versus king
+	// king and knight versus king
+	if b.bbWhite == b.bbWhiteKing && b.bbBlack == b.bbBlackKing ||
+		b.bbWhite == b.bbWhiteKing && nBlacks == 2 && (nBlackBishops == 1 || b.bbBlackKnight.ones() == 1) ||
+		b.bbBlack == b.bbBlackKing && nWhites == 2 && (nWhiteBishops == 1 || b.bbWhiteKnight.ones() == 1) {
+		return false
+	}
+
+	// king and bishop versus king and bishop with the bishops on the same color
+	if nWhites == 2 && nBlacks == 2 && nWhiteBishops == 1 && nBlackBishops == 1 &&
+		(((b.bbBlackBishop|b.bbWhiteBishop)&bbWhiteSquares).ones() == 2 ||
+			((b.bbBlackBishop|b.bbWhiteBishop)&bbBlackSquares).ones() == 2) {
+		return false
+	}
+
+	return true
+}
+
 func (b board) String() string {
 	var fields []string
 	for i := 7; i >= 0; i-- {
