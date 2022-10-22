@@ -13,36 +13,35 @@ type castleCheck struct {
 	checkSquares   []Square
 }
 
-func (cc castleCheck) possible(pos *Position) bool {
-	if pos.turn != cc.color ||
-		!pos.castlingRights.CanCastle(pos.turn, cc.side) ||
-		pos.board.bbOccupied&cc.travelBitboard > 0 {
-		return false
-	}
-
-	for _, sq := range cc.checkSquares {
-		if isAttacked(sq, pos) {
-			return false
-		}
-	}
-
-	return true
-}
-
 var castleChecks = [4]castleCheck{
-	{White, KingSide, E1, G1, F1.bitboard() | G1.bitboard(), []Square{E1, F1, G1}},
-	{White, QueenSide, E1, C1, B1.bitboard() | C1.bitboard() | D1.bitboard(), []Square{C1, D1, E1}},
-	{Black, KingSide, E8, G8, F8.bitboard() | G8.bitboard(), []Square{E8, F8, G8}},
-	{Black, QueenSide, E8, C8, B8.bitboard() | C8.bitboard() | D8.bitboard(), []Square{C8, D8, E8}},
+	{White, KingSide, E1, G1, F1.bitboard() | G1.bitboard(), []Square{F1, G1}},
+	{White, QueenSide, E1, C1, B1.bitboard() | C1.bitboard() | D1.bitboard(), []Square{C1, D1}},
+	{Black, KingSide, E8, G8, F8.bitboard() | G8.bitboard(), []Square{F8, G8}},
+	{Black, QueenSide, E8, C8, B8.bitboard() | C8.bitboard() | D8.bitboard(), []Square{C8, D8}},
 }
 
 func castlingMoves(pos *Position) []Move {
-	moves := []Move{}
+	var moves []Move
+OUTER:
 	for _, check := range castleChecks {
-		if check.possible(pos) {
-			m := newMove(newPiece(check.color, King), NoPiece, check.s1, check.s2, pos.enPassantSquare, NoPiece)
-			moves = append(moves, m)
+		if pos.turn != check.color ||
+			!pos.castlingRights.CanCastle(pos.turn, check.side) ||
+			pos.board.bbOccupied&check.travelBitboard > 0 {
+			continue
 		}
+
+		if isAttacked(check.s1, pos) {
+			return moves
+		}
+
+		for _, sq := range check.checkSquares {
+			if isAttacked(sq, pos) {
+				continue OUTER
+			}
+		}
+
+		m := newMove(newPiece(check.color, King), NoPiece, check.s1, check.s2, pos.enPassantSquare, NoPiece)
+		moves = append(moves, m)
 	}
 	return moves
 }

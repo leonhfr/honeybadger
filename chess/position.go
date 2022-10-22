@@ -18,6 +18,7 @@ type Position struct {
 const startFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 
 // StartingPosition returns the starting position.
+//
 // FEN: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
 func StartingPosition() *Position {
 	p, _ := FromFEN(startFEN)
@@ -117,6 +118,11 @@ func (pos Position) String() string {
 		pos.halfMoveClock,
 		pos.fullMoves,
 	)
+}
+
+// PseudoMoves returns a list of pseudo moves.
+func (pos *Position) PseudoMoves() []Move {
+	return pseudoMoves(pos)
 }
 
 // Move plays a move on a position and checks whether it is valid.
