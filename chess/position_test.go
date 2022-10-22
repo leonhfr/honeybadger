@@ -32,7 +32,7 @@ func TestPosition_Update(t *testing.T) {
 	for _, tt := range testPositions {
 		t.Run(tt.move.String(), func(t *testing.T) {
 			pos := unsafeFEN(tt.preFEN)
-			got := pos.Move(&tt.move)
+			got := pos.Move(tt.move)
 			assert.Equal(t, tt.postFEN, got.String())
 		})
 	}

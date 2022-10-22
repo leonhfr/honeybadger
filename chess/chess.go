@@ -1,10 +1,10 @@
 // Package chess provides types and functions to handle chess positions.
 package chess
 
-func legalMoves(pos *Position) []*Move {
-	var moves []*Move
+func legalMoves(pos *Position) []Move {
+	var moves []Move
 	for _, m := range append(pseudoMoves(pos), castlingMoves(pos)...) {
-		if !m.HasTag(inCheck) {
+		if pos.IsLegal(m) {
 			moves = append(moves, m)
 		}
 	}
@@ -42,11 +42,12 @@ var castleChecks = [4]castleCheck{
 	{Black, QueenSide, E8, C8, B8.bitboard() | C8.bitboard() | D8.bitboard(), []Square{C8, D8, E8}},
 }
 
-func castlingMoves(pos *Position) []*Move {
-	moves := []*Move{}
+func castlingMoves(pos *Position) []Move {
+	moves := []Move{}
 	for _, check := range castleChecks {
 		if check.possible(pos) {
-			moves = append(moves, newMove(pos, King, check.s1, check.s2, NoPieceType))
+			m := newMove(newPiece(check.color, King), NoPiece, check.s1, check.s2, pos.enPassantSquare, NoPiece)
+			moves = append(moves, m)
 		}
 	}
 	return moves
@@ -54,15 +55,15 @@ func castlingMoves(pos *Position) []*Move {
 
 var promoPieceTypes = [4]PieceType{Queen, Rook, Bishop, Knight}
 
-func pseudoMoves(pos *Position) []*Move {
+func pseudoMoves(pos *Position) []Move {
 	bbAllowed := ^pos.board.bbWhite
 	if pos.turn == Black {
 		bbAllowed = ^pos.board.bbBlack
 	}
 
-	moves := []*Move{}
-	for _, p := range piecesByColor[pos.turn] {
-		s1bb := pos.board.getBitboard(p)
+	moves := []Move{}
+	for _, p1 := range piecesByColor[pos.turn] {
+		s1bb := pos.board.getBitboard(p1)
 		if s1bb == 0 {
 			continue
 		}
@@ -72,7 +73,7 @@ func pseudoMoves(pos *Position) []*Move {
 				continue
 			}
 
-			s2bb := moveBitboard(s1, pos, p.Type()) & bbAllowed
+			s2bb := moveBitboard(s1, pos, p1.Type()) & bbAllowed
 			if s2bb == 0 {
 				continue
 			}
@@ -82,12 +83,15 @@ func pseudoMoves(pos *Position) []*Move {
 					continue
 				}
 
-				if p == WhitePawn && s2.Rank() == Rank8 || p == BlackPawn && s2.Rank() == Rank1 {
+				p2 := pos.board.piece(s2)
+				if p1 == WhitePawn && s2.Rank() == Rank8 || p1 == BlackPawn && s2.Rank() == Rank1 {
 					for _, pt := range promoPieceTypes {
-						moves = append(moves, newMove(pos, p.Type(), s1, s2, pt))
+						m := newMove(p1, p2, s1, s2, pos.enPassantSquare, newPiece(pos.turn, pt))
+						moves = append(moves, m)
 					}
 				} else {
-					moves = append(moves, newMove(pos, p.Type(), s1, s2, NoPieceType))
+					m := newMove(p1, p2, s1, s2, pos.enPassantSquare, NoPiece)
+					moves = append(moves, m)
 				}
 			}
 		}

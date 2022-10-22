@@ -3,143 +3,144 @@ package chess
 import "errors"
 
 var (
-	errIllegalMove     = errors.New("illegal move")
 	errInvalidMove     = errors.New("invalid move in UCI notation")
 	errMissingPosition = errors.New("missing position")
 )
 
 // MoveTag represents a notable consequence of a move.
-type MoveTag uint8
+type MoveTag uint32
 
 const (
-	// KingSideCastle indicates that the move is a king side castle.
-	KingSideCastle MoveTag = 1 << iota
-	// QueenSideCastle indicates that the move is a queen side castle.
-	QueenSideCastle
+	// Quiet indicates that the move is a priori quiet.
+	Quiet MoveTag = 1 << (iota + 24)
 	// Capture indicates that the move captures a piece.
 	Capture
 	// EnPassant indicates that the move captures a piece via en passant.
 	EnPassant
 	// Check indicates that the move puts the opposing player in check.
+	// This flag is not computed during the move generation, so its absence
+	// does not necessarily mean that the move is not check.
 	Check
-	// inCheck indicates the the move puts the moving player in check. Illegal move.
-	inCheck
+	// Promotion indicates that the move is a promotion.
+	Promotion
+	// KingSideCastle indicates that the move is a king side castle.
+	KingSideCastle
+	// QueenSideCastle indicates that the move is a queen side castle.
+	QueenSideCastle
 )
 
 // Move represents a move from a square to another.
-type Move struct {
-	s1    Square
-	s2    Square
-	promo PieceType
-	tags  MoveTag
-}
+//
+//	32 bits
+//	xxxxxxxx pppp tttt ffff TTTTTT FFFFFF
+//	xxxxxxxx   move tags
+//	pppp       promo piece
+//	tttt       to piece
+//	ffff       from piece
+//	TTTTTT     to square
+//	FFFFFF     from square
+type Move uint32
 
-func newMove(pos *Position, pt PieceType, s1, s2 Square, promo PieceType) *Move {
-	tags := moveTags(pos, pt, s1, s2)
-	m := &Move{s1, s2, promo, tags}
-
-	next := pos.Move(m)
-	if isInCheck(next) {
-		m.tags |= Check
-	}
-	next.turn = next.turn.Other()
-	if isInCheck(next) {
-		m.tags |= inCheck
-	}
-
-	return m
-}
-
-// FromUCI creates a move from a string in UCI notation.
-func FromUCI(pos *Position, s string) (*Move, error) {
-	if pos == nil {
-		return nil, errMissingPosition
-	}
-
-	if len(s) < 4 || len(s) > 5 {
-		return nil, errInvalidMove
-	}
-
-	s1, ok := strToSquareMap[s[0:2]]
-	if !ok {
-		return nil, errInvalidMove
-	}
-
-	s2, ok := strToSquareMap[s[2:4]]
-	if !ok {
-		return nil, errInvalidMove
-	}
-
-	promo := NoPieceType
-	if len(s) == 5 {
-		promo, ok = uciPieceTypeMap[s[4:5]]
-		if !ok {
-			return nil, errInvalidMove
-		}
-	}
-
-	m := newMove(pos, NoPieceType, s1, s2, promo)
-	if m.HasTag(inCheck) {
-		return nil, errIllegalMove
-	}
-
-	return m, nil
-}
-
-func moveTags(pos *Position, pt PieceType, s1, s2 Square) MoveTag {
-	if pt == NoPieceType {
-		pt = pos.board.piece(s1).Type()
-	}
-
+func newMove(p1, p2 Piece, s1, s2, enPassant Square, promo Piece) Move {
 	var tags MoveTag
-	p2 := pos.board.piece(s2)
-
-	if pt == King {
+	if pt := p1.Type(); pt == King {
 		if (s1 == E1 && s2 == G1) || (s1 == E8 && s2 == G8) {
 			tags |= KingSideCastle
 		} else if (s1 == E1 && s2 == C1) || (s1 == E8 && s2 == C8) {
 			tags |= QueenSideCastle
 		}
-	} else if pt == Pawn && s2 == pos.enPassantSquare {
+	} else if pt == Pawn && s2 == enPassant {
 		tags |= EnPassant
 		tags |= Capture
+	} else if promo != NoPiece {
+		tags |= Promotion
 	}
 
 	if p2 != NoPiece {
 		tags |= Capture
 	}
 
-	return tags
+	if tags == 0 {
+		tags |= Quiet
+	}
+
+	return Move(s1) | Move(s2)<<6 |
+		Move(p1)<<12 | Move(p2&15)<<16 |
+		Move(promo&15)<<20 | Move(tags)
+}
+
+// S1 returns the origin square of the move.
+func (m Move) S1() Square {
+	return Square(m & 63)
+}
+
+// S2 returns the destination square of the move.
+func (m Move) S2() Square {
+	return Square((m >> 6) & 63)
+}
+
+// P1 returns the piece in the origin square.
+func (m Move) P1() Piece {
+	return Piece((m >> 12) & 15)
+}
+
+// P2 returns the piece in the destination square.
+func (m Move) P2() Piece {
+	return Piece((m >> 16) & 15)
+}
+
+// Promo returns the promotion piece of the move.
+func (m Move) Promo() Piece {
+	return Piece((m >> 20) & 15)
+}
+
+// HasTag checks whether the move has the given MoveTag.
+func (m Move) HasTag(tag MoveTag) bool {
+	return tag&MoveTag(m) > 0
 }
 
 // String implements the Stringer interface.
 // Returns the move in UCI notation.
 func (m Move) String() string {
-	base := m.s1.String() + m.S2().String()
-	if m.promo != NoPieceType {
-		base += m.promo.String()
+	base := m.S1().String() + m.S2().String()
+	if promo := m.Promo(); promo != NoPiece {
+		base += promo.Type().String()
 	}
 	return base
 }
 
-// S1 returns the origin square of the move.
-func (m Move) S1() Square {
-	return m.s1
-}
+// MoveFromUCI creates a move from a string in UCI notation.
+func MoveFromUCI(pos *Position, s string) (Move, error) {
+	if pos == nil {
+		return 0, errMissingPosition
+	}
 
-// S2 returns the destination square of the move.
-func (m Move) S2() Square {
-	return m.s2
-}
+	if len(s) < 4 || len(s) > 5 {
+		return 0, errInvalidMove
+	}
 
-// Promo returns the promotion piece type of the move.
-func (m Move) Promo() PieceType {
-	return m.promo
-}
+	s1, ok := strToSquareMap[s[0:2]]
+	if !ok {
+		return 0, errInvalidMove
+	}
 
-// HasTag checks whether the move has the given MoveTag.
-func (m Move) HasTag(tag MoveTag) bool {
-	return (tag & m.tags) > 0
+	s2, ok := strToSquareMap[s[2:4]]
+	if !ok {
+		return 0, errInvalidMove
+	}
+
+	promo := NoPiece
+	if len(s) == 5 {
+		promoType, ok := uciPieceTypeMap[s[4:5]]
+		promo = newPiece(pos.turn, promoType)
+		if !ok {
+			return 0, errInvalidMove
+		}
+	}
+
+	p1 := pos.board.piece(s1)
+	p2 := pos.board.piece(s2)
+	return newMove(p1, p2, s1, s2, pos.enPassantSquare, promo), nil
 }
 
 var uciPieceTypeMap = map[string]PieceType{

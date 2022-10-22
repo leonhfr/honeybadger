@@ -95,13 +95,6 @@ func BenchmarkLegalMoves(b *testing.B) {
 	}
 }
 
-func BenchmarkPseudoMoves(b *testing.B) {
-	pos := StartingPosition()
-	for n := 0; n < b.N; n++ {
-		pseudoMoves(pos)
-	}
-}
-
 func TestCastlingMoves(t *testing.T) {
 	tests := []struct {
 		args string
@@ -149,6 +142,13 @@ func TestPseudoMoves(t *testing.T) {
 			sort.Strings(moves)
 			assert.Equal(t, tt.want, moves)
 		})
+	}
+}
+
+func BenchmarkPseudoMoves(b *testing.B) {
+	pos := StartingPosition()
+	for n := 0; n < b.N; n++ {
+		pseudoMoves(pos)
 	}
 }
 
