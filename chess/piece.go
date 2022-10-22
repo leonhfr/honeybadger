@@ -41,8 +41,10 @@ func (c Color) String() string {
 type PieceType uint8
 
 const (
+	// NoPieceType represents an absence of PieceType.
+	NoPieceType PieceType = iota << 1
 	// Pawn represents a pawn.
-	Pawn PieceType = iota << 1
+	Pawn
 	// Knight represents a knight.
 	Knight
 	// Bishop represents a bishop.
@@ -53,11 +55,9 @@ const (
 	Queen
 	// King represents a king.
 	King
-	// NoPieceType represents an absence of PieceType.
-	NoPieceType
 )
 
-const pieceTypeName = "pnbrqk-"
+const pieceTypeName = "-pnbrqk"
 
 // String implements the Stringer interface.
 // Returns an UCI-compatible representation.
@@ -69,6 +69,8 @@ func (pt PieceType) String() string {
 type Piece uint8
 
 const (
+	// NoPiece represents an absence of Piece.
+	NoPiece Piece = 0
 	// WhitePawn represents a white pawn.
 	WhitePawn Piece = Piece(White) | Piece(Pawn)
 	// WhiteKnight represents a white knight.
@@ -93,15 +95,13 @@ const (
 	BlackQueen Piece = Piece(Black) | Piece(Queen)
 	// BlackKing represents a black king.
 	BlackKing Piece = Piece(Black) | Piece(King)
-	// NoPiece represents an absence of Piece.
-	NoPiece Piece = 12
 )
 
 func newPiece(c Color, pt PieceType) Piece {
 	return Piece(c) | Piece(pt)
 }
 
-const pieceName = "PpNnBbRrQqKk-"
+const pieceName = "--PpNnBbRrQqKk"
 
 // String implements the Stringer interface.
 // Returns an UCI-compatible representation.
