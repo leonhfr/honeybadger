@@ -43,15 +43,6 @@ func (b *board) computeConvenienceBitboards() {
 		b.bbBlackBishop | b.bbBlackKnight | b.bbBlackPawn
 	b.bbOccupied = b.bbWhite | b.bbBlack
 	b.bbEmpty = ^b.bbOccupied
-
-	for sq := A1; sq <= H8; sq++ {
-		if b.bbWhiteKing.occupied(sq) {
-			b.sqWhiteKing = sq
-		}
-		if b.bbBlackKing.occupied(sq) {
-			b.sqBlackKing = sq
-		}
-	}
 }
 
 func (b board) squareMap() SquareMap {
@@ -177,6 +168,7 @@ func (b *board) setPiece(p Piece, sq Square) {
 	switch bb := sq.bitboard(); p {
 	case WhiteKing:
 		b.bbWhiteKing |= bb
+		b.sqWhiteKing = sq
 	case WhiteQueen:
 		b.bbWhiteQueen |= bb
 	case WhiteRook:
@@ -189,6 +181,7 @@ func (b *board) setPiece(p Piece, sq Square) {
 		b.bbWhitePawn |= bb
 	case BlackKing:
 		b.bbBlackKing |= bb
+		b.sqBlackKing = sq
 	case BlackQueen:
 		b.bbBlackQueen |= bb
 	case BlackRook:
@@ -203,8 +196,32 @@ func (b *board) setPiece(p Piece, sq Square) {
 }
 
 func (b *board) removePiece(p Piece, sq Square) {
-	bb := b.getBitboard(p) & ^sq.bitboard()
-	b.setBitboard(p, bb)
+	switch mask := ^sq.bitboard(); p {
+	case WhiteKing:
+		b.bbWhiteKing &= mask
+	case WhiteQueen:
+		b.bbWhiteQueen &= mask
+	case WhiteRook:
+		b.bbWhiteRook &= mask
+	case WhiteBishop:
+		b.bbWhiteBishop &= mask
+	case WhiteKnight:
+		b.bbWhiteKnight &= mask
+	case WhitePawn:
+		b.bbWhitePawn &= mask
+	case BlackKing:
+		b.bbBlackKing &= mask
+	case BlackQueen:
+		b.bbBlackQueen &= mask
+	case BlackRook:
+		b.bbBlackRook &= mask
+	case BlackBishop:
+		b.bbBlackBishop &= mask
+	case BlackKnight:
+		b.bbBlackKnight &= mask
+	case BlackPawn:
+		b.bbBlackPawn &= mask
+	}
 }
 
 func (b board) getBitboard(p Piece) bitboard {
@@ -238,35 +255,6 @@ func (b board) getBitboard(p Piece) bitboard {
 	}
 }
 
-func (b *board) setBitboard(p Piece, bb bitboard) {
-	switch p {
-	case WhiteKing:
-		b.bbWhiteKing = bb
-	case WhiteQueen:
-		b.bbWhiteQueen = bb
-	case WhiteRook:
-		b.bbWhiteRook = bb
-	case WhiteBishop:
-		b.bbWhiteBishop = bb
-	case WhiteKnight:
-		b.bbWhiteKnight = bb
-	case WhitePawn:
-		b.bbWhitePawn = bb
-	case BlackKing:
-		b.bbBlackKing = bb
-	case BlackQueen:
-		b.bbBlackQueen = bb
-	case BlackRook:
-		b.bbBlackRook = bb
-	case BlackBishop:
-		b.bbBlackBishop = bb
-	case BlackKnight:
-		b.bbBlackKnight = bb
-	case BlackPawn:
-		b.bbBlackPawn = bb
-	}
-}
-
 func (b *board) copy() *board {
 	return &board{
 		bbWhiteKing:   b.bbWhiteKing,
@@ -284,5 +272,7 @@ func (b *board) copy() *board {
 		bbWhite:       b.bbWhite,
 		bbBlack:       b.bbBlack,
 		bbEmpty:       b.bbEmpty,
+		sqWhiteKing:   b.sqWhiteKing,
+		sqBlackKing:   b.sqBlackKing,
 	}
 }
