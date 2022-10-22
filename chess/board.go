@@ -44,15 +44,17 @@ func (b *board) computeConvenienceBitboards() {
 	b.bbOccupied = b.bbWhite | b.bbBlack
 	b.bbEmpty = ^b.bbOccupied
 
-	for _, sq := range b.getBitboard(WhiteKing).mapping() {
-		b.sqWhiteKing = sq
-	}
-	for _, sq := range b.getBitboard(BlackKing).mapping() {
-		b.sqBlackKing = sq
+	for sq := A1; sq <= H8; sq++ {
+		if b.bbWhiteKing.occupied(sq) {
+			b.sqWhiteKing = sq
+		}
+		if b.bbBlackKing.occupied(sq) {
+			b.sqBlackKing = sq
+		}
 	}
 }
 
-func (b *board) squareMap() SquareMap {
+func (b board) squareMap() SquareMap {
 	m := SquareMap{}
 	for _, p := range pieces {
 		for _, sq := range b.getBitboard(p).mapping() {
@@ -62,10 +64,18 @@ func (b *board) squareMap() SquareMap {
 	return m
 }
 
-func (b *board) piece(sq Square) Piece {
+func (b board) piece(sq Square) Piece {
 	for _, p := range pieces {
-		bb := b.getBitboard(p)
-		if bb.occupied(sq) {
+		if b.getBitboard(p).occupied(sq) {
+			return p
+		}
+	}
+	return NoPiece
+}
+
+func (b board) pieceByColor(sq Square, c Color) Piece {
+	for _, p := range piecesByColor[c] {
+		if b.getBitboard(p).occupied(sq) {
 			return p
 		}
 	}
@@ -73,7 +83,7 @@ func (b *board) piece(sq Square) Piece {
 }
 
 func (b *board) update(m Move) {
-	p1, p2 := b.piece(m.S1()), b.piece(m.S2())
+	p1, p2 := m.P1(), m.P2()
 	// remove s1 piece
 	b.removePiece(p1, m.S1())
 
@@ -114,7 +124,7 @@ func (b *board) update(m Move) {
 	b.computeConvenienceBitboards()
 }
 
-func (b *board) String() string {
+func (b board) String() string {
 	var fields []string
 	for i := 7; i >= 0; i-- {
 		r := Rank(8 * i)
@@ -169,7 +179,7 @@ func (b *board) removePiece(p Piece, sq Square) {
 	b.setBitboard(p, bb)
 }
 
-func (b *board) getBitboard(p Piece) bitboard {
+func (b board) getBitboard(p Piece) bitboard {
 	switch p {
 	case WhiteKing:
 		return b.bbWhiteKing

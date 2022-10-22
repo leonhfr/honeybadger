@@ -82,16 +82,33 @@ func perft(pos *Position, depth int) int {
 	}
 
 	var count int
-	for _, m := range legalMoves(pos) {
-		count += perft(pos.Move(m), depth-1)
+	for _, p := range legalMoves(pos) {
+		count += perft(p, depth-1)
 	}
 	return count
+}
+
+func legalMoves(pos *Position) []*Position {
+	var positions []*Position
+	for _, m := range pseudoMoves(pos) {
+		if pos, ok := pos.Move(m); ok {
+			positions = append(positions, pos)
+		}
+	}
+	return positions
 }
 
 func BenchmarkLegalMoves(b *testing.B) {
 	pos := StartingPosition()
 	for n := 0; n < b.N; n++ {
 		legalMoves(pos)
+	}
+}
+
+func BenchmarkPseudoMoves(b *testing.B) {
+	pos := StartingPosition()
+	for n := 0; n < b.N; n++ {
+		pseudoMoves(pos)
 	}
 }
 
@@ -117,7 +134,14 @@ func TestCastlingMoves(t *testing.T) {
 	}
 }
 
-func TestPseudoMoves(t *testing.T) {
+func BenchmarkCastlingMoves(b *testing.B) {
+	pos := unsafeFEN("r3k2r/ppqn1ppp/2pbpn2/3p4/2PP4/1PNQPN2/P2B1PPP/R3K2R w KQkq - 3 10")
+	for n := 0; n < b.N; n++ {
+		castlingMoves(pos)
+	}
+}
+
+func TestStandardMoves(t *testing.T) {
 	tests := []struct {
 		args string
 		want []string
@@ -136,7 +160,7 @@ func TestPseudoMoves(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.args, func(t *testing.T) {
 			var moves []string
-			for _, m := range pseudoMoves(unsafeFEN(tt.args)) {
+			for _, m := range standardMoves(unsafeFEN(tt.args)) {
 				moves = append(moves, m.String())
 			}
 			sort.Strings(moves)
@@ -145,17 +169,23 @@ func TestPseudoMoves(t *testing.T) {
 	}
 }
 
-func BenchmarkPseudoMoves(b *testing.B) {
+func BenchmarkStandardMoves(b *testing.B) {
 	pos := StartingPosition()
 	for n := 0; n < b.N; n++ {
-		pseudoMoves(pos)
+		standardMoves(pos)
 	}
 }
 
-func TestIsAttacked(t *testing.T) {
-	fen := "k6q/8/8/8/8/8/8/K7 w - - 0 1"
-	pos := unsafeFEN(fen)
-	assert.True(t, isAttacked(pos.board.sqWhiteKing, pos))
+func TestIsInCheck(t *testing.T) {
+	pos := unsafeFEN("k6q/8/8/8/8/8/8/K7 w - - 0 1")
+	assert.True(t, isInCheck(pos))
+}
+
+func BenchmarkIsInCheck(b *testing.B) {
+	pos := unsafeFEN("k6q/8/8/8/8/8/8/K7 w - - 0 1")
+	for n := 0; n < b.N; n++ {
+		isInCheck(pos)
+	}
 }
 
 func TestIsAttackedByCount(t *testing.T) {

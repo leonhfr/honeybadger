@@ -12,7 +12,7 @@ type bitboard uint64
 func newBitboard(s []Square) bitboard {
 	var bb bitboard
 	for _, sq := range s {
-		bb |= 1 << sq
+		bb |= sq.bitboard()
 	}
 	return bb
 }
@@ -32,7 +32,7 @@ func (b bitboard) reverse() bitboard {
 }
 
 func (b bitboard) occupied(sq Square) bool {
-	return (b & (1 << sq)) > 0
+	return (b & sq.bitboard()) > 0
 }
 
 func (b bitboard) ones() int {

@@ -1,14 +1,8 @@
 // Package chess provides types and functions to handle chess positions.
 package chess
 
-func legalMoves(pos *Position) []Move {
-	var moves []Move
-	for _, m := range append(pseudoMoves(pos), castlingMoves(pos)...) {
-		if pos.IsLegal(m) {
-			moves = append(moves, m)
-		}
-	}
-	return moves
+func pseudoMoves(pos *Position) []Move {
+	return append(standardMoves(pos), castlingMoves(pos)...)
 }
 
 type castleCheck struct {
@@ -55,7 +49,7 @@ func castlingMoves(pos *Position) []Move {
 
 var promoPieceTypes = [4]PieceType{Queen, Rook, Bishop, Knight}
 
-func pseudoMoves(pos *Position) []Move {
+func standardMoves(pos *Position) []Move {
 	bbAllowed := ^pos.board.bbWhite
 	if pos.turn == Black {
 		bbAllowed = ^pos.board.bbBlack
@@ -83,7 +77,7 @@ func pseudoMoves(pos *Position) []Move {
 					continue
 				}
 
-				p2 := pos.board.piece(s2)
+				p2 := pos.board.pieceByColor(s2, pos.turn.Other())
 				if p1 == WhitePawn && s2.Rank() == Rank8 || p1 == BlackPawn && s2.Rank() == Rank1 {
 					for _, pt := range promoPieceTypes {
 						m := newMove(p1, p2, s1, s2, pos.enPassantSquare, newPiece(pos.turn, pt))
@@ -100,21 +94,29 @@ func pseudoMoves(pos *Position) []Move {
 }
 
 func isInCheck(pos *Position) bool {
-	king := pos.board.sqWhiteKing
-	if pos.turn == Black {
-		king = pos.board.sqBlackKing
+	if pos.turn == White {
+		return isAttacked(pos.board.sqWhiteKing, pos)
 	}
 
-	return isAttacked(king, pos)
+	return isAttacked(pos.board.sqBlackKing, pos)
 }
 
+// isAttacked does not account for en passant attacks
 func isAttacked(sq Square, pos *Position) bool {
-	for _, pt := range [6]PieceType{Queen, Rook, Bishop, Knight, Pawn, King} {
-		if isAttackedByCount(sq, pos, pt) > 0 {
-			return true
-		}
+	c := pos.turn.Other()
+	hv := hvBitboard(sq, pos.board.bbOccupied)
+	dia := diagonalBitboard(sq, pos.board.bbOccupied)
+	r := bbKingMoves[sq] & pos.board.getBitboard(newPiece(c, King))
+	r |= (hv | dia) & pos.board.getBitboard(newPiece(c, Queen))
+	r |= hv & pos.board.getBitboard(newPiece(c, Rook))
+	r |= dia & pos.board.getBitboard(newPiece(c, Bishop))
+	r |= bbKnightMoves[sq] & pos.board.getBitboard(newPiece(c, Knight))
+
+	if c == White {
+		return (r | bbBlackPawnCaptures[sq]&pos.board.getBitboard(WhitePawn)) > 0
 	}
-	return false
+
+	return (r | bbWhitePawnCaptures[sq]&pos.board.getBitboard(BlackPawn)) > 0
 }
 
 func isAttackedByCount(sq Square, pos *Position, by PieceType) int {
