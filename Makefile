@@ -15,7 +15,7 @@ test:
 
 .PHONY: bench
 bench:
-	go test -bench . ./...
+	go test -bench . ./... -benchmem -run=^#
 
 .PHONY: lint
 lint:
