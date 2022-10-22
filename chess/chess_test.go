@@ -99,16 +99,24 @@ func legalMoves(pos *Position) []*Position {
 }
 
 func BenchmarkLegalMoves(b *testing.B) {
-	pos := StartingPosition()
-	for n := 0; n < b.N; n++ {
-		legalMoves(pos)
+	for _, bb := range testPositions {
+		b.Run(bb.preFEN, func(b *testing.B) {
+			pos := unsafeFEN(bb.preFEN)
+			for n := 0; n < b.N; n++ {
+				legalMoves(pos)
+			}
+		})
 	}
 }
 
 func BenchmarkPseudoMoves(b *testing.B) {
-	pos := StartingPosition()
-	for n := 0; n < b.N; n++ {
-		pseudoMoves(pos)
+	for _, bb := range testPositions {
+		b.Run(bb.preFEN, func(b *testing.B) {
+			pos := unsafeFEN(bb.preFEN)
+			for n := 0; n < b.N; n++ {
+				pseudoMoves(pos)
+			}
+		})
 	}
 }
 
@@ -135,9 +143,13 @@ func TestCastlingMoves(t *testing.T) {
 }
 
 func BenchmarkCastlingMoves(b *testing.B) {
-	pos := unsafeFEN("r3k2r/ppqn1ppp/2pbpn2/3p4/2PP4/1PNQPN2/P2B1PPP/R3K2R w KQkq - 3 10")
-	for n := 0; n < b.N; n++ {
-		castlingMoves(pos)
+	for _, bb := range testPositions {
+		b.Run(bb.preFEN, func(b *testing.B) {
+			pos := unsafeFEN(bb.preFEN)
+			for n := 0; n < b.N; n++ {
+				castlingMoves(pos)
+			}
+		})
 	}
 }
 
@@ -170,9 +182,13 @@ func TestStandardMoves(t *testing.T) {
 }
 
 func BenchmarkStandardMoves(b *testing.B) {
-	pos := StartingPosition()
-	for n := 0; n < b.N; n++ {
-		standardMoves(pos)
+	for _, bb := range testPositions {
+		b.Run(bb.preFEN, func(b *testing.B) {
+			pos := unsafeFEN(bb.preFEN)
+			for n := 0; n < b.N; n++ {
+				standardMoves(pos)
+			}
+		})
 	}
 }
 
@@ -212,20 +228,19 @@ func TestIsAttackedByCount(t *testing.T) {
 	}
 }
 
-func benchmarkAttackByCount(pt PieceType, b *testing.B) {
+func BenchmarkIsAttackedByCount(b *testing.B) {
+	benchmarks := []PieceType{King, Queen, Rook, Bishop, Knight, Pawn}
 	pos := unsafeFEN("K2r3q/8/8/2p5/r2Q4/2k2n2/4n3/6b1 w - - 0 1")
 	sq := D4
-	for n := 0; n < b.N; n++ {
-		isAttackedByCount(sq, pos, pt)
+
+	for _, bb := range benchmarks {
+		b.Run(bb.String(), func(b *testing.B) {
+			for n := 0; n < b.N; n++ {
+				isAttackedByCount(sq, pos, bb)
+			}
+		})
 	}
 }
-
-func BenchmarkAttackByCountKing(b *testing.B)   { benchmarkAttackByCount(King, b) }
-func BenchmarkAttackByCountQueen(b *testing.B)  { benchmarkAttackByCount(Queen, b) }
-func BenchmarkAttackByCountRook(b *testing.B)   { benchmarkAttackByCount(Rook, b) }
-func BenchmarkAttackByCountBishop(b *testing.B) { benchmarkAttackByCount(Bishop, b) }
-func BenchmarkAttackByCountKnight(b *testing.B) { benchmarkAttackByCount(Knight, b) }
-func BenchmarkAttackByCountPawn(b *testing.B)   { benchmarkAttackByCount(Pawn, b) }
 
 func TestIsAttackedByPawnCount(t *testing.T) {
 	type args struct {
@@ -297,19 +312,28 @@ func TestMoveBitboard(t *testing.T) {
 	}
 }
 
-func benchmarkMoveBitboard(sq Square, pt PieceType, b *testing.B) {
+func BenchmarkMoveBitboard(b *testing.B) {
+	benchmarks := []struct {
+		sq Square
+		pt PieceType
+	}{
+		{A1, King},
+		{B1, Queen},
+		{C1, Rook},
+		{D1, Bishop},
+		{E1, Knight},
+		{F1, Pawn},
+	}
 	pos := unsafeFEN("k7/8/8/8/8/8/5P2/KQRBN3 w - - 0 1")
-	for n := 0; n < b.N; n++ {
-		moveBitboard(sq, pos, pt)
+
+	for _, bb := range benchmarks {
+		b.Run(bb.pt.String(), func(b *testing.B) {
+			for n := 0; n < b.N; n++ {
+				moveBitboard(bb.sq, pos, bb.pt)
+			}
+		})
 	}
 }
-
-func BenchmarkMoveBitboardKing(b *testing.B)   { benchmarkMoveBitboard(A1, King, b) }
-func BenchmarkMoveBitboardQueen(b *testing.B)  { benchmarkMoveBitboard(B1, Queen, b) }
-func BenchmarkMoveBitboardRook(b *testing.B)   { benchmarkMoveBitboard(C1, Rook, b) }
-func BenchmarkMoveBitboardBishop(b *testing.B) { benchmarkMoveBitboard(D1, Bishop, b) }
-func BenchmarkMoveBitboardKnight(b *testing.B) { benchmarkMoveBitboard(E1, Knight, b) }
-func BenchmarkMoveBitboardPawn(b *testing.B)   { benchmarkMoveBitboard(F2, Pawn, b) }
 
 func TestPawnBitboards(t *testing.T) {
 	fenWhite := "k7/p7/1p6/2N5/2n2pP1/1P6/P7/K7 w - - 0 1"
