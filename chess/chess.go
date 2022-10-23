@@ -50,25 +50,11 @@ func standardMoves(pos *Position) []Move {
 
 	moves := []Move{}
 	for _, p1 := range piecesByColor[pos.turn] {
-		bbS1 := pos.board.getBitboard(p1)
-		if bbS1 == 0 {
-			continue
-		}
+		for bbS1 := pos.board.getBitboard(p1); bbS1 > 0; bbS1 = bbS1.resetLSB() {
+			s1 := bbS1.scanForward()
 
-		for s1 := A1; s1 <= H8; s1++ {
-			if bbS1&s1.bitboard() == 0 {
-				continue
-			}
-
-			bbS2 := moveBitboard(s1, pos, p1.Type()) & bbAllowed
-			if bbS2 == 0 {
-				continue
-			}
-
-			for s2 := A1; s2 <= H8; s2++ {
-				if bbS2&s2.bitboard() == 0 {
-					continue
-				}
+			for bbS2 := moveBitboard(s1, pos, p1.Type()) & bbAllowed; bbS2 > 0; bbS2 = bbS2.resetLSB() {
+				s2 := bbS2.scanForward()
 
 				p2 := pos.board.pieceByColor(s2, pos.turn.Other())
 				if p1 == WhitePawn && s2.Rank() == Rank8 || p1 == BlackPawn && s2.Rank() == Rank1 {

@@ -40,6 +40,21 @@ var (
 		sqBlackKing:   E8,
 	}
 
+	startingBoardMap = map[Piece][]Square{
+		WhiteKing:   {E1},
+		WhiteQueen:  {D1},
+		WhiteRook:   {A1, H1},
+		WhiteBishop: {C1, F1},
+		WhiteKnight: {B1, G1},
+		WhitePawn:   {A2, B2, C2, D2, E2, F2, G2, H2},
+		BlackKing:   {E8},
+		BlackQueen:  {D8},
+		BlackRook:   {A8, H8},
+		BlackBishop: {C8, F8},
+		BlackKnight: {B8, G8},
+		BlackPawn:   {A7, B7, C7, D7, E7, F7, G7, H7},
+	}
+
 	testPositions = []struct {
 		move    Move
 		moveUCI string

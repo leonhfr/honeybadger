@@ -17,14 +17,41 @@ func newBitboard(s []Square) bitboard {
 	return bb
 }
 
+var deBruijnMap = [64]Square{
+	A1, H6, B1, A8, A7, D4, C1, E8,
+	B8, B7, B6, F5, E4, A3, D1, F8,
+	G7, C8, D5, E7, C7, C6, F3, E6,
+	G5, A5, F4, H3, B3, D2, E1, G8,
+	G6, H7, C4, D8, A6, E5, H2, F7,
+	C5, D7, E3, D6, H4, G3, C2, F6,
+	B4, H5, G2, B5, D3, G4, B2, A4,
+	F2, C3, A2, E2, H1, G1, F1, H8,
+}
+
+const deBruijn = 0x03f79d71b4cb0a89
+
 func (b bitboard) mapping() []Square {
-	s := []Square{}
-	for sq := A1; sq <= H8; sq++ {
-		if b.occupied(sq) {
-			s = append(s, sq)
-		}
+	if b == 0 {
+		return nil
 	}
-	return s
+	var squares []Square
+	for b > 0 {
+		squares = append(squares, b.scanForward())
+		b = b.resetLSB()
+	}
+	return squares
+}
+
+// bitboard can't be 0
+//
+// uses de Bruijn forward scanning
+func (b bitboard) scanForward() Square {
+	i := ((b ^ (b - 1)) * deBruijn) >> 58
+	return deBruijnMap[i]
+}
+
+func (b bitboard) resetLSB() bitboard {
+	return b & (b - 1)
 }
 
 func (b bitboard) reverse() bitboard {

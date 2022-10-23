@@ -7,58 +7,29 @@ import (
 )
 
 func TestNewBitboard(t *testing.T) {
-	tests := []struct {
-		name string
-		args []Square
-		want string
-	}{
-		{
-			"A1",
-			[]Square{A1},
-			"0000000000000000000000000000000000000000000000000000000000000001",
-		},
-		{
-			"A1A8H1H8",
-			[]Square{A1, A8, H1, H8},
-			"1000000100000000000000000000000000000000000000000000000010000001",
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			assert.Equal(t, tt.want, newBitboard(tt.args).String())
+	for _, p := range pieces {
+		t.Run(p.String(), func(t *testing.T) {
+			assert.Equal(t, startingBoard.getBitboard(p), newBitboard(startingBoardMap[p]))
 		})
 	}
 }
 
 func TestBitboard_Mapping(t *testing.T) {
-	tests := []struct {
-		name string
-		args bitboard
-		want []Square
-	}{
-		{
-			"A1",
-			1,
-			[]Square{A1},
-		},
-		{
-			"A1A8H1H8",
-			bitboard(9295429630892703873),
-			[]Square{A1, A8, H1, H8},
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			assert.ElementsMatch(t, tt.want, tt.args.mapping())
+	for _, p := range pieces {
+		t.Run(p.String(), func(t *testing.T) {
+			assert.ElementsMatch(t, startingBoardMap[p], startingBoard.getBitboard(p).mapping())
 		})
 	}
 }
 
 func BenchmarkBitboard_Mapping(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		bitboard(9223372036854775807).mapping()
+	for _, p := range pieces {
+		b.Run(p.String(), func(b *testing.B) {
+			bb := startingBoard.getBitboard(p)
+			for n := 0; n < b.N; n++ {
+				bb.mapping()
+			}
+		})
 	}
 }
 
