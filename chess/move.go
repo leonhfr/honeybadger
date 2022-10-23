@@ -17,10 +17,6 @@ const (
 	Capture
 	// EnPassant indicates that the move captures a piece via en passant.
 	EnPassant
-	// Check indicates that the move puts the opposing player in check.
-	// This flag is not computed during the move generation, so its absence
-	// does not necessarily mean that the move is not check.
-	Check
 	// Promotion indicates that the move is a promotion.
 	Promotion
 	// KingSideCastle indicates that the move is a king side castle.
