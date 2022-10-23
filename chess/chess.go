@@ -36,7 +36,7 @@ func castlingMoves(pos *Position) []Move {
 			continue
 		}
 
-		m := newMove(newPiece(check.color, King), NoPiece, check.s1, check.s2, pos.enPassantSquare, NoPiece)
+		m := newMove(newPiece(check.color, King), NoPiece, check.s1, check.s2, pos.enPassant, NoPiece)
 		moves = append(moves, m)
 	}
 	return moves
@@ -73,13 +73,13 @@ func standardMoves(pos *Position) []Move {
 				p2 := pos.board.pieceByColor(s2, pos.turn.Other())
 				if p1 == WhitePawn && s2.Rank() == Rank8 || p1 == BlackPawn && s2.Rank() == Rank1 {
 					moves = append(moves,
-						newMove(p1, p2, s1, s2, pos.enPassantSquare, newPiece(pos.turn, Queen)),
-						newMove(p1, p2, s1, s2, pos.enPassantSquare, newPiece(pos.turn, Knight)),
-						newMove(p1, p2, s1, s2, pos.enPassantSquare, newPiece(pos.turn, Rook)),
-						newMove(p1, p2, s1, s2, pos.enPassantSquare, newPiece(pos.turn, Bishop)),
+						newMove(p1, p2, s1, s2, pos.enPassant, newPiece(pos.turn, Queen)),
+						newMove(p1, p2, s1, s2, pos.enPassant, newPiece(pos.turn, Knight)),
+						newMove(p1, p2, s1, s2, pos.enPassant, newPiece(pos.turn, Rook)),
+						newMove(p1, p2, s1, s2, pos.enPassant, newPiece(pos.turn, Bishop)),
 					)
 				} else {
-					moves = append(moves, newMove(p1, p2, s1, s2, pos.enPassantSquare, NoPiece))
+					moves = append(moves, newMove(p1, p2, s1, s2, pos.enPassant, NoPiece))
 				}
 			}
 		}
@@ -177,8 +177,8 @@ func isAttackedByCount(sq Square, pos *Position, by PieceType) int {
 func isAttackedByPawnCount(sq Square, pos *Position) int {
 	bbSquare := sq.bitboard()
 	var bbEnPassant bitboard
-	if pos.enPassantSquare != NoSquare {
-		bbEnPassant = pos.enPassantSquare.bitboard()
+	if pos.enPassant != NoSquare {
+		bbEnPassant = pos.enPassant.bitboard()
 	}
 
 	if pos.turn == White {
@@ -215,8 +215,8 @@ func moveBitboard(sq Square, pos *Position, pt PieceType) bitboard {
 
 func pawnBitboard(sq Square, pos *Position) bitboard {
 	var bbEnPassant bitboard
-	if pos.enPassantSquare != NoSquare {
-		bbEnPassant = pos.enPassantSquare.bitboard()
+	if pos.enPassant != NoSquare {
+		bbEnPassant = pos.enPassant.bitboard()
 	}
 
 	if pos.turn == White {

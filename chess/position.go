@@ -8,11 +8,11 @@ import (
 // Position represents the state of the game.
 type Position struct {
 	board
-	turn            Color
-	castlingRights  CastlingRights
-	enPassantSquare Square
-	halfMoveClock   int
-	fullMoves       int
+	turn           Color
+	castlingRights CastlingRights
+	enPassant      Square
+	halfMoveClock  uint8
+	fullMoves      uint8
 }
 
 const startFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
@@ -50,7 +50,7 @@ func FromFEN(fen string) (*Position, error) {
 		return nil, err
 	}
 
-	pos.enPassantSquare, err = fenEnPassantSquare(fields[3])
+	pos.enPassant, err = fenEnPassantSquare(fields[3])
 	if err != nil {
 		return nil, err
 	}
@@ -90,23 +90,23 @@ func (pos Position) CastlingRights() CastlingRights {
 
 // EnPassantSquare returns the en passant square.
 func (pos Position) EnPassantSquare() Square {
-	return pos.enPassantSquare
+	return pos.enPassant
 }
 
 // HalfMoveClock returns the half-move clock.
-func (pos Position) HalfMoveClock() int {
+func (pos Position) HalfMoveClock() uint8 {
 	return pos.halfMoveClock
 }
 
 // FullMoves returns the full moves count.
-func (pos Position) FullMoves() int {
+func (pos Position) FullMoves() uint8 {
 	return pos.fullMoves
 }
 
 func (pos Position) String() string {
 	sq := "-"
-	if pos.enPassantSquare != NoSquare {
-		sq = pos.enPassantSquare.String()
+	if pos.enPassant != NoSquare {
+		sq = pos.enPassant.String()
 	}
 
 	return fmt.Sprintf(
@@ -125,36 +125,58 @@ func (pos *Position) PseudoMoves() []Move {
 	return pseudoMoves(pos)
 }
 
-// MakeMove plays a move on a position and checks whether it is valid.
-func (pos Position) MakeMove(m Move) (*Position, bool) {
-	board := pos.board.copy()
-	board.makeMove(m)
+// MakeMove makes a move on a position and checks whether it is valid.
+// Returns metadata that can be used to unmake the move and a boolean
+// indicating the validity of the move.
+func (pos *Position) MakeMove(m Move) (Metadata, bool) {
+	metadata := newMetadata(pos.turn, pos.castlingRights,
+		pos.halfMoveClock, pos.fullMoves, pos.enPassant)
 
-	if !(m.HasTag(KingSideCastle) || m.HasTag(QueenSideCastle)) &&
-		isInCheck(&Position{board: board, turn: pos.turn}) {
-		return nil, false
+	pos.board.makeMoveBoard(m)
+
+	if !(m.HasTag(KingSideCastle) || m.HasTag(QueenSideCastle)) && isInCheck(pos) {
+		pos.board.unmakeMoveBoard(m)
+
+		return metadata, false
 	}
 
-	halfMoveClock := pos.halfMoveClock
+	pos.castlingRights = pos.moveCastlingRights(m)
+	pos.enPassant = pos.moveEnPassant(m)
+
 	if m.P1().Type() == Pawn || m.HasTag(Capture) {
-		halfMoveClock = 0
+		pos.halfMoveClock = 0
 	} else {
-		halfMoveClock++
+		pos.halfMoveClock++
 	}
 
-	fullMoves := pos.fullMoves
 	if pos.turn == Black {
-		fullMoves++
+		pos.fullMoves++
 	}
 
+	pos.turn = pos.turn.Other()
+	return metadata, true
+}
+
+// UnmakeMove unmakes a move and restores the previous position.
+func (pos *Position) UnmakeMove(m Move, meta Metadata) {
+	pos.board.unmakeMoveBoard(m)
+	pos.turn = meta.turn()
+	pos.castlingRights = meta.castleRights()
+	pos.enPassant = meta.enPassant()
+	pos.halfMoveClock = meta.halfMoveClock()
+	pos.fullMoves = meta.fullMoves()
+}
+
+// Copy returns a copy of the position.
+func (pos *Position) Copy() *Position {
 	return &Position{
-		board:           board,
-		turn:            pos.turn.Other(),
-		castlingRights:  pos.moveCastlingRights(m),
-		enPassantSquare: pos.moveEnPassantSquare(m),
-		halfMoveClock:   halfMoveClock,
-		fullMoves:       fullMoves,
-	}, true
+		board:          pos.board.copyBoard(),
+		turn:           pos.turn,
+		castlingRights: pos.castlingRights,
+		enPassant:      pos.enPassant,
+		halfMoveClock:  pos.halfMoveClock,
+		fullMoves:      pos.fullMoves,
+	}
 }
 
 func (pos Position) moveCastlingRights(m Move) CastlingRights {
@@ -176,7 +198,7 @@ func (pos Position) moveCastlingRights(m Move) CastlingRights {
 	}
 }
 
-func (pos Position) moveEnPassantSquare(m Move) Square {
+func (pos Position) moveEnPassant(m Move) Square {
 	if m.P1().Type() != Pawn {
 		return NoSquare
 	}

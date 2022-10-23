@@ -1,5 +1,45 @@
 package chess
 
+// Metadata represents a position's metadata.
+//
+//	32 bits
+//	__ square fullMove halfMove ___ CCCC T
+//	square      en passant square
+//	fullMove    full moves
+//	halfMove    half move clock
+//	CCCC        castle rights
+//	T           turn color
+//	_           unused bit
+type Metadata uint32
+
+func newMetadata(c Color, cr CastlingRights, halfMoveClock, fullMoves uint8, enPassant Square) Metadata {
+	return Metadata(c) |
+		Metadata(cr)<<1 |
+		Metadata(halfMoveClock)<<8 |
+		Metadata(fullMoves)<<16 |
+		Metadata(enPassant)<<24
+}
+
+func (m Metadata) turn() Color {
+	return Color(m & 1)
+}
+
+func (m Metadata) castleRights() CastlingRights {
+	return CastlingRights((m >> 1) & 15)
+}
+
+func (m Metadata) halfMoveClock() uint8 {
+	return uint8(m >> 8)
+}
+
+func (m Metadata) fullMoves() uint8 {
+	return uint8(m >> 16)
+}
+
+func (m Metadata) enPassant() Square {
+	return Square(m >> 24)
+}
+
 // Side represents a side of the board.
 type Side uint8
 

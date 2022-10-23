@@ -136,7 +136,7 @@ func MoveFromUCI(pos *Position, s string) (Move, error) {
 
 	p1 := pos.board.piece(s1)
 	p2 := pos.board.piece(s2)
-	return newMove(p1, p2, s1, s2, pos.enPassantSquare, promo), nil
+	return newMove(p1, p2, s1, s2, pos.enPassant, promo), nil
 }
 
 var uciPieceTypeMap = map[string]PieceType{

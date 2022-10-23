@@ -73,35 +73,32 @@ func (b board) pieceByColor(sq Square, c Color) Piece {
 	return NoPiece
 }
 
-func (b *board) makeMove(m Move) {
+func (b *board) makeMoveBoard(m Move) {
 	p1, p2 := m.P1(), m.P2()
+	s1, s2 := m.S1(), m.S2()
+
 	// remove s1 piece
-	b.removePiece(p1, m.S1())
+	b.removePiece(p1, s1)
 
 	// remove s2 piece if any
 	if p2 != NoPiece {
-		b.removePiece(p2, m.S2())
+		b.removePiece(p2, s2)
 	}
 
-	// add s1 piece in s2
-	b.setPiece(p1, m.S2())
-
-	// promotion if any
-	if m.Promo() != NoPiece {
-		b.removePiece(newPiece(p1.Color(), Pawn), m.S2())
-		b.setPiece(m.Promo(), m.S2())
+	// set s1 piece in s2
+	// or set promotion piece if any
+	if m.Promo() == NoPiece {
+		b.setPiece(p1, s2)
+	} else {
+		b.setPiece(m.Promo(), s2)
 	}
 
-	// en passant
+	// en passant and castle (only move rook)
 	switch c := p1.Color(); {
 	case m.HasTag(EnPassant) && c == White:
-		b.removePiece(BlackPawn, m.S2()-8)
+		b.removePiece(BlackPawn, s2-8)
 	case m.HasTag(EnPassant) && c == Black:
-		b.removePiece(WhitePawn, m.S2()+8)
-	}
-
-	// castle (only move rook)
-	switch c := p1.Color(); {
+		b.removePiece(WhitePawn, s2+8)
 	case c == White && m.HasTag(KingSideCastle):
 		b.bbWhiteRook = b.bbWhiteRook & ^H1.bitboard() | F1.bitboard()
 	case c == White && m.HasTag(QueenSideCastle):
@@ -110,6 +107,45 @@ func (b *board) makeMove(m Move) {
 		b.bbBlackRook = b.bbBlackRook & ^H8.bitboard() | F8.bitboard()
 	case c == Black && m.HasTag(QueenSideCastle):
 		b.bbBlackRook = b.bbBlackRook & ^A8.bitboard() | D8.bitboard()
+	}
+
+	b.computeConvenienceBitboards()
+}
+
+func (b *board) unmakeMoveBoard(m Move) {
+	p1, p2 := m.P1(), m.P2()
+	s1, s2 := m.S1(), m.S2()
+
+	// remove original piece from new square
+	// or remove promotion piece if any
+	if m.Promo() == NoPiece {
+		b.removePiece(p1, s2)
+	} else {
+		b.removePiece(m.Promo(), s2)
+	}
+
+	// set original piece in original square
+	b.setPiece(p1, s1)
+
+	// set captured piece if any
+	if p2 != NoPiece {
+		b.setPiece(p2, s2)
+	}
+
+	// en passant and castle (only move rook)
+	switch c := p1.Color(); {
+	case m.HasTag(EnPassant) && c == White:
+		b.setPiece(BlackPawn, s2-8)
+	case m.HasTag(EnPassant) && c == Black:
+		b.setPiece(WhitePawn, s2+8)
+	case c == White && m.HasTag(KingSideCastle):
+		b.bbWhiteRook = b.bbWhiteRook & ^F1.bitboard() | H1.bitboard()
+	case c == White && m.HasTag(QueenSideCastle):
+		b.bbWhiteRook = b.bbWhiteRook & ^D1.bitboard() | A1.bitboard()
+	case c == Black && m.HasTag(KingSideCastle):
+		b.bbBlackRook = b.bbBlackRook & ^F8.bitboard() | H8.bitboard()
+	case c == Black && m.HasTag(QueenSideCastle):
+		b.bbBlackRook = b.bbBlackRook & ^D8.bitboard() | A8.bitboard()
 	}
 
 	b.computeConvenienceBitboards()
@@ -255,7 +291,7 @@ func (b board) getBitboard(p Piece) bitboard {
 	}
 }
 
-func (b board) copy() board {
+func (b board) copyBoard() board {
 	return board{
 		bbWhiteKing:   b.bbWhiteKing,
 		bbWhiteQueen:  b.bbWhiteQueen,

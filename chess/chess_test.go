@@ -1,6 +1,7 @@
 package chess
 
 import (
+	"fmt"
 	"sort"
 	"testing"
 
@@ -66,44 +67,48 @@ var perfResults = []perfTest{
 
 func TestPerfResults(t *testing.T) {
 	for _, tt := range perfResults {
-		t.Run(tt.fen, func(t *testing.T) {
-			for depth := 0; depth < len(tt.nodes); depth++ {
+		for depth := 0; depth < len(tt.nodes); depth++ {
+			t.Run(fmt.Sprintf("%s depth %d", tt.fen, depth), func(t *testing.T) {
 				want := tt.nodes[depth]
 				got := perft(unsafeFEN(tt.fen), depth)
 				assert.Equal(t, want, got)
-			}
-		})
+			})
+		}
 	}
 }
 
 func perft(pos *Position, depth int) int {
 	if depth == 0 {
-		return len(legalMoves(pos))
+		return leafNodes(pos)
 	}
 
 	var count int
-	for _, p := range legalMoves(pos) {
-		count += perft(p, depth-1)
+	for _, m := range pseudoMoves(pos) {
+		if meta, ok := pos.MakeMove(m); ok {
+			count += perft(pos, depth-1)
+			pos.UnmakeMove(m, meta)
+		}
 	}
 	return count
 }
 
-func legalMoves(pos *Position) []*Position {
-	var positions []*Position
+func leafNodes(pos *Position) int {
+	var count int
 	for _, m := range pseudoMoves(pos) {
-		if pos, ok := pos.MakeMove(m); ok {
-			positions = append(positions, pos)
+		if meta, ok := pos.MakeMove(m); ok {
+			count++
+			pos.UnmakeMove(m, meta)
 		}
 	}
-	return positions
+	return count
 }
 
-func BenchmarkLegalMoves(b *testing.B) {
+func BenchmarkLeafNodes(b *testing.B) {
 	for _, bb := range testPositions {
 		b.Run(bb.preFEN, func(b *testing.B) {
 			pos := unsafeFEN(bb.preFEN)
 			for n := 0; n < b.N; n++ {
-				legalMoves(pos)
+				leafNodes(pos)
 			}
 		})
 	}

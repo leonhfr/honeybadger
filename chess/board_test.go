@@ -55,13 +55,6 @@ var (
 			postFEN: "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1",
 		},
 		{
-			move:    newMove(WhiteKing, NoPiece, E1, G1, NoSquare, NoPiece),
-			moveUCI: "e1g1",
-			tags:    []MoveTag{KingSideCastle},
-			preFEN:  "r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1",
-			postFEN: "r3k2r/8/8/8/8/8/8/R4RK1 b kq - 1 1",
-		},
-		{
 			move:    newMove(BlackPawn, NoPiece, A4, B3, B3, NoPiece),
 			moveUCI: "a4b3",
 			tags:    []MoveTag{EnPassant, Capture},
@@ -134,11 +127,11 @@ func TestBoard_Piece(t *testing.T) {
 	}
 }
 
-func TestBoard_MakeMove(t *testing.T) {
+func TestBoard_MakeMoveBoard(t *testing.T) {
 	for _, tt := range testPositions {
 		t.Run(tt.move.String(), func(t *testing.T) {
 			pos := unsafeFEN(tt.preFEN)
-			pos.board.makeMove(tt.move)
+			pos.board.makeMoveBoard(tt.move)
 			want := strings.Fields(tt.postFEN)[0]
 			assert.Equal(t, want, pos.board.String())
 		})

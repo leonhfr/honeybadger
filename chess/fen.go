@@ -48,11 +48,14 @@ func fenFileMap(rankField string) (map[File]Piece, error) {
 }
 
 func fenTurn(field string) (Color, error) {
-	turn, ok := fenTurnMap[field]
-	if !ok {
+	switch field {
+	case "w":
+		return White, nil
+	case "b":
+		return Black, nil
+	default:
 		return White, fmt.Errorf("invalid fen turn (%s)", field)
 	}
-	return turn, nil
 }
 
 func fenCastlingRights(field string) (CastlingRights, error) {
@@ -91,40 +94,33 @@ func fenEnPassantSquare(field string) (Square, error) {
 	return sq, nil
 }
 
-func fenHalfMoveClock(field string) (int, error) {
-	halfMoveClock, err := strconv.Atoi(field)
-	if err != nil || halfMoveClock < 0 {
+func fenHalfMoveClock(field string) (uint8, error) {
+	halfMoveClock, err := strconv.ParseUint(field, 10, 8)
+	if err != nil {
 		return 0, fmt.Errorf("invalid fen full moves count (%s)", field)
 	}
-	return halfMoveClock, nil
+	return uint8(halfMoveClock), nil
 }
 
-func fenFullMoves(field string) (int, error) {
-	fullMoves, err := strconv.Atoi(field)
+func fenFullMoves(field string) (uint8, error) {
+	fullMoves, err := strconv.ParseUint(field, 10, 8)
 	if err != nil || fullMoves < 1 {
 		return 0, fmt.Errorf("invalid fen full moves count (%s)", field)
 	}
-	return fullMoves, nil
+	return uint8(fullMoves), nil
 }
 
-var (
-	fenPieceMap = map[rune]Piece{
-		'K': WhiteKing,
-		'Q': WhiteQueen,
-		'R': WhiteRook,
-		'B': WhiteBishop,
-		'N': WhiteKnight,
-		'P': WhitePawn,
-		'k': BlackKing,
-		'q': BlackQueen,
-		'r': BlackRook,
-		'b': BlackBishop,
-		'n': BlackKnight,
-		'p': BlackPawn,
-	}
-
-	fenTurnMap = map[string]Color{
-		"w": White,
-		"b": Black,
-	}
-)
+var fenPieceMap = map[rune]Piece{
+	'K': WhiteKing,
+	'Q': WhiteQueen,
+	'R': WhiteRook,
+	'B': WhiteBishop,
+	'N': WhiteKnight,
+	'P': WhitePawn,
+	'k': BlackKing,
+	'q': BlackQueen,
+	'r': BlackRook,
+	'b': BlackBishop,
+	'n': BlackKnight,
+	'p': BlackPawn,
+}

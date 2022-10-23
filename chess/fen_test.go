@@ -153,7 +153,7 @@ func TestFENEnPassantSquare(t *testing.T) {
 
 func TestFENHalfMoveClock(t *testing.T) {
 	type want struct {
-		hmc int
+		hmc uint8
 		err error
 	}
 
@@ -177,7 +177,7 @@ func TestFENHalfMoveClock(t *testing.T) {
 
 func TestFENFullMoves(t *testing.T) {
 	type want struct {
-		fm  int
+		fm  uint8
 		err error
 	}
 
