@@ -121,7 +121,7 @@ var (
 )
 
 func TestNewBoard(t *testing.T) {
-	assert.Equal(t, startingBoard, *newBoard(startingSquareMap))
+	assert.Equal(t, startingBoard, newBoard(startingSquareMap))
 }
 
 func TestBoard_SquareMap(t *testing.T) {
@@ -134,11 +134,11 @@ func TestBoard_Piece(t *testing.T) {
 	}
 }
 
-func TestBoard_Update(t *testing.T) {
+func TestBoard_MakeMove(t *testing.T) {
 	for _, tt := range testPositions {
 		t.Run(tt.move.String(), func(t *testing.T) {
 			pos := unsafeFEN(tt.preFEN)
-			pos.board.update(tt.move)
+			pos.board.makeMove(tt.move)
 			want := strings.Fields(tt.postFEN)[0]
 			assert.Equal(t, want, pos.board.String())
 		})

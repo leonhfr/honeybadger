@@ -6,17 +6,17 @@ import (
 	"strings"
 )
 
-func fenBoard(field string) (*board, error) {
+func fenBoard(field string) (board, error) {
 	rankFields := strings.Split(field, "/")
 	if len(rankFields) != 8 {
-		return nil, fmt.Errorf("invalid fen board (%s)", field)
+		return board{}, fmt.Errorf("invalid fen board (%s)", field)
 	}
 
 	m := SquareMap{}
 	for i, rankField := range rankFields {
 		fileMap, err := fenFileMap(rankField)
 		if err != nil {
-			return nil, err
+			return board{}, err
 		}
 		rank := Rank(56 - 8*i)
 		for f, p := range fileMap {

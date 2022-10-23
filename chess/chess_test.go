@@ -91,7 +91,7 @@ func perft(pos *Position, depth int) int {
 func legalMoves(pos *Position) []*Position {
 	var positions []*Position
 	for _, m := range pseudoMoves(pos) {
-		if pos, ok := pos.Move(m); ok {
+		if pos, ok := pos.MakeMove(m); ok {
 			positions = append(positions, pos)
 		}
 	}

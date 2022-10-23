@@ -27,8 +27,8 @@ type board struct {
 	sqBlackKing   Square
 }
 
-func newBoard(m SquareMap) *board {
-	b := &board{}
+func newBoard(m SquareMap) board {
+	b := board{}
 	for sq, p := range m {
 		b.setPiece(p, sq)
 	}
@@ -73,7 +73,7 @@ func (b board) pieceByColor(sq Square, c Color) Piece {
 	return NoPiece
 }
 
-func (b *board) update(m Move) {
+func (b *board) makeMove(m Move) {
 	p1, p2 := m.P1(), m.P2()
 	// remove s1 piece
 	b.removePiece(p1, m.S1())
@@ -255,8 +255,8 @@ func (b board) getBitboard(p Piece) bitboard {
 	}
 }
 
-func (b *board) copy() *board {
-	return &board{
+func (b board) copy() board {
+	return board{
 		bbWhiteKing:   b.bbWhiteKing,
 		bbWhiteQueen:  b.bbWhiteQueen,
 		bbWhiteRook:   b.bbWhiteRook,
@@ -272,6 +272,7 @@ func (b *board) copy() *board {
 		bbWhite:       b.bbWhite,
 		bbBlack:       b.bbBlack,
 		bbEmpty:       b.bbEmpty,
+		bbOccupied:    b.bbOccupied,
 		sqWhiteKing:   b.sqWhiteKing,
 		sqBlackKing:   b.sqBlackKing,
 	}

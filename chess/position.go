@@ -7,7 +7,7 @@ import (
 
 // Position represents the state of the game.
 type Position struct {
-	board           *board
+	board
 	turn            Color
 	castlingRights  CastlingRights
 	enPassantSquare Square
@@ -125,10 +125,10 @@ func (pos *Position) PseudoMoves() []Move {
 	return pseudoMoves(pos)
 }
 
-// Move plays a move on a position and checks whether it is valid.
-func (pos Position) Move(m Move) (*Position, bool) {
+// MakeMove plays a move on a position and checks whether it is valid.
+func (pos Position) MakeMove(m Move) (*Position, bool) {
 	board := pos.board.copy()
-	board.update(m)
+	board.makeMove(m)
 
 	if !(m.HasTag(KingSideCastle) || m.HasTag(QueenSideCastle)) &&
 		isInCheck(&Position{board: board, turn: pos.turn}) {

@@ -28,22 +28,22 @@ func TestFromFEN(t *testing.T) {
 	}
 }
 
-func TestPosition_Move(t *testing.T) {
+func TestPosition_MakeMove(t *testing.T) {
 	for _, tt := range testPositions {
 		t.Run(tt.moveUCI, func(t *testing.T) {
 			pos := unsafeFEN(tt.preFEN)
-			got, _ := pos.Move(tt.move)
+			got, _ := pos.MakeMove(tt.move)
 			assert.Equal(t, tt.postFEN, got.String())
 		})
 	}
 }
 
-func BenchmarkPosition_Move(b *testing.B) {
+func BenchmarkPosition_MakeMove(b *testing.B) {
 	for _, bb := range testPositions {
 		b.Run(bb.moveUCI, func(b *testing.B) {
 			pos := unsafeFEN(bb.preFEN)
 			for n := 0; n < b.N; n++ {
-				pos.Move(bb.move)
+				pos.MakeMove(bb.move)
 			}
 		})
 	}

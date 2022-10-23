@@ -9,7 +9,7 @@ import (
 
 func TestFENBoard(t *testing.T) {
 	type want struct {
-		b   *board
+		b   board
 		err error
 	}
 
@@ -17,17 +17,15 @@ func TestFENBoard(t *testing.T) {
 		args string
 		want
 	}{
-		{"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP", want{nil, errors.New("invalid fen board (rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP)")}},
-		{"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR", want{&startingBoard, nil}},
+		{"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP", want{board{}, errors.New("invalid fen board (rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP)")}},
+		{"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR", want{startingBoard, nil}},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.args, func(t *testing.T) {
 			b, err := fenBoard(tt.args)
 			assert.Equal(t, tt.want.err, err)
-			if tt.want.b != nil {
-				assert.Equal(t, *tt.want.b, *b)
-			}
+			assert.Equal(t, tt.want.b, b)
 		})
 	}
 }
