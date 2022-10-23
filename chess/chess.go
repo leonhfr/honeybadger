@@ -13,31 +13,27 @@ type castleCheck struct {
 	checkSquares   []Square
 }
 
-var castleChecks = [4]castleCheck{
-	{White, KingSide, E1, G1, F1.bitboard() | G1.bitboard(), []Square{F1, G1}},
-	{White, QueenSide, E1, C1, B1.bitboard() | C1.bitboard() | D1.bitboard(), []Square{C1, D1}},
-	{Black, KingSide, E8, G8, F8.bitboard() | G8.bitboard(), []Square{F8, G8}},
-	{Black, QueenSide, E8, C8, B8.bitboard() | C8.bitboard() | D8.bitboard(), []Square{C8, D8}},
+var castleChecks = [2][2]castleCheck{
+	{
+		{White, KingSide, E1, G1, F1.bitboard() | G1.bitboard(), []Square{E1, F1, G1}},
+		{White, QueenSide, E1, C1, B1.bitboard() | C1.bitboard() | D1.bitboard(), []Square{C1, D1, E1}},
+	},
+	{
+		{Black, KingSide, E8, G8, F8.bitboard() | G8.bitboard(), []Square{E8, F8, G8}},
+		{Black, QueenSide, E8, C8, B8.bitboard() | C8.bitboard() | D8.bitboard(), []Square{C8, D8, E8}},
+	},
 }
 
 func castlingMoves(pos *Position) []Move {
 	var moves []Move
-OUTER:
-	for _, check := range castleChecks {
-		if pos.turn != check.color ||
-			!pos.castlingRights.CanCastle(pos.turn, check.side) ||
+	for _, check := range castleChecks[pos.turn] {
+		if !pos.castlingRights.CanCastle(pos.turn, check.side) ||
 			pos.board.bbOccupied&check.travelBitboard > 0 {
 			continue
 		}
 
-		if isAttacked(check.s1, pos) {
-			return moves
-		}
-
-		for _, sq := range check.checkSquares {
-			if isAttacked(sq, pos) {
-				continue OUTER
-			}
+		if isSquaresAttacked(pos, check.checkSquares...) {
+			continue
 		}
 
 		m := newMove(newPiece(check.color, King), NoPiece, check.s1, check.s2, pos.enPassantSquare, NoPiece)
@@ -45,8 +41,6 @@ OUTER:
 	}
 	return moves
 }
-
-var promoPieceTypes = [4]PieceType{Queen, Rook, Bishop, Knight}
 
 func standardMoves(pos *Position) []Move {
 	bbAllowed := ^pos.board.bbWhite
@@ -56,35 +50,36 @@ func standardMoves(pos *Position) []Move {
 
 	moves := []Move{}
 	for _, p1 := range piecesByColor[pos.turn] {
-		s1bb := pos.board.getBitboard(p1)
-		if s1bb == 0 {
+		bbS1 := pos.board.getBitboard(p1)
+		if bbS1 == 0 {
 			continue
 		}
 
 		for s1 := A1; s1 <= H8; s1++ {
-			if s1bb&s1.bitboard() == 0 {
+			if bbS1&s1.bitboard() == 0 {
 				continue
 			}
 
-			s2bb := moveBitboard(s1, pos, p1.Type()) & bbAllowed
-			if s2bb == 0 {
+			bbS2 := moveBitboard(s1, pos, p1.Type()) & bbAllowed
+			if bbS2 == 0 {
 				continue
 			}
 
 			for s2 := A1; s2 <= H8; s2++ {
-				if s2bb&s2.bitboard() == 0 {
+				if bbS2&s2.bitboard() == 0 {
 					continue
 				}
 
 				p2 := pos.board.pieceByColor(s2, pos.turn.Other())
 				if p1 == WhitePawn && s2.Rank() == Rank8 || p1 == BlackPawn && s2.Rank() == Rank1 {
-					for _, pt := range promoPieceTypes {
-						m := newMove(p1, p2, s1, s2, pos.enPassantSquare, newPiece(pos.turn, pt))
-						moves = append(moves, m)
-					}
+					moves = append(moves,
+						newMove(p1, p2, s1, s2, pos.enPassantSquare, newPiece(pos.turn, Queen)),
+						newMove(p1, p2, s1, s2, pos.enPassantSquare, newPiece(pos.turn, Knight)),
+						newMove(p1, p2, s1, s2, pos.enPassantSquare, newPiece(pos.turn, Rook)),
+						newMove(p1, p2, s1, s2, pos.enPassantSquare, newPiece(pos.turn, Bishop)),
+					)
 				} else {
-					m := newMove(p1, p2, s1, s2, pos.enPassantSquare, NoPiece)
-					moves = append(moves, m)
+					moves = append(moves, newMove(p1, p2, s1, s2, pos.enPassantSquare, NoPiece))
 				}
 			}
 		}
@@ -112,10 +107,49 @@ func isAttacked(sq Square, pos *Position) bool {
 	r |= bbKnightMoves[sq] & pos.board.getBitboard(newPiece(c, Knight))
 
 	if c == White {
-		return (r | bbBlackPawnCaptures[sq]&pos.board.getBitboard(WhitePawn)) > 0
+		return (r | bbBlackPawnCaptures[sq]&pos.board.bbWhitePawn) > 0
 	}
 
-	return (r | bbWhitePawnCaptures[sq]&pos.board.getBitboard(BlackPawn)) > 0
+	return (r | bbWhitePawnCaptures[sq]&pos.board.bbBlackPawn) > 0
+}
+
+// isSquaresAttacked does not account for en passant attacks
+func isSquaresAttacked(pos *Position, sqs ...Square) bool {
+	c := pos.turn.Other()
+	var bbHV, bbDia, bbK, bbN, bbP bitboard
+
+	for _, sq := range sqs {
+		hv := hvBitboard(sq, pos.board.bbOccupied)
+		dia := diagonalBitboard(sq, pos.board.bbOccupied)
+		bbHV |= hv
+		bbDia |= dia
+		bbK |= bbKingMoves[sq]
+		bbN |= bbKnightMoves[sq]
+
+		if c == White {
+			bbP |= bbBlackPawnCaptures[sq]
+		} else {
+			bbP |= bbWhitePawnCaptures[sq]
+		}
+	}
+
+	if c == White {
+		bb := bbK & pos.board.bbWhiteKing
+		bb |= (bbHV | bbDia) & pos.board.bbWhiteQueen
+		bb |= bbHV & pos.board.bbWhiteRook
+		bb |= bbDia & pos.board.bbWhiteBishop
+		bb |= bbN & pos.board.bbWhiteKnight
+		bb |= bbP & pos.board.bbWhitePawn
+		return bb > 0
+	}
+
+	bb := bbK & pos.board.bbBlackKing
+	bb |= (bbHV | bbDia) & pos.board.bbBlackQueen
+	bb |= bbHV & pos.board.bbBlackRook
+	bb |= bbDia & pos.board.bbBlackBishop
+	bb |= bbN & pos.board.bbBlackKnight
+	bb |= bbP & pos.board.bbBlackPawn
+	return bb > 0
 }
 
 func isAttackedByCount(sq Square, pos *Position, by PieceType) int {

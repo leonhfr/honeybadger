@@ -130,7 +130,8 @@ func (pos Position) Move(m Move) (*Position, bool) {
 	board := pos.board.copy()
 	board.update(m)
 
-	if !(m.HasTag(KingSideCastle) || m.HasTag(QueenSideCastle)) && isInCheck(&Position{board: board, turn: pos.turn}) {
+	if !(m.HasTag(KingSideCastle) || m.HasTag(QueenSideCastle)) &&
+		isInCheck(&Position{board: board, turn: pos.turn}) {
 		return nil, false
 	}
 
