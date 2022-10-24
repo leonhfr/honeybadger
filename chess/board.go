@@ -21,8 +21,11 @@ type board struct {
 	bbBlackPawn   bitboard
 	bbWhite       bitboard
 	bbBlack       bitboard
-	bbEmpty       bitboard
 	bbOccupied    bitboard
+	bbWhitePinned bitboard
+	bbBlackPinned bitboard
+	bbWhitePinner bitboard
+	bbBlackPinner bitboard
 	sqWhiteKing   Square
 	sqBlackKing   Square
 }
@@ -42,12 +45,16 @@ func (b *board) computeConvenienceBitboards() {
 	b.bbBlack = b.bbBlackKing | b.bbBlackQueen | b.bbBlackRook |
 		b.bbBlackBishop | b.bbBlackKnight | b.bbBlackPawn
 	b.bbOccupied = b.bbWhite | b.bbBlack
-	b.bbEmpty = ^b.bbOccupied
+
+	b.bbWhitePinned, b.bbWhitePinner = pinnedBitboard(b.sqWhiteKing,
+		b.bbOccupied, b.bbWhite, b.bbBlackQueen, b.bbBlackRook, b.bbBlackBishop)
+	b.bbBlackPinned, b.bbBlackPinner = pinnedBitboard(b.sqBlackKing,
+		b.bbOccupied, b.bbBlack, b.bbWhiteQueen, b.bbWhiteRook, b.bbWhiteBishop)
 }
 
 func (b board) squareMap() SquareMap {
 	m := SquareMap{}
-	for _, p := range pieces {
+	for p := WhitePawn; p <= BlackKing; p++ {
 		for _, sq := range b.getBitboard(p).mapping() {
 			m[sq] = p
 		}
@@ -56,7 +63,7 @@ func (b board) squareMap() SquareMap {
 }
 
 func (b board) piece(sq Square) Piece {
-	for _, p := range pieces {
+	for p := WhitePawn; p <= BlackKing; p++ {
 		if b.getBitboard(p).occupied(sq) {
 			return p
 		}
@@ -65,7 +72,7 @@ func (b board) piece(sq Square) Piece {
 }
 
 func (b board) pieceByColor(sq Square, c Color) Piece {
-	for _, p := range piecesByColor[c] {
+	for p := newPiece(c, Pawn); p <= BlackKing; p += 2 {
 		if b.getBitboard(p).occupied(sq) {
 			return p
 		}
@@ -291,6 +298,20 @@ func (b board) getBitboard(p Piece) bitboard {
 	}
 }
 
+func (b board) getPinned(c Color) bitboard {
+	if c == White {
+		return b.bbWhitePinned
+	}
+	return b.bbBlackPinned
+}
+
+func (b board) getPinner(c Color) bitboard {
+	if c == White {
+		return b.bbWhitePinner
+	}
+	return b.bbBlackPinner
+}
+
 func (b board) copyBoard() board {
 	return board{
 		bbWhiteKing:   b.bbWhiteKing,
@@ -307,8 +328,11 @@ func (b board) copyBoard() board {
 		bbBlackPawn:   b.bbBlackPawn,
 		bbWhite:       b.bbWhite,
 		bbBlack:       b.bbBlack,
-		bbEmpty:       b.bbEmpty,
 		bbOccupied:    b.bbOccupied,
+		bbWhitePinned: b.bbWhitePinned,
+		bbBlackPinned: b.bbBlackPinned,
+		bbWhitePinner: b.bbWhitePinner,
+		bbBlackPinner: b.bbBlackPinner,
 		sqWhiteKing:   b.sqWhiteKing,
 		sqBlackKing:   b.sqBlackKing,
 	}

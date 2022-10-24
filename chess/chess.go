@@ -48,12 +48,21 @@ func standardMoves(pos *Position) []Move {
 		bbAllowed = ^pos.bbBlack
 	}
 
+	bbPinned := pos.getPinned(pos.turn)
+
 	moves := []Move{}
-	for _, p1 := range piecesByColor[pos.turn] {
+	for p1 := newPiece(pos.turn, Pawn); p1 <= BlackKing; p1 += 2 {
 		for bbS1 := pos.board.getBitboard(p1); bbS1 > 0; bbS1 = bbS1.resetLSB() {
 			s1 := bbS1.scanForward()
 
-			for bbS2 := moveBitboard(s1, pos, p1.Type()) & bbAllowed; bbS2 > 0; bbS2 = bbS2.resetLSB() {
+			var bbS2 bitboard
+			if bbPinned&s1.bitboard() > 0 {
+				bbS2 = movePinnedBitboard(s1, pos, p1.Type()) & bbAllowed
+			} else {
+				bbS2 = moveBitboard(s1, pos, p1.Type()) & bbAllowed
+			}
+
+			for ; bbS2 > 0; bbS2 = bbS2.resetLSB() {
 				s2 := bbS2.scanForward()
 
 				p2 := pos.board.pieceByColor(s2, pos.turn.Other())
@@ -84,31 +93,29 @@ func isInCheck(pos *Position) bool {
 // isAttacked does not account for en passant attacks
 func isAttacked(sq Square, pos *Position) bool {
 	c := pos.turn.Other()
-	hv := hvBitboard(sq, pos.bbOccupied)
-	dia := diagonalBitboard(sq, pos.bbOccupied)
-	r := bbKingMoves[sq] & pos.board.getBitboard(newPiece(c, King))
-	r |= (hv | dia) & pos.board.getBitboard(newPiece(c, Queen))
-	r |= hv & pos.board.getBitboard(newPiece(c, Rook))
-	r |= dia & pos.board.getBitboard(newPiece(c, Bishop))
-	r |= bbKnightMoves[sq] & pos.board.getBitboard(newPiece(c, Knight))
+	ra := rookAttacksBitboard(sq, pos.bbOccupied)
+	ba := bishopAttacksBitboard(sq, pos.bbOccupied)
+	bb := bbKingMoves[sq] & pos.getBitboard(newPiece(c, King))
+	bb |= (ra | ba) & pos.getBitboard(newPiece(c, Queen))
+	bb |= ra & pos.getBitboard(newPiece(c, Rook))
+	bb |= ba & pos.getBitboard(newPiece(c, Bishop))
+	bb |= bbKnightMoves[sq] & pos.getBitboard(newPiece(c, Knight))
 
 	if c == White {
-		return (r | bbBlackPawnCaptures[sq]&pos.bbWhitePawn) > 0
+		return (bb | bbBlackPawnCaptures[sq]&pos.bbWhitePawn) > 0
 	}
 
-	return (r | bbWhitePawnCaptures[sq]&pos.bbBlackPawn) > 0
+	return (bb | bbWhitePawnCaptures[sq]&pos.bbBlackPawn) > 0
 }
 
 // isSquaresAttacked does not account for en passant attacks
 func isSquaresAttacked(pos *Position, sqs ...Square) bool {
 	c := pos.turn.Other()
-	var bbHV, bbDia, bbK, bbN, bbP bitboard
+	var bbR, bbB, bbK, bbN, bbP bitboard
 
 	for _, sq := range sqs {
-		hv := hvBitboard(sq, pos.bbOccupied)
-		dia := diagonalBitboard(sq, pos.bbOccupied)
-		bbHV |= hv
-		bbDia |= dia
+		bbR |= rookAttacksBitboard(sq, pos.bbOccupied)
+		bbB |= bishopAttacksBitboard(sq, pos.bbOccupied)
 		bbK |= bbKingMoves[sq]
 		bbN |= bbKnightMoves[sq]
 
@@ -119,22 +126,12 @@ func isSquaresAttacked(pos *Position, sqs ...Square) bool {
 		}
 	}
 
-	if c == White {
-		bb := bbK & pos.bbWhiteKing
-		bb |= (bbHV | bbDia) & pos.bbWhiteQueen
-		bb |= bbHV & pos.bbWhiteRook
-		bb |= bbDia & pos.bbWhiteBishop
-		bb |= bbN & pos.bbWhiteKnight
-		bb |= bbP & pos.bbWhitePawn
-		return bb > 0
-	}
-
-	bb := bbK & pos.bbBlackKing
-	bb |= (bbHV | bbDia) & pos.bbBlackQueen
-	bb |= bbHV & pos.bbBlackRook
-	bb |= bbDia & pos.bbBlackBishop
-	bb |= bbN & pos.bbBlackKnight
-	bb |= bbP & pos.bbBlackPawn
+	bb := bbK & pos.getBitboard(newPiece(c, King))
+	bb |= (bbR | bbB) & pos.getBitboard(newPiece(c, Queen))
+	bb |= bbR & pos.getBitboard(newPiece(c, Rook))
+	bb |= bbB & pos.getBitboard(newPiece(c, Bishop))
+	bb |= bbN & pos.getBitboard(newPiece(c, Knight))
+	bb |= bbP & pos.getBitboard(newPiece(c, Pawn))
 	return bb > 0
 }
 
@@ -146,11 +143,11 @@ func isAttackedByCount(sq Square, pos *Position, by PieceType) int {
 		}
 		return 0
 	case Queen:
-		return ((diagonalBitboard(sq, pos.bbOccupied) | hvBitboard(sq, pos.bbOccupied)) & bb).ones()
+		return ((bishopAttacksBitboard(sq, pos.bbOccupied) | rookAttacksBitboard(sq, pos.bbOccupied)) & bb).ones()
 	case Rook:
-		return (hvBitboard(sq, pos.bbOccupied) & bb).ones()
+		return (rookAttacksBitboard(sq, pos.bbOccupied) & bb).ones()
 	case Bishop:
-		return (diagonalBitboard(sq, pos.bbOccupied) & bb).ones()
+		return (bishopAttacksBitboard(sq, pos.bbOccupied) & bb).ones()
 	case Knight:
 		return (bbKnightMoves[sq] & bb).ones()
 	case Pawn:
@@ -180,50 +177,141 @@ func isAttackedByPawnCount(sq Square, pos *Position) int {
 	return (pos.bbWhitePawn & (captures | enPassantR | enPassantL)).ones()
 }
 
-func moveBitboard(sq Square, pos *Position, pt PieceType) bitboard {
+func movePinnedBitboard(sq Square, pos *Position, pt PieceType) bitboard {
+	king := pos.sqWhiteKing
+	if pos.turn == Black {
+		king = pos.sqBlackKing
+	}
+
 	switch pt {
-	case King:
-		return bbKingMoves[sq]
 	case Queen:
-		return hvBitboard(sq, pos.bbOccupied) | diagonalBitboard(sq, pos.bbOccupied)
+		return pinnedRookAttacksBitboard(sq, king, pos.bbOccupied) |
+			pinnedBishopAttacksBitboard(sq, king, pos.bbOccupied)
 	case Rook:
-		return hvBitboard(sq, pos.bbOccupied)
+		return pinnedRookAttacksBitboard(sq, king, pos.bbOccupied)
 	case Bishop:
-		return diagonalBitboard(sq, pos.bbOccupied)
+		return pinnedBishopAttacksBitboard(sq, king, pos.bbOccupied)
 	case Knight:
-		return bbKnightMoves[sq]
+		return 0 // knights are always absolutely pinned
 	case Pawn:
-		return pawnBitboard(sq, pos)
+		pinner := pos.getPinner(pos.turn)
+		bb := pinner & pawnCapturesBitboard(sq, pos)
+		if bbFiles[sq]&pinner > 0 {
+			bb |= pawnPushesBitboard(sq, pos)
+		}
+		return bb
 	default:
 		return 0
 	}
 }
 
-func pawnBitboard(sq Square, pos *Position) bitboard {
+func moveBitboard(sq Square, pos *Position, pt PieceType) bitboard {
+	switch pt {
+	case King:
+		return bbKingMoves[sq]
+	case Queen:
+		return rookAttacksBitboard(sq, pos.bbOccupied) | bishopAttacksBitboard(sq, pos.bbOccupied)
+	case Rook:
+		return rookAttacksBitboard(sq, pos.bbOccupied)
+	case Bishop:
+		return bishopAttacksBitboard(sq, pos.bbOccupied)
+	case Knight:
+		return bbKnightMoves[sq]
+	case Pawn:
+		return pawnPushesBitboard(sq, pos) | pawnCapturesBitboard(sq, pos)
+	default:
+		return 0
+	}
+}
+
+func pawnPushesBitboard(sq Square, pos *Position) bitboard {
+	if pos.turn == White {
+		upOne := ^pos.bbOccupied & bbWhitePawnPushes[sq]
+		upTwo := ^pos.bbOccupied & ((upOne & bbRank3) << 8)
+		return upOne | upTwo
+	}
+
+	upOne := ^pos.bbOccupied & bbBlackPawnPushes[sq]
+	upTwo := ^pos.bbOccupied & ((upOne & bbRank6) >> 8)
+	return upOne | upTwo
+}
+
+func pawnCapturesBitboard(sq Square, pos *Position) bitboard {
 	var bbEnPassant bitboard
 	if pos.enPassant != NoSquare {
 		bbEnPassant = pos.enPassant.bitboard()
 	}
 
 	if pos.turn == White {
-		captures := (pos.bbBlack | bbEnPassant) & bbWhitePawnCaptures[sq]
-		upOne := pos.bbEmpty & bbWhitePawnPushes[sq]
-		upTwo := pos.bbEmpty & ((upOne & bbRank3) << 8)
-		return captures | upOne | upTwo
+		return (pos.bbBlack | bbEnPassant) & bbWhitePawnCaptures[sq]
 	}
 
-	captures := (pos.bbWhite | bbEnPassant) & bbBlackPawnCaptures[sq]
-	upOne := pos.bbEmpty & bbBlackPawnPushes[sq]
-	upTwo := pos.bbEmpty & ((upOne & bbRank6) >> 8)
-	return captures | upOne | upTwo
+	return (pos.bbWhite | bbEnPassant) & bbBlackPawnCaptures[sq]
 }
 
-func diagonalBitboard(sq Square, occupied bitboard) bitboard {
+func pinnedBitboard(sq Square, occupied, blockers, queen, rook, bishop bitboard) (bitboard, bitboard) {
+	var pinned, pinner bitboard
+
+	rPinner := xrayRookAttacksBitboard(sq, occupied, blockers) & (queen | rook)
+	pinner |= rPinner
+
+	for ; rPinner > 0; rPinner = rPinner.resetLSB() {
+		s := rPinner.scanForward()
+		pinned |= bbInBetween[sq][s] & blockers
+	}
+
+	bPinner := xrayBishopAttacksBitboard(sq, occupied, blockers) & (queen | bishop)
+	pinner |= bPinner
+
+	for ; bPinner > 0; bPinner = bPinner.resetLSB() {
+		s := bPinner.scanForward()
+		pinned |= bbInBetween[sq][s] & blockers
+	}
+
+	return pinned, pinner
+}
+
+func xrayBishopAttacksBitboard(sq Square, occupied, blockers bitboard) bitboard {
+	attacks := bishopAttacksBitboard(sq, occupied)
+	blockers &= attacks
+	return attacks ^ bishopAttacksBitboard(sq, occupied^blockers)
+}
+
+func xrayRookAttacksBitboard(sq Square, occupied, blockers bitboard) bitboard {
+	attacks := rookAttacksBitboard(sq, occupied)
+	blockers &= attacks
+	return attacks ^ rookAttacksBitboard(sq, occupied^blockers)
+}
+
+func pinnedBishopAttacksBitboard(sq, king Square, occupied bitboard) bitboard {
+	if bb := bbDiagonals[sq]; bb&king.bitboard() > 0 {
+		return linearBitboard(sq, occupied, bb)
+	}
+
+	if bb := bbAntiDiagonals[sq]; bb&king.bitboard() > 0 {
+		return linearBitboard(sq, occupied, bb)
+	}
+
+	return 0
+}
+
+func pinnedRookAttacksBitboard(sq, king Square, occupied bitboard) bitboard {
+	if bb := bbRanks[sq]; bb&king.bitboard() > 0 {
+		return linearBitboard(sq, occupied, bb)
+	}
+
+	if bb := bbFiles[sq]; bb&king.bitboard() > 0 {
+		return linearBitboard(sq, occupied, bb)
+	}
+	return 0
+}
+
+func bishopAttacksBitboard(sq Square, occupied bitboard) bitboard {
 	return linearBitboard(sq, occupied, bbDiagonals[sq]) |
 		linearBitboard(sq, occupied, bbAntiDiagonals[sq])
 }
 
-func hvBitboard(sq Square, occupied bitboard) bitboard {
+func rookAttacksBitboard(sq Square, occupied bitboard) bitboard {
 	return linearBitboard(sq, occupied, bbRanks[sq]) |
 		linearBitboard(sq, occupied, bbFiles[sq])
 }

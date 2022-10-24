@@ -2,7 +2,6 @@ package chess
 
 import (
 	"fmt"
-	"sort"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -24,8 +23,8 @@ var perfResults = []perfTest{
 	{
 		"r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1",
 		[]int{
-			48, 2039, 97862,
-			// 4085603, 193690690
+			48, 2039, 97862, 4085603,
+			//  193690690
 		},
 	},
 	{
@@ -59,8 +58,8 @@ var perfResults = []perfTest{
 	{
 		"r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10",
 		[]int{
-			46, 2079, 89890,
-			// 3894594, 164075551, 6923051137, 287188994746, 11923589843526, 490154852788714
+			46, 2079, 89890, 3894594,
+			//  164075551, 6923051137, 287188994746, 11923589843526, 490154852788714
 		},
 	},
 }
@@ -79,7 +78,7 @@ func TestPerfResults(t *testing.T) {
 
 func perft(pos *Position, depth int) int {
 	if depth == 0 {
-		return leafNodes(pos)
+		return len(legalMoves(pos))
 	}
 
 	var count int
@@ -92,23 +91,23 @@ func perft(pos *Position, depth int) int {
 	return count
 }
 
-func leafNodes(pos *Position) int {
-	var count int
+func legalMoves(pos *Position) []Move {
+	var moves []Move
 	for _, m := range pseudoMoves(pos) {
 		if meta, ok := pos.MakeMove(m); ok {
-			count++
+			moves = append(moves, m)
 			pos.UnmakeMove(m, meta)
 		}
 	}
-	return count
+	return moves
 }
 
-func BenchmarkLeafNodes(b *testing.B) {
+func BenchmarkLegalMoves(b *testing.B) {
 	for _, bb := range testPositions {
 		b.Run(bb.preFEN, func(b *testing.B) {
 			pos := unsafeFEN(bb.preFEN)
 			for n := 0; n < b.N; n++ {
-				leafNodes(pos)
+				legalMoves(pos)
 			}
 		})
 	}
@@ -141,8 +140,7 @@ func TestCastlingMoves(t *testing.T) {
 			for _, m := range castlingMoves(unsafeFEN(tt.args)) {
 				moves = append(moves, m.String())
 			}
-			sort.Strings(moves)
-			assert.Equal(t, tt.want, moves)
+			assert.ElementsMatch(t, tt.want, moves)
 		})
 	}
 }
@@ -166,10 +164,8 @@ func TestStandardMoves(t *testing.T) {
 		{
 			"1k2q3/8/8/8/8/8/4R3/4K3 w - - 0 1",
 			[]string{
-				"e1d1", "e1d2", "e1f1", "e1f2", "e2a2",
-				"e2b2", "e2c2", "e2d2", "e2e3", "e2e4",
-				"e2e5", "e2e6", "e2e7", "e2e8", "e2f2",
-				"e2g2", "e2h2",
+				"e1d1", "e1d2", "e1f1", "e1f2", "e2e3",
+				"e2e4", "e2e5", "e2e6", "e2e7", "e2e8",
 			},
 		},
 	}
@@ -180,8 +176,7 @@ func TestStandardMoves(t *testing.T) {
 			for _, m := range standardMoves(unsafeFEN(tt.args)) {
 				moves = append(moves, m.String())
 			}
-			sort.Strings(moves)
-			assert.Equal(t, tt.want, moves)
+			assert.ElementsMatch(t, tt.want, moves)
 		})
 	}
 }
@@ -340,7 +335,7 @@ func BenchmarkMoveBitboard(b *testing.B) {
 	}
 }
 
-func TestPawnBitboards(t *testing.T) {
+func TestPawnPushesBitboards(t *testing.T) {
 	fenWhite := "k7/p7/1p6/2N5/2n2pP1/1P6/P7/K7 w - - 0 1"
 	fenBlack := "k7/p7/1p6/2N5/2n2pP1/1P6/P7/K7 b - g3 0 1"
 	posWhite, posBlack := unsafeFEN(fenWhite), unsafeFEN(fenBlack)
@@ -350,15 +345,38 @@ func TestPawnBitboards(t *testing.T) {
 		pos *Position
 	}{
 		{A2, []Square{A3, A4}, posWhite},
-		{B3, []Square{B4, C4}, posWhite},
+		{B3, []Square{B4}, posWhite},
 		{A7, []Square{A5, A6}, posBlack},
-		{B6, []Square{B5, C5}, posBlack},
-		{F4, []Square{F3, G3}, posBlack},
+		{B6, []Square{B5}, posBlack},
+		{F4, []Square{F3}, posBlack},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.sq.String(), func(t *testing.T) {
-			assert.ElementsMatch(t, tt.set, pawnBitboard(tt.sq, tt.pos).mapping())
+			assert.ElementsMatch(t, tt.set, pawnPushesBitboard(tt.sq, tt.pos).mapping())
+		})
+	}
+}
+
+func TestPawnCapturesBitboards(t *testing.T) {
+	fenWhite := "k7/p7/1p6/2N5/2n2pP1/1P6/P7/K7 w - - 0 1"
+	fenBlack := "k7/p7/1p6/2N5/2n2pP1/1P6/P7/K7 b - g3 0 1"
+	posWhite, posBlack := unsafeFEN(fenWhite), unsafeFEN(fenBlack)
+	tests := []struct {
+		sq  Square
+		set []Square
+		pos *Position
+	}{
+		{A2, nil, posWhite},
+		{B3, []Square{C4}, posWhite},
+		{A7, nil, posBlack},
+		{B6, []Square{C5}, posBlack},
+		{F4, []Square{G3}, posBlack},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.sq.String(), func(t *testing.T) {
+			assert.ElementsMatch(t, tt.set, pawnCapturesBitboard(tt.sq, tt.pos).mapping())
 		})
 	}
 }
@@ -369,7 +387,7 @@ func TestDiagonalBitboard(t *testing.T) {
 		B6, F6, C5, E5, C3,
 		E3, B2, F2, A1, G1,
 	}
-	assert.ElementsMatch(t, want, diagonalBitboard(D4, newBitboard(occupied)).mapping())
+	assert.ElementsMatch(t, want, bishopAttacksBitboard(D4, newBitboard(occupied)).mapping())
 }
 
 func TestHVBitboard(t *testing.T) {
@@ -378,5 +396,5 @@ func TestHVBitboard(t *testing.T) {
 		D8, D7, D6, A5, B5,
 		C5, E5, F5, D4, D3,
 	}
-	assert.ElementsMatch(t, want, hvBitboard(D5, newBitboard(occupied)).mapping())
+	assert.ElementsMatch(t, want, rookAttacksBitboard(D5, newBitboard(occupied)).mapping())
 }

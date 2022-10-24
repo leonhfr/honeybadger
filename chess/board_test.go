@@ -8,6 +8,11 @@ import (
 )
 
 var (
+	pieces = [12]Piece{
+		WhiteKing, WhiteQueen, WhiteRook, WhiteBishop, WhiteKnight, WhitePawn,
+		BlackKing, BlackQueen, BlackRook, BlackBishop, BlackKnight, BlackPawn,
+	}
+
 	startingSquareMap = SquareMap{
 		A8: BlackRook, B8: BlackKnight, C8: BlackBishop, D8: BlackQueen,
 		E8: BlackKing, F8: BlackBishop, G8: BlackKnight, H8: BlackRook,
@@ -34,7 +39,6 @@ var (
 		bbBlackPawn:   71776119061217280,
 		bbWhite:       65535,
 		bbBlack:       18446462598732840960,
-		bbEmpty:       281474976645120,
 		bbOccupied:    18446462598732906495,
 		sqWhiteKing:   E1,
 		sqBlackKing:   E8,

@@ -43,7 +43,8 @@ func BenchmarkPosition_MakeMove(b *testing.B) {
 		b.Run(bb.moveUCI, func(b *testing.B) {
 			pos := unsafeFEN(bb.preFEN)
 			for n := 0; n < b.N; n++ {
-				pos.MakeMove(bb.move)
+				meta, _ := pos.MakeMove(bb.move)
+				pos.UnmakeMove(bb.move, meta)
 			}
 		})
 	}
