@@ -132,9 +132,11 @@ func (pos *Position) MakeMove(m Move) (Metadata, bool) {
 	metadata := newMetadata(pos.turn, pos.castlingRights,
 		pos.halfMoveClock, pos.fullMoves, pos.enPassant)
 
-	pos.board.makeMoveBoard(m)
+	if (m.HasTag(KingSideCastle) || m.HasTag(QueenSideCastle)) && !isCastleLegal(pos, m) {
+		return metadata, false
+	}
 
-	if !(m.HasTag(KingSideCastle) || m.HasTag(QueenSideCastle)) && isInCheck(pos) {
+	if pos.board.makeMoveBoard(m); isInCheck(pos) {
 		pos.board.unmakeMoveBoard(m)
 
 		return metadata, false

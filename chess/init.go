@@ -2,7 +2,16 @@ package chess
 
 import "math"
 
+type castleCheck struct {
+	bbPawn   bitboard
+	bbKnight bitboard
+	bbKing   bitboard
+	squares  [3]Square
+}
+
 var (
+	castleChecks = [4]castleCheck{}
+
 	bbRanks                = [64]bitboard{}
 	bbFiles                = [64]bitboard{}
 	bbDiagonals            = [64]bitboard{}
@@ -36,6 +45,35 @@ func init() {
 		for s2 := A1; s2 <= H8; s2++ {
 			bbInBetween[s1][s2] = initInBetweenBitboard(s1, s2)
 		}
+	}
+
+	initCastleChecks()
+}
+
+func initCastleChecks() {
+	castles := [4]struct {
+		color   Color
+		squares [3]Square
+	}{
+		{White, [3]Square{E1, F1, G1}},
+		{White, [3]Square{C1, D1, E1}},
+		{Black, [3]Square{E8, F8, G8}},
+		{Black, [3]Square{C8, D8, E8}},
+	}
+
+	for i, castle := range castles {
+		var bbPawn, bbKnight, bbKing bitboard
+		for _, sq := range castle.squares {
+			if castle.color == White {
+				bbPawn |= bbWhitePawnCaptures[sq]
+			} else {
+				bbPawn |= bbBlackPawnCaptures[sq]
+			}
+			bbKnight |= bbKnightMoves[sq]
+			bbKing |= bbKingMoves[sq]
+		}
+
+		castleChecks[i] = castleCheck{bbPawn, bbKnight, bbKing, castle.squares}
 	}
 }
 

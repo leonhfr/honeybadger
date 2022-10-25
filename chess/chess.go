@@ -5,40 +5,48 @@ func pseudoMoves(pos *Position) []Move {
 	return append(standardMoves(pos), castlingMoves(pos)...)
 }
 
-type castleCheck struct {
-	color          Color
-	side           Side
-	s1, s2         Square
-	travelBitboard bitboard
-	checkSquares   []Square
-}
-
-var castleChecks = [2][2]castleCheck{
-	{
-		{White, KingSide, E1, G1, F1.bitboard() | G1.bitboard(), []Square{E1, F1, G1}},
-		{White, QueenSide, E1, C1, B1.bitboard() | C1.bitboard() | D1.bitboard(), []Square{C1, D1, E1}},
-	},
-	{
-		{Black, KingSide, E8, G8, F8.bitboard() | G8.bitboard(), []Square{E8, F8, G8}},
-		{Black, QueenSide, E8, C8, B8.bitboard() | C8.bitboard() | D8.bitboard(), []Square{C8, D8, E8}},
-	},
-}
+const (
+	bbKingCastleTravel  bitboard = 1<<F1 | 1<<G1
+	bbQueenCastleTravel bitboard = 1<<B1 | 1<<C1 | 1<<D1
+)
 
 func castlingMoves(pos *Position) []Move {
 	var moves []Move
-	for _, check := range castleChecks[pos.turn] {
-		if !pos.castlingRights.CanCastle(pos.turn, check.side) ||
-			pos.bbOccupied&check.travelBitboard > 0 {
-			continue
-		}
 
-		if isSquaresAttacked(pos, check.checkSquares...) {
-			continue
-		}
-
-		m := newMove(newPiece(check.color, King), NoPiece, check.s1, check.s2, pos.enPassant, NoPiece)
-		moves = append(moves, m)
+	bbKingTravel, bbQueenTravel := bbKingCastleTravel, bbQueenCastleTravel
+	sqKing, sqKingSide, sqQueenSide := E1, G1, C1
+	if pos.turn == Black {
+		bbKingTravel <<= 56
+		bbQueenTravel <<= 56
+		sqKing += 56
+		sqKingSide += 56
+		sqQueenSide += 56
 	}
+
+	if pos.castlingRights.CanCastle(pos.turn, KingSide) &&
+		pos.bbOccupied&bbKingTravel == 0 {
+		moves = append(moves, newMove(
+			newPiece(pos.turn, King),
+			NoPiece,
+			sqKing,
+			sqKingSide,
+			pos.enPassant,
+			NoPiece,
+		))
+	}
+
+	if pos.castlingRights.CanCastle(pos.turn, QueenSide) &&
+		pos.bbOccupied&bbQueenTravel == 0 {
+		moves = append(moves, newMove(
+			newPiece(pos.turn, King),
+			NoPiece,
+			sqKing,
+			sqQueenSide,
+			pos.enPassant,
+			NoPiece,
+		))
+	}
+
 	return moves
 }
 
@@ -108,31 +116,42 @@ func isAttacked(sq Square, pos *Position) bool {
 	return (bb | bbWhitePawnCaptures[sq]&pos.bbBlackPawn) > 0
 }
 
-// isSquaresAttacked does not account for en passant attacks
-func isSquaresAttacked(pos *Position, sqs ...Square) bool {
-	c := pos.turn.Other()
-	var bbR, bbB, bbK, bbN, bbP bitboard
-
-	for _, sq := range sqs {
-		bbR |= rookAttacksBitboard(sq, pos.bbOccupied)
-		bbB |= bishopAttacksBitboard(sq, pos.bbOccupied)
-		bbK |= bbKingMoves[sq]
-		bbN |= bbKnightMoves[sq]
-
-		if c == White {
-			bbP |= bbBlackPawnCaptures[sq]
-		} else {
-			bbP |= bbWhitePawnCaptures[sq]
-		}
+func isCastleLegal(pos *Position, m Move) bool {
+	var index int
+	switch {
+	case pos.turn == White && m.HasTag(KingSideCastle):
+		index = 0
+	case pos.turn == White && m.HasTag(QueenSideCastle):
+		index = 1
+	case pos.turn == Black && m.HasTag(KingSideCastle):
+		index = 2
+	case pos.turn == Black && m.HasTag(QueenSideCastle):
+		index = 3
 	}
 
-	bb := bbK & pos.getBitboard(newPiece(c, King))
-	bb |= (bbR | bbB) & pos.getBitboard(newPiece(c, Queen))
-	bb |= bbR & pos.getBitboard(newPiece(c, Rook))
-	bb |= bbB & pos.getBitboard(newPiece(c, Bishop))
-	bb |= bbN & pos.getBitboard(newPiece(c, Knight))
-	bb |= bbP & pos.getBitboard(newPiece(c, Pawn))
-	return bb > 0
+	c := pos.turn.Other()
+	check := castleChecks[index]
+
+	if check.bbPawn&pos.getBitboard(newPiece(c, Pawn)) > 0 ||
+		check.bbKnight&pos.getBitboard(newPiece(c, Knight)) > 0 ||
+		check.bbKing&pos.getBitboard(newPiece(c, King)) > 0 {
+		return false
+	}
+
+	var bbBishop, bbRook bitboard
+	for _, sq := range check.squares {
+		bbBishop |= bishopAttacksBitboard(sq, pos.bbOccupied)
+	}
+
+	if bb := pos.getBitboard(newPiece(c, Bishop)) | pos.getBitboard(newPiece(c, Queen)); bbBishop&bb > 0 {
+		return false
+	}
+
+	for _, sq := range check.squares {
+		bbRook |= rookAttacksBitboard(sq, pos.bbOccupied)
+	}
+
+	return bbRook&(pos.getBitboard(newPiece(c, Rook))|pos.getBitboard(newPiece(c, Queen))) == 0
 }
 
 func isAttackedByCount(sq Square, pos *Position, by PieceType) int {
