@@ -166,14 +166,14 @@ func isAttackedByPawnCount(sq Square, pos *Position) int {
 
 	if pos.turn == White {
 		captures := bbWhitePawnCaptures[sq]
-		enPassantR := (bbSquare & (bbEnPassant << 8) & bbNotFileH) >> 1
-		enPassantL := (bbSquare & (bbEnPassant << 8) & bbNotFileA) << 1
+		enPassantR := (bbSquare & (bbEnPassant << 8) & ^bbFileH) >> 1
+		enPassantL := (bbSquare & (bbEnPassant << 8) & ^bbFileA) << 1
 		return (pos.bbBlackPawn & (captures | enPassantR | enPassantL)).ones()
 	}
 
 	captures := bbBlackPawnCaptures[sq]
-	enPassantR := (bbSquare & (bbEnPassant >> 8) & bbNotFileH) << 1
-	enPassantL := (bbSquare & (bbEnPassant >> 8) & bbNotFileA) >> 1
+	enPassantR := (bbSquare & (bbEnPassant >> 8) & ^bbFileH) << 1
+	enPassantL := (bbSquare & (bbEnPassant >> 8) & ^bbFileA) >> 1
 	return (pos.bbWhitePawn & (captures | enPassantR | enPassantL)).ones()
 }
 
@@ -303,6 +303,7 @@ func pinnedRookAttacksBitboard(sq, king Square, occupied bitboard) bitboard {
 	if bb := bbFiles[sq]; bb&king.bitboard() > 0 {
 		return linearBitboard(sq, occupied, bb)
 	}
+
 	return 0
 }
 
