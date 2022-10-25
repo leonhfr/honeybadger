@@ -15,7 +15,7 @@ test:
 
 .PHONY: bench
 bench:
-	go test -bench . ./... -benchmem -run=^#
+	go test -bench . ./... -benchmem -run=^# | grep --line-buffered -E '^goos|^goarch|^pkg|^cpu|^Benchmark' | tee ./docs/benchmarks.txt
 
 .PHONY: lint
 lint:
