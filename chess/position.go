@@ -167,6 +167,13 @@ func (pos *Position) UnmakeMove(m Move, meta Metadata) {
 	pos.fullMoves = meta.fullMoves()
 }
 
+// Hash returns a Zobrist hash of the position.
+//
+// The hash is compatible with polyglot files.
+func (pos *Position) Hash() uint64 {
+	return zobristHash(pos)
+}
+
 // Copy returns a copy of the position.
 func (pos *Position) Copy() *Position {
 	return &Position{
