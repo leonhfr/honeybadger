@@ -30,14 +30,14 @@ func zobristHash(position *Position) (hash uint64) {
 //
 //	offset = 64 * pieceKindOffsets[piece] + 8 * rank + file
 func pieceHash(pos *Position) (hash uint64) {
-	for p := WhitePawn; p <= BlackKing; p++ {
+	for p := BlackPawn; p <= WhiteKing; p++ {
 		for bb := pos.getBitboard(p); bb > 0; bb = bb.resetLSB() {
 			switch sq := bb.scanForward(); p.Color() {
 			case White:
-				offset := 64*(uint16(p)-1) + uint16(sq)
+				offset := 64*uint16(p) + uint16(sq)
 				hash ^= polyRandom[offset]
 			case Black:
-				offset := 64*(uint16(p)-3) + uint16(sq)
+				offset := 64*uint16(p) + uint16(sq)
 				hash ^= polyRandom[offset]
 			}
 		}

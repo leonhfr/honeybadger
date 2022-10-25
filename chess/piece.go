@@ -4,10 +4,10 @@ package chess
 type Color uint8
 
 const (
-	// White represents the white color.
-	White Color = iota
 	// Black represents the black color.
-	Black
+	Black Color = iota
+	// White represents the white color.
+	White
 )
 
 // Other returns the other color.
@@ -18,7 +18,7 @@ func (c Color) Other() Color {
 	return White
 }
 
-const colorName = "wb"
+const colorName = "bw"
 
 // String implements the Stringer interface.
 // Returns an UCI-compatible representation.
@@ -30,10 +30,8 @@ func (c Color) String() string {
 type PieceType uint8
 
 const (
-	// NoPieceType represents an absence of PieceType.
-	NoPieceType PieceType = iota << 1
 	// Pawn represents a pawn.
-	Pawn
+	Pawn PieceType = iota << 1
 	// Knight represents a knight.
 	Knight
 	// Bishop represents a bishop.
@@ -44,9 +42,11 @@ const (
 	Queen
 	// King represents a king.
 	King
+	// NoPieceType represents an absence of PieceType.
+	NoPieceType
 )
 
-const pieceTypeName = "-pnbrqk"
+const pieceTypeName = "pnbrqk-"
 
 // String implements the Stringer interface.
 // Returns an UCI-compatible representation.
@@ -58,39 +58,39 @@ func (pt PieceType) String() string {
 type Piece uint8
 
 const (
-	// NoPiece represents an absence of Piece.
-	NoPiece Piece = 0
-	// WhitePawn represents a white pawn.
-	WhitePawn Piece = Piece(White) | Piece(Pawn)
-	// WhiteKnight represents a white knight.
-	WhiteKnight Piece = Piece(White) | Piece(Knight)
-	// WhiteBishop represents a white bishop.
-	WhiteBishop Piece = Piece(White) | Piece(Bishop)
-	// WhiteRook represents a white rook.
-	WhiteRook Piece = Piece(White) | Piece(Rook)
-	// WhiteQueen represents a white queen.
-	WhiteQueen Piece = Piece(White) | Piece(Queen)
-	// WhiteKing represents a white king.
-	WhiteKing Piece = Piece(White) | Piece(King)
 	// BlackPawn represents a black pawn.
 	BlackPawn Piece = Piece(Black) | Piece(Pawn)
+	// WhitePawn represents a white pawn.
+	WhitePawn Piece = Piece(White) | Piece(Pawn)
 	// BlackKnight represents a black knight.
 	BlackKnight Piece = Piece(Black) | Piece(Knight)
+	// WhiteKnight represents a white knight.
+	WhiteKnight Piece = Piece(White) | Piece(Knight)
 	// BlackBishop represents a black bishop.
 	BlackBishop Piece = Piece(Black) | Piece(Bishop)
+	// WhiteBishop represents a white bishop.
+	WhiteBishop Piece = Piece(White) | Piece(Bishop)
 	// BlackRook represents a black rook.
 	BlackRook Piece = Piece(Black) | Piece(Rook)
+	// WhiteRook represents a white rook.
+	WhiteRook Piece = Piece(White) | Piece(Rook)
 	// BlackQueen represents a black queen.
 	BlackQueen Piece = Piece(Black) | Piece(Queen)
+	// WhiteQueen represents a white queen.
+	WhiteQueen Piece = Piece(White) | Piece(Queen)
 	// BlackKing represents a black king.
 	BlackKing Piece = Piece(Black) | Piece(King)
+	// WhiteKing represents a white king.
+	WhiteKing Piece = Piece(White) | Piece(King)
+	// NoPiece represents an absence of Piece.
+	NoPiece Piece = 12
 )
 
 func newPiece(c Color, pt PieceType) Piece {
 	return Piece(c) | Piece(pt)
 }
 
-const pieceName = "--PpNnBbRrQqKk"
+const pieceName = "pPnNbBrRqQkK-"
 
 // String implements the Stringer interface.
 // Returns an UCI-compatible representation.

@@ -59,7 +59,7 @@ func standardMoves(pos *Position) []Move {
 	bbPinned := pos.getPinned(pos.turn)
 
 	moves := []Move{}
-	for p1 := newPiece(pos.turn, Pawn); p1 <= BlackKing; p1 += 2 {
+	for p1 := newPiece(pos.turn, Pawn); p1 <= WhiteKing; p1 += 2 {
 		for bbS1 := pos.board.getBitboard(p1); bbS1 > 0; bbS1 = bbS1.resetLSB() {
 			s1 := bbS1.scanForward()
 
