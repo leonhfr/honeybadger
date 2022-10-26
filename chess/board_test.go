@@ -40,8 +40,8 @@ var (
 		bbWhite:       65535,
 		bbBlack:       18446462598732840960,
 		bbOccupied:    18446462598732906495,
-		sqWhiteKing:   E1,
-		sqBlackKing:   E8,
+		bbPinned:      0,
+		bbPinner:      0,
 	}
 
 	startingBoardMap = map[Piece][]Square{

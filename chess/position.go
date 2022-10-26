@@ -88,8 +88,8 @@ func (pos Position) CastlingRights() CastlingRights {
 	return pos.castlingRights
 }
 
-// EnPassantSquare returns the en passant square.
-func (pos Position) EnPassantSquare() Square {
+// EnPassant returns the en passant square.
+func (pos Position) EnPassant() Square {
 	return pos.enPassant
 }
 
@@ -101,6 +101,11 @@ func (pos Position) HalfMoveClock() uint8 {
 // FullMoves returns the full moves count.
 func (pos Position) FullMoves() uint8 {
 	return pos.fullMoves
+}
+
+// InCheck indicates whether the position is in check.
+func (pos Position) InCheck() bool {
+	return pos.getCheck(pos.turn.Other()) > 0
 }
 
 func (pos Position) String() string {
@@ -136,7 +141,7 @@ func (pos *Position) MakeMove(m Move) (Metadata, bool) {
 		return metadata, false
 	}
 
-	if pos.board.makeMoveBoard(m); isInCheck(pos) {
+	if pos.board.makeMoveBoard(m); pos.getCheck(pos.turn.Other()) > 0 {
 		pos.board.unmakeMoveBoard(m)
 
 		return metadata, false

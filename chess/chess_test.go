@@ -192,82 +192,6 @@ func BenchmarkStandardMoves(b *testing.B) {
 	}
 }
 
-func TestIsInCheck(t *testing.T) {
-	pos := unsafeFEN("k6q/8/8/8/8/8/8/K7 w - - 0 1")
-	assert.True(t, isInCheck(pos))
-}
-
-func BenchmarkIsInCheck(b *testing.B) {
-	pos := unsafeFEN("k6q/8/8/8/8/8/8/K7 w - - 0 1")
-	for n := 0; n < b.N; n++ {
-		isInCheck(pos)
-	}
-}
-
-func TestIsAttackedByCount(t *testing.T) {
-	fen := "K2r3q/8/8/2p5/r2Q4/2k2n2/4n3/6b1 w - - 0 1"
-	pos := unsafeFEN(fen)
-	sq := D4
-
-	tests := []struct {
-		args PieceType
-		want int
-	}{
-		{King, 1},
-		{Queen, 1},
-		{Rook, 2},
-		{Bishop, 1},
-		{Knight, 2},
-		{Pawn, 1},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.args.String(), func(t *testing.T) {
-			assert.Equal(t, tt.want, isAttackedByCount(sq, pos, tt.args))
-		})
-	}
-}
-
-func BenchmarkIsAttackedByCount(b *testing.B) {
-	benchmarks := []PieceType{King, Queen, Rook, Bishop, Knight, Pawn}
-	pos := unsafeFEN("K2r3q/8/8/2p5/r2Q4/2k2n2/4n3/6b1 w - - 0 1")
-	sq := D4
-
-	for _, bb := range benchmarks {
-		b.Run(bb.String(), func(b *testing.B) {
-			for n := 0; n < b.N; n++ {
-				isAttackedByCount(sq, pos, bb)
-			}
-		})
-	}
-}
-
-func TestIsAttackedByPawnCount(t *testing.T) {
-	type args struct {
-		sq  Square
-		fen string
-	}
-
-	tests := []struct {
-		args args
-		want int
-	}{
-		{args{A2, "k7/p1p5/1P1P3P/8/8/1p1p3p/P1P5/K7 w - - 0 1"}, 1},
-		{args{C2, "k7/p1p5/1P1P3P/8/8/1p1p3p/P1P5/K7 w - - 0 1"}, 2},
-		{args{A7, "k7/p1p5/1P1P3P/8/8/1p1p3p/P1P5/K7 b - - 0 1"}, 1},
-		{args{C7, "k7/p1p5/1P1P3P/8/8/1p1p3p/P1P5/K7 b - - 0 1"}, 2},
-		{args{G4, "k7/p1p5/1P1P3P/5Pp1/5pP1/1p1p3p/P1P5/K7 w - g3 0 1"}, 1},
-		{args{G5, "k7/p1p5/1P1P3P/5Pp1/5pP1/1p1p3p/P1P5/K7 b - g6 0 1"}, 1},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.args.sq.String(), func(t *testing.T) {
-			got := isAttackedByPawnCount(tt.args.sq, unsafeFEN(tt.args.fen))
-			assert.Equal(t, tt.want, got)
-		})
-	}
-}
-
 func TestMoveBitboard(t *testing.T) {
 	fen := "k7/8/8/8/8/8/5P2/KQRBN3 w - - 0 1"
 	pos := unsafeFEN(fen)
@@ -378,6 +302,23 @@ func TestPawnCapturesBitboards(t *testing.T) {
 		t.Run(tt.sq.String(), func(t *testing.T) {
 			assert.ElementsMatch(t, tt.set, pawnCapturesBitboard(tt.sq, tt.pos).mapping())
 		})
+	}
+}
+
+func TestCheckBitboard(t *testing.T) {
+	pos := unsafeFEN("k6q/8/8/8/8/8/8/K7 w - - 0 1")
+	cb := checkBitboard(A1, White, pos.bbOccupied,
+		pos.bbBlackKing, pos.bbBlackQueen, pos.bbBlackRook,
+		pos.bbBlackBishop, pos.bbBlackKnight, pos.bbBlackPawn)
+	assert.Equal(t, newBitboard([]Square{H8}), cb)
+}
+
+func BenchmarkCheckBitboard(b *testing.B) {
+	pos := unsafeFEN("k6q/8/8/8/8/8/8/K7 w - - 0 1")
+	for n := 0; n < b.N; n++ {
+		checkBitboard(A1, White, pos.bbOccupied,
+			pos.bbBlackKing, pos.bbBlackQueen, pos.bbBlackRook,
+			pos.bbBlackBishop, pos.bbBlackKnight, pos.bbBlackPawn)
 	}
 }
 

@@ -22,12 +22,9 @@ type board struct {
 	bbWhite       bitboard
 	bbBlack       bitboard
 	bbOccupied    bitboard
-	bbWhitePinned bitboard
-	bbBlackPinned bitboard
-	bbWhitePinner bitboard
-	bbBlackPinner bitboard
-	sqWhiteKing   Square
-	sqBlackKing   Square
+	bbPinned      bitboard // pinned pieces (can still move in direction of and attack pinner)
+	bbPinner      bitboard // pieces that pin some opponent's pieces
+	bbCheck       bitboard // pieces that give check
 }
 
 func newBoard(m SquareMap) board {
@@ -46,10 +43,22 @@ func (b *board) computeConvenienceBitboards() {
 		b.bbBlackBishop | b.bbBlackKnight | b.bbBlackPawn
 	b.bbOccupied = b.bbWhite | b.bbBlack
 
-	b.bbWhitePinned, b.bbWhitePinner = pinnedBitboard(b.sqWhiteKing,
-		b.bbOccupied, b.bbWhite, b.bbBlackQueen, b.bbBlackRook, b.bbBlackBishop)
-	b.bbBlackPinned, b.bbBlackPinner = pinnedBitboard(b.sqBlackKing,
-		b.bbOccupied, b.bbBlack, b.bbWhiteQueen, b.bbWhiteRook, b.bbWhiteBishop)
+	whiteKing, blackKing := b.getKingSquare(White), b.getKingSquare(Black)
+
+	bbWhitePinned, bbWhitePinner := pinnedBitboard(whiteKing, b.bbOccupied,
+		b.bbWhite, b.bbBlackQueen, b.bbBlackRook, b.bbBlackBishop)
+	bbBlackPinned, bbBlackPinner := pinnedBitboard(blackKing, b.bbOccupied,
+		b.bbBlack, b.bbWhiteQueen, b.bbWhiteRook, b.bbWhiteBishop)
+	b.bbPinned = bbWhitePinned | bbBlackPinned
+	b.bbPinner = bbWhitePinner | bbBlackPinner
+
+	bbWhiteCheck := checkBitboard(whiteKing, White, b.bbOccupied,
+		b.bbBlackKing, b.bbBlackQueen, b.bbBlackRook,
+		b.bbBlackBishop, b.bbBlackKnight, b.bbBlackPawn)
+	bbBlackCheck := checkBitboard(blackKing, Black, b.bbOccupied,
+		b.bbWhiteKing, b.bbWhiteQueen, b.bbWhiteRook,
+		b.bbWhiteBishop, b.bbWhiteKnight, b.bbWhitePawn)
+	b.bbCheck = bbWhiteCheck | bbBlackCheck
 }
 
 func (b board) squareMap() SquareMap {
@@ -211,7 +220,6 @@ func (b *board) setPiece(p Piece, sq Square) {
 	switch bb := sq.bitboard(); p {
 	case WhiteKing:
 		b.bbWhiteKing |= bb
-		b.sqWhiteKing = sq
 	case WhiteQueen:
 		b.bbWhiteQueen |= bb
 	case WhiteRook:
@@ -224,7 +232,6 @@ func (b *board) setPiece(p Piece, sq Square) {
 		b.bbWhitePawn |= bb
 	case BlackKing:
 		b.bbBlackKing |= bb
-		b.sqBlackKing = sq
 	case BlackQueen:
 		b.bbBlackQueen |= bb
 	case BlackRook:
@@ -298,18 +305,39 @@ func (b board) getBitboard(p Piece) bitboard {
 	}
 }
 
+func (b board) getColor(c Color) bitboard {
+	if c == White {
+		return b.bbWhite
+	}
+	return b.bbBlack
+}
+
 func (b board) getPinned(c Color) bitboard {
 	if c == White {
-		return b.bbWhitePinned
+		return b.bbPinned & b.bbWhite
 	}
-	return b.bbBlackPinned
+	return b.bbPinned & b.bbBlack
 }
 
 func (b board) getPinner(c Color) bitboard {
 	if c == White {
-		return b.bbWhitePinner
+		return b.bbPinner & b.bbWhite
 	}
-	return b.bbBlackPinner
+	return b.bbPinner & b.bbBlack
+}
+
+func (b board) getCheck(c Color) bitboard {
+	if c == White {
+		return b.bbCheck & b.bbWhite
+	}
+	return b.bbCheck & b.bbBlack
+}
+
+func (b board) getKingSquare(c Color) Square {
+	if c == White {
+		return b.bbWhiteKing.scanForward()
+	}
+	return b.bbBlackKing.scanForward()
 }
 
 func (b board) copyBoard() board {
@@ -329,11 +357,8 @@ func (b board) copyBoard() board {
 		bbWhite:       b.bbWhite,
 		bbBlack:       b.bbBlack,
 		bbOccupied:    b.bbOccupied,
-		bbWhitePinned: b.bbWhitePinned,
-		bbBlackPinned: b.bbBlackPinned,
-		bbWhitePinner: b.bbWhitePinner,
-		bbBlackPinner: b.bbBlackPinner,
-		sqWhiteKing:   b.sqWhiteKing,
-		sqBlackKing:   b.sqBlackKing,
+		bbPinned:      b.bbPinned,
+		bbPinner:      b.bbPinner,
+		bbCheck:       b.bbCheck,
 	}
 }

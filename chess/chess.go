@@ -51,11 +51,7 @@ func castlingMoves(pos *Position) []Move {
 }
 
 func standardMoves(pos *Position) []Move {
-	bbAllowed := ^pos.bbWhite
-	if pos.turn == Black {
-		bbAllowed = ^pos.bbBlack
-	}
-
+	bbAllowed := ^pos.getColor(pos.turn)
 	bbPinned := pos.getPinned(pos.turn)
 
 	moves := []Move{}
@@ -90,43 +86,13 @@ func standardMoves(pos *Position) []Move {
 	return moves
 }
 
-func isInCheck(pos *Position) bool {
-	if pos.turn == White {
-		return isAttacked(pos.sqWhiteKing, pos)
-	}
-
-	return isAttacked(pos.sqBlackKing, pos)
-}
-
-// isAttacked does not account for en passant attacks
-func isAttacked(sq Square, pos *Position) bool {
-	c := pos.turn.Other()
-	ra := rookAttacksBitboard(sq, pos.bbOccupied)
-	ba := bishopAttacksBitboard(sq, pos.bbOccupied)
-	bb := bbKingMoves[sq] & pos.getBitboard(newPiece(c, King))
-	bb |= (ra | ba) & pos.getBitboard(newPiece(c, Queen))
-	bb |= ra & pos.getBitboard(newPiece(c, Rook))
-	bb |= ba & pos.getBitboard(newPiece(c, Bishop))
-	bb |= bbKnightMoves[sq] & pos.getBitboard(newPiece(c, Knight))
-
-	if c == White {
-		return (bb | bbBlackPawnCaptures[sq]&pos.bbWhitePawn) > 0
-	}
-
-	return (bb | bbWhitePawnCaptures[sq]&pos.bbBlackPawn) > 0
-}
-
 func isCastleLegal(pos *Position, m Move) bool {
 	var index int
-	switch {
-	case pos.turn == White && m.HasTag(KingSideCastle):
-		index = 0
-	case pos.turn == White && m.HasTag(QueenSideCastle):
-		index = 1
-	case pos.turn == Black && m.HasTag(KingSideCastle):
-		index = 2
-	case pos.turn == Black && m.HasTag(QueenSideCastle):
-		index = 3
+	if m.HasTag(QueenSideCastle) {
+		index |= 1
+	}
+	if pos.turn == Black {
+		index |= 2
 	}
 
 	c := pos.turn.Other()
@@ -154,55 +120,8 @@ func isCastleLegal(pos *Position, m Move) bool {
 	return bbRook&(pos.getBitboard(newPiece(c, Rook))|pos.getBitboard(newPiece(c, Queen))) == 0
 }
 
-func isAttackedByCount(sq Square, pos *Position, by PieceType) int {
-	switch bb := pos.getBitboard(newPiece(pos.turn.Other(), by)); by {
-	case King:
-		if (bb & bbKingMoves[sq]) != 0 {
-			return 1
-		}
-		return 0
-	case Queen:
-		return ((bishopAttacksBitboard(sq, pos.bbOccupied) | rookAttacksBitboard(sq, pos.bbOccupied)) & bb).ones()
-	case Rook:
-		return (rookAttacksBitboard(sq, pos.bbOccupied) & bb).ones()
-	case Bishop:
-		return (bishopAttacksBitboard(sq, pos.bbOccupied) & bb).ones()
-	case Knight:
-		return (bbKnightMoves[sq] & bb).ones()
-	case Pawn:
-		return isAttackedByPawnCount(sq, pos)
-	default:
-		return 0
-	}
-}
-
-func isAttackedByPawnCount(sq Square, pos *Position) int {
-	bbSquare := sq.bitboard()
-	var bbEnPassant bitboard
-	if pos.enPassant != NoSquare {
-		bbEnPassant = pos.enPassant.bitboard()
-	}
-
-	if pos.turn == White {
-		captures := bbWhitePawnCaptures[sq]
-		enPassantR := (bbSquare & (bbEnPassant << 8) & ^bbFileH) >> 1
-		enPassantL := (bbSquare & (bbEnPassant << 8) & ^bbFileA) << 1
-		return (pos.bbBlackPawn & (captures | enPassantR | enPassantL)).ones()
-	}
-
-	captures := bbBlackPawnCaptures[sq]
-	enPassantR := (bbSquare & (bbEnPassant >> 8) & ^bbFileH) << 1
-	enPassantL := (bbSquare & (bbEnPassant >> 8) & ^bbFileA) >> 1
-	return (pos.bbWhitePawn & (captures | enPassantR | enPassantL)).ones()
-}
-
 func movePinnedBitboard(sq Square, pos *Position, pt PieceType) bitboard {
-	king := pos.sqWhiteKing
-	if pos.turn == Black {
-		king = pos.sqBlackKing
-	}
-
-	switch pt {
+	switch king := pos.getKingSquare(pos.turn); pt {
 	case Queen:
 		return pinnedRookAttacksBitboard(sq, king, pos.bbOccupied) |
 			pinnedBishopAttacksBitboard(sq, king, pos.bbOccupied)
@@ -213,7 +132,7 @@ func movePinnedBitboard(sq Square, pos *Position, pt PieceType) bitboard {
 	case Knight:
 		return 0 // knights are always absolutely pinned
 	case Pawn:
-		pinner := pos.getPinner(pos.turn)
+		pinner := pos.getPinner(pos.turn.Other())
 		bb := pinner & pawnCapturesBitboard(sq, pos)
 		if bbFiles[sq]&pinner > 0 {
 			bb |= pawnPushesBitboard(sq, pos)
@@ -266,6 +185,23 @@ func pawnCapturesBitboard(sq Square, pos *Position) bitboard {
 	}
 
 	return (pos.bbWhite | bbEnPassant) & bbBlackPawnCaptures[sq]
+}
+
+func checkBitboard(sq Square, c Color, occupied, k, q, r, b, n, p bitboard) bitboard {
+	bbRank := (q | r) & linearBitboard(sq, occupied, bbRanks[sq])
+	bbFile := (q | r) & linearBitboard(sq, occupied, bbFiles[sq])
+	bbDiag := (q | b) & linearBitboard(sq, occupied, bbDiagonals[sq])
+	bbAnti := (q | b) & linearBitboard(sq, occupied, bbAntiDiagonals[sq])
+
+	bbCheck := bbRank | bbFile | bbDiag | bbAnti
+	bbCheck |= k & bbKingMoves[sq]
+	bbCheck |= n & bbKnightMoves[sq]
+
+	if c == Black {
+		return bbCheck | p&bbBlackPawnCaptures[sq]
+	}
+
+	return bbCheck | p&bbWhitePawnCaptures[sq]
 }
 
 func pinnedBitboard(sq Square, occupied, blockers, queen, rook, bishop bitboard) (bitboard, bitboard) {
