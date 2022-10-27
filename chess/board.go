@@ -71,8 +71,12 @@ func (b board) squareMap() SquareMap {
 	return m
 }
 
-func (b board) piece(sq Square) Piece {
-	for p := BlackPawn; p <= WhiteKing; p++ {
+func (b board) pieceAt(sq Square) Piece {
+	p := BlackPawn
+	if b.bbWhite&sq.bitboard() > 0 {
+		p = WhitePawn
+	}
+	for ; p <= WhiteKing; p += 2 {
 		if b.getBitboard(p).occupied(sq) {
 			return p
 		}
@@ -81,7 +85,7 @@ func (b board) piece(sq Square) Piece {
 }
 
 func (b board) pieceByColor(sq Square, c Color) Piece {
-	for p := newPiece(c, Pawn); p <= WhiteKing; p += 2 {
+	for p := Pawn.color(c); p <= WhiteKing; p += 2 {
 		if b.getBitboard(p).occupied(sq) {
 			return p
 		}
@@ -201,7 +205,7 @@ func (b board) String() string {
 		r := Rank(8 * i)
 		var field []byte
 		for f := FileA; f <= FileH; f++ {
-			if p := b.piece(NewSquare(f, r)); p != NoPiece {
+			if p := b.pieceAt(NewSquare(f, r)); p != NoPiece {
 				field = append(field, []byte(p.String())...)
 			} else if len(field) == 0 {
 				field = append(field, '1')

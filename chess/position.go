@@ -73,9 +73,9 @@ func (pos Position) SquareMap() SquareMap {
 	return pos.board.squareMap()
 }
 
-// Piece returns the piece present in square sq. Returns NoPiece if there aren't any.
-func (pos Position) Piece(sq Square) Piece {
-	return pos.board.piece(sq)
+// PieceAt returns the piece present in square sq. Returns NoPiece if there aren't any.
+func (pos Position) PieceAt(sq Square) Piece {
+	return pos.board.pieceAt(sq)
 }
 
 // Turn returns the color of the next player to move in this position.
@@ -147,8 +147,9 @@ func (pos *Position) MakeMove(m Move) (Metadata, bool) {
 		return metadata, false
 	}
 
-	pos.castlingRights = pos.moveCastlingRights(m)
-	pos.enPassant = pos.moveEnPassant(m)
+	pos.turn = pos.turn.Other()
+	pos.castlingRights = moveCastlingRights(pos.castlingRights, m)
+	pos.enPassant = moveEnPassantMove(m)
 
 	if m.P1().Type() == Pawn || m.HasTag(Capture) {
 		pos.halfMoveClock = 0
@@ -156,11 +157,10 @@ func (pos *Position) MakeMove(m Move) (Metadata, bool) {
 		pos.halfMoveClock++
 	}
 
-	if pos.turn == Black {
+	if pos.turn == White {
 		pos.fullMoves++
 	}
 
-	pos.turn = pos.turn.Other()
 	return metadata, true
 }
 
@@ -193,36 +193,36 @@ func (pos *Position) Copy() *Position {
 	}
 }
 
-func (pos Position) moveCastlingRights(m Move) CastlingRights {
+func moveCastlingRights(cr CastlingRights, m Move) CastlingRights {
 	switch p1, s1, s2 := m.P1(), m.S1(), m.S2(); {
 	case p1 == WhiteKing:
-		return pos.castlingRights & ^(CastleWhiteKing | CastleWhiteQueen)
+		return cr & ^(CastleWhiteKing | CastleWhiteQueen)
 	case p1 == BlackKing:
-		return pos.castlingRights & ^(CastleBlackKing | CastleBlackQueen)
+		return cr & ^(CastleBlackKing | CastleBlackQueen)
 	case (p1 == WhiteRook && s1 == A1) || s2 == A1:
-		return pos.castlingRights & ^CastleWhiteQueen
+		return cr & ^CastleWhiteQueen
 	case (p1 == WhiteRook && s1 == H1) || s2 == H1:
-		return pos.castlingRights & ^CastleWhiteKing
+		return cr & ^CastleWhiteKing
 	case (p1 == BlackRook && s1 == A8) || s2 == A8:
-		return pos.castlingRights & ^CastleBlackQueen
+		return cr & ^CastleBlackQueen
 	case (p1 == BlackRook && s1 == H8) || s2 == H8:
-		return pos.castlingRights & ^CastleBlackKing
+		return cr & ^CastleBlackKing
 	default:
-		return pos.castlingRights
+		return cr
 	}
 }
 
-func (pos Position) moveEnPassant(m Move) Square {
+func moveEnPassantMove(m Move) Square {
 	if m.P1().Type() != Pawn {
 		return NoSquare
 	}
 
-	switch s1, s2 := m.S1(), m.S2(); {
-	case pos.turn == White &&
+	switch c, s1, s2 := m.P1().Color(), m.S1(), m.S2(); {
+	case c == White &&
 		s1.bitboard()&bbRank2 > 0 &&
 		s2.bitboard()&bbRank4 > 0:
 		return s2 - 8
-	case pos.turn == Black &&
+	case c == Black &&
 		s1.bitboard()&bbRank7 > 0 &&
 		s2.bitboard()&bbRank5 > 0:
 		return s2 + 8

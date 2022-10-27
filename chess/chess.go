@@ -13,9 +13,10 @@ const (
 func castlingMoves(pos *Position) []Move {
 	var moves []Move
 
+	c := pos.turn
 	bbKingTravel, bbQueenTravel := bbKingCastleTravel, bbQueenCastleTravel
 	sqKing, sqKingSide, sqQueenSide := E1, G1, C1
-	if pos.turn == Black {
+	if c == Black {
 		bbKingTravel <<= 56
 		bbQueenTravel <<= 56
 		sqKing += 56
@@ -23,26 +24,26 @@ func castlingMoves(pos *Position) []Move {
 		sqQueenSide += 56
 	}
 
-	if pos.castlingRights.CanCastle(pos.turn, KingSide) &&
+	if pos.castlingRights.CanCastle(c, KingSide) &&
 		pos.bbOccupied&bbKingTravel == 0 {
 		moves = append(moves, newMove(
-			newPiece(pos.turn, King),
+			King.color(c),
 			NoPiece,
 			sqKing,
 			sqKingSide,
-			pos.enPassant,
+			NoSquare,
 			NoPiece,
 		))
 	}
 
-	if pos.castlingRights.CanCastle(pos.turn, QueenSide) &&
+	if pos.castlingRights.CanCastle(c, QueenSide) &&
 		pos.bbOccupied&bbQueenTravel == 0 {
 		moves = append(moves, newMove(
-			newPiece(pos.turn, King),
+			King.color(c),
 			NoPiece,
 			sqKing,
 			sqQueenSide,
-			pos.enPassant,
+			NoSquare,
 			NoPiece,
 		))
 	}
@@ -51,11 +52,12 @@ func castlingMoves(pos *Position) []Move {
 }
 
 func standardMoves(pos *Position) []Move {
-	bbAllowed := ^pos.getColor(pos.turn)
-	bbPinned := pos.getPinned(pos.turn)
+	c := pos.turn
+	bbAllowed := ^pos.getColor(c)
+	bbPinned := pos.getPinned(c)
 
 	moves := []Move{}
-	for p1 := newPiece(pos.turn, Pawn); p1 <= WhiteKing; p1 += 2 {
+	for p1 := Pawn.color(c); p1 <= WhiteKing; p1 += 2 {
 		for bbS1 := pos.board.getBitboard(p1); bbS1 > 0; bbS1 = bbS1.resetLSB() {
 			s1 := bbS1.scanForward()
 
@@ -69,13 +71,13 @@ func standardMoves(pos *Position) []Move {
 			for ; bbS2 > 0; bbS2 = bbS2.resetLSB() {
 				s2 := bbS2.scanForward()
 
-				p2 := pos.board.pieceByColor(s2, pos.turn.Other())
+				p2 := pos.board.pieceByColor(s2, c.Other())
 				if p1 == WhitePawn && s2.Rank() == Rank8 || p1 == BlackPawn && s2.Rank() == Rank1 {
 					moves = append(moves,
-						newMove(p1, p2, s1, s2, pos.enPassant, newPiece(pos.turn, Queen)),
-						newMove(p1, p2, s1, s2, pos.enPassant, newPiece(pos.turn, Knight)),
-						newMove(p1, p2, s1, s2, pos.enPassant, newPiece(pos.turn, Rook)),
-						newMove(p1, p2, s1, s2, pos.enPassant, newPiece(pos.turn, Bishop)),
+						newMove(p1, p2, s1, s2, pos.enPassant, Queen.color(c)),
+						newMove(p1, p2, s1, s2, pos.enPassant, Rook.color(c)),
+						newMove(p1, p2, s1, s2, pos.enPassant, Bishop.color(c)),
+						newMove(p1, p2, s1, s2, pos.enPassant, Knight.color(c)),
 					)
 				} else {
 					moves = append(moves, newMove(p1, p2, s1, s2, pos.enPassant, NoPiece))
@@ -98,9 +100,9 @@ func isCastleLegal(pos *Position, m Move) bool {
 	c := pos.turn.Other()
 	check := castleChecks[index]
 
-	if check.bbPawn&pos.getBitboard(newPiece(c, Pawn)) > 0 ||
-		check.bbKnight&pos.getBitboard(newPiece(c, Knight)) > 0 ||
-		check.bbKing&pos.getBitboard(newPiece(c, King)) > 0 {
+	if check.bbPawn&pos.getBitboard(Pawn.color(c)) > 0 ||
+		check.bbKnight&pos.getBitboard(Knight.color(c)) > 0 ||
+		check.bbKing&pos.getBitboard(King.color(c)) > 0 {
 		return false
 	}
 
@@ -109,7 +111,7 @@ func isCastleLegal(pos *Position, m Move) bool {
 		bbBishop |= bishopAttacksBitboard(sq, pos.bbOccupied)
 	}
 
-	if bb := pos.getBitboard(newPiece(c, Bishop)) | pos.getBitboard(newPiece(c, Queen)); bbBishop&bb > 0 {
+	if bb := pos.getBitboard(Bishop.color(c)) | pos.getBitboard(Queen.color(c)); bbBishop&bb > 0 {
 		return false
 	}
 
@@ -117,7 +119,7 @@ func isCastleLegal(pos *Position, m Move) bool {
 		bbRook |= rookAttacksBitboard(sq, pos.bbOccupied)
 	}
 
-	return bbRook&(pos.getBitboard(newPiece(c, Rook))|pos.getBitboard(newPiece(c, Queen))) == 0
+	return bbRook&(pos.getBitboard(Rook.color(c))|pos.getBitboard(Queen.color(c))) == 0
 }
 
 func movePinnedBitboard(sq Square, pos *Position, pt PieceType) bitboard {

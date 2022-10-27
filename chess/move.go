@@ -128,14 +128,14 @@ func MoveFromUCI(pos *Position, s string) (Move, error) {
 	promo := NoPiece
 	if len(s) == 5 {
 		promoType, ok := uciPieceTypeMap[s[4:5]]
-		promo = newPiece(pos.turn, promoType)
+		promo = promoType.color(pos.turn)
 		if !ok {
 			return 0, errInvalidMove
 		}
 	}
 
-	p1 := pos.board.piece(s1)
-	p2 := pos.board.piece(s2)
+	p1 := pos.board.pieceAt(s1)
+	p2 := pos.board.pieceAt(s2)
 	return newMove(p1, p2, s1, s2, pos.enPassant, promo), nil
 }
 

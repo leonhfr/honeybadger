@@ -46,6 +46,10 @@ const (
 	NoPieceType
 )
 
+func (pt PieceType) color(c Color) Piece {
+	return Piece(pt) | Piece(c)
+}
+
 const pieceTypeName = "pnbrqk-"
 
 // String implements the Stringer interface.
@@ -85,10 +89,6 @@ const (
 	// NoPiece represents an absence of Piece.
 	NoPiece Piece = 12
 )
-
-func newPiece(c Color, pt PieceType) Piece {
-	return Piece(c) | Piece(pt)
-}
 
 const pieceName = "pPnNbBrRqQkK-"
 

@@ -140,9 +140,9 @@ func TestBoard_SquareMap(t *testing.T) {
 	assert.Equal(t, startingSquareMap, startingBoard.squareMap())
 }
 
-func TestBoard_Piece(t *testing.T) {
+func TestBoard_PieceAt(t *testing.T) {
 	for sq, p := range startingSquareMap {
-		assert.Equal(t, p, startingBoard.piece(sq))
+		assert.Equal(t, p, startingBoard.pieceAt(sq))
 	}
 }
 
