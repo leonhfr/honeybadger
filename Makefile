@@ -11,6 +11,10 @@ run:
 
 .PHONY: test
 test:
+	go test -short ./...
+
+.PHONY: test-long
+test-long:
 	go test ./...
 
 .PHONY: bench
