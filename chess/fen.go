@@ -31,8 +31,8 @@ func fenFileMap(rankField string) (map[File]Piece, error) {
 	m := map[File]Piece{}
 	file := FileA
 	for _, r := range rankField {
-		if p, ok := fenPieceMap[r]; ok {
-			m[file] = p
+		if 'A' <= r && r <= 'Z' || 'a' <= r && r <= 'z' {
+			m[file] = pieceMap[r-'A']
 			file++
 		} else if '1' <= r && r <= '8' {
 			file += File(r - '0')
@@ -87,8 +87,11 @@ func fenEnPassantSquare(field string) (Square, error) {
 	if field == "-" {
 		return NoSquare, nil
 	}
-	sq, ok := strToSquareMap[field]
-	if !ok || !(sq.Rank() == Rank3 || sq.Rank() == Rank6) {
+	if len(field) != 2 {
+		return NoSquare, fmt.Errorf("invalid fen en passant square (%s)", field)
+	}
+	sq, _ := squareFromUCI(field)
+	if sq == NoSquare || !(sq.Rank() == Rank3 || sq.Rank() == Rank6) {
 		return NoSquare, fmt.Errorf("invalid fen en passant square (%s)", field)
 	}
 	return sq, nil
@@ -108,19 +111,4 @@ func fenFullMoves(field string) (uint8, error) {
 		return 0, fmt.Errorf("invalid fen full moves count (%s)", field)
 	}
 	return uint8(fullMoves), nil
-}
-
-var fenPieceMap = map[rune]Piece{
-	'K': WhiteKing,
-	'Q': WhiteQueen,
-	'R': WhiteRook,
-	'B': WhiteBishop,
-	'N': WhiteKnight,
-	'P': WhitePawn,
-	'k': BlackKing,
-	'q': BlackQueen,
-	'r': BlackRook,
-	'b': BlackBishop,
-	'n': BlackKnight,
-	'p': BlackPawn,
 }

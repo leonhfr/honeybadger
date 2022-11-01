@@ -10,6 +10,17 @@ type castleCheck struct {
 }
 
 var (
+	promoPieceTypeMap = [58]PieceType{} // 'A'
+	pieceMap          = [58]Piece{}     // 'A'
+	fileMap           = [8]File{
+		FileA, FileB, FileC, FileD,
+		FileE, FileF, FileG, FileH,
+	} // 'a'
+	rankMap = [8]Rank{
+		Rank1, Rank2, Rank3, Rank4,
+		Rank5, Rank6, Rank7, Rank8,
+	} // '1'
+
 	castleChecks = [4]castleCheck{}
 
 	bbRanks                = [64]bitboard{}
@@ -28,6 +39,11 @@ var (
 )
 
 func init() {
+	for r := 'A'; r <= 'z'; r++ {
+		promoPieceTypeMap[r-'A'] = initPromoPieceTypeMap(r)
+		pieceMap[r-'A'] = initPieceMap(r)
+	}
+
 	for s1 := A1; s1 <= H8; s1++ {
 		bbRanks[s1] = initRankBitboard(s1)
 		bbFiles[s1] = initFileBitboard(s1)
@@ -48,6 +64,38 @@ func init() {
 	}
 
 	initCastleChecks()
+}
+
+func initPromoPieceTypeMap(r rune) PieceType {
+	m := map[rune]PieceType{
+		'q': Queen,
+		'r': Rook,
+		'b': Bishop,
+		'n': Knight,
+	}
+
+	pt, ok := m[r]
+	if !ok {
+		return NoPieceType
+	}
+	return pt
+}
+
+func initPieceMap(r rune) Piece {
+	m := map[rune]Piece{
+		'K': WhiteKing, 'k': BlackKing,
+		'Q': WhiteQueen, 'q': BlackQueen,
+		'R': WhiteRook, 'r': BlackRook,
+		'B': WhiteBishop, 'b': BlackBishop,
+		'N': WhiteKnight, 'n': BlackKnight,
+		'P': WhitePawn, 'p': BlackPawn,
+	}
+
+	p, ok := m[r]
+	if !ok {
+		return NoPiece
+	}
+	return p
 }
 
 func initCastleChecks() {

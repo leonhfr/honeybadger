@@ -115,33 +115,30 @@ func MoveFromUCI(pos *Position, s string) (Move, error) {
 		return 0, errInvalidMove
 	}
 
-	s1, ok := strToSquareMap[s[0:2]]
-	if !ok {
+	s1, err := squareFromUCI(s[0:2])
+	if err != nil {
 		return 0, errInvalidMove
 	}
-
-	s2, ok := strToSquareMap[s[2:4]]
-	if !ok {
+	s2, err := squareFromUCI(s[2:4])
+	if err != nil {
 		return 0, errInvalidMove
 	}
 
 	promo := NoPiece
 	if len(s) == 5 {
-		promoType, ok := uciPieceTypeMap[s[4:5]]
-		promo = promoType.color(pos.turn)
-		if !ok {
+		b := []byte(s)
+		r := b[4]
+		if !('A' <= r && r <= 'Z' || 'a' <= r && r <= 'z') {
 			return 0, errInvalidMove
 		}
+		promoType := promoPieceTypeMap[r-'A']
+		if promoType == NoPieceType {
+			return 0, errInvalidMove
+		}
+		promo = promoType.color(pos.turn)
 	}
 
 	p1 := pos.board.pieceAt(s1)
 	p2 := pos.board.pieceAt(s2)
 	return newMove(p1, p2, s1, s2, pos.enPassant, promo), nil
-}
-
-var uciPieceTypeMap = map[string]PieceType{
-	"q": Queen,
-	"r": Rook,
-	"b": Bishop,
-	"n": Knight,
 }

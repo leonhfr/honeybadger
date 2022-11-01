@@ -17,6 +17,18 @@ func newBitboard(s []Square) bitboard {
 	return bb
 }
 
+func (b bitboard) mapping() []Square {
+	if b == 0 {
+		return nil
+	}
+	squares := make([]Square, 0, 64)
+	for b > 0 {
+		squares = append(squares, b.scanForward())
+		b = b.resetLSB()
+	}
+	return squares
+}
+
 var deBruijnMap = [64]Square{
 	A1, H6, B1, A8, A7, D4, C1, E8,
 	B8, B7, B6, F5, E4, A3, D1, F8,
@@ -29,18 +41,6 @@ var deBruijnMap = [64]Square{
 }
 
 const deBruijn = 0x03f79d71b4cb0a89
-
-func (b bitboard) mapping() []Square {
-	if b == 0 {
-		return nil
-	}
-	squares := make([]Square, 0, 64)
-	for b > 0 {
-		squares = append(squares, b.scanForward())
-		b = b.resetLSB()
-	}
-	return squares
-}
 
 // bitboard can't be 0
 //
