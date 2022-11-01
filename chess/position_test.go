@@ -40,8 +40,8 @@ func TestPosition_MakeMove(t *testing.T) {
 
 func BenchmarkPosition_MakeMove(b *testing.B) {
 	for _, bb := range testPositions {
+		pos := unsafeFEN(bb.preFEN)
 		b.Run(bb.moveUCI, func(b *testing.B) {
-			pos := unsafeFEN(bb.preFEN)
 			for n := 0; n < b.N; n++ {
 				meta, _ := pos.MakeMove(bb.move)
 				pos.UnmakeMove(bb.move, meta)

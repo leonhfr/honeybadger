@@ -24,8 +24,8 @@ func TestBitboard_Mapping(t *testing.T) {
 
 func BenchmarkBitboard_Mapping(b *testing.B) {
 	for _, p := range pieces {
+		bb := startingBoard.getBitboard(p)
 		b.Run(p.String(), func(b *testing.B) {
-			bb := startingBoard.getBitboard(p)
 			for n := 0; n < b.N; n++ {
 				bb.mapping()
 			}

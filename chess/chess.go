@@ -56,7 +56,7 @@ func standardMoves(pos *Position) []Move {
 	bbAllowed := ^pos.getColor(c)
 	bbPinned := pos.getPinned(c)
 
-	moves := []Move{}
+	moves := make([]Move, 0, 128)
 	for p1 := Pawn.color(c); p1 <= WhiteKing; p1 += 2 {
 		for bbS1 := pos.board.getBitboard(p1); bbS1 > 0; bbS1 = bbS1.resetLSB() {
 			s1 := bbS1.scanForward()

@@ -8,11 +8,12 @@ import (
 
 func BenchmarkNewMove(b *testing.B) {
 	for _, bb := range testPositions {
+		p1, p2 := bb.move.P1(), bb.move.P2()
+		s1, s2 := bb.move.S1(), bb.move.S2()
+		promo := bb.move.Promo()
+		ep := unsafeFEN(bb.preFEN).enPassant
+
 		b.Run(bb.moveUCI, func(b *testing.B) {
-			p1, p2 := bb.move.P1(), bb.move.P2()
-			s1, s2 := bb.move.S1(), bb.move.S2()
-			promo := bb.move.Promo()
-			ep := unsafeFEN(bb.preFEN).enPassant
 			for n := 0; n < b.N; n++ {
 				newMove(p1, p2, s1, s2, ep, promo)
 			}

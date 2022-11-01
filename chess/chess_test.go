@@ -104,21 +104,10 @@ func legalMoves(pos *Position) []Move {
 	return moves
 }
 
-func BenchmarkLegalMoves(b *testing.B) {
-	for _, bb := range testPositions {
-		b.Run(bb.preFEN, func(b *testing.B) {
-			pos := unsafeFEN(bb.preFEN)
-			for n := 0; n < b.N; n++ {
-				legalMoves(pos)
-			}
-		})
-	}
-}
-
 func BenchmarkPseudoMoves(b *testing.B) {
 	for _, bb := range testPositions {
+		pos := unsafeFEN(bb.preFEN)
 		b.Run(bb.preFEN, func(b *testing.B) {
-			pos := unsafeFEN(bb.preFEN)
 			for n := 0; n < b.N; n++ {
 				pseudoMoves(pos)
 			}
@@ -149,8 +138,8 @@ func TestCastlingMoves(t *testing.T) {
 
 func BenchmarkCastlingMoves(b *testing.B) {
 	for _, bb := range testPositions {
+		pos := unsafeFEN(bb.preFEN)
 		b.Run(bb.preFEN, func(b *testing.B) {
-			pos := unsafeFEN(bb.preFEN)
 			for n := 0; n < b.N; n++ {
 				castlingMoves(pos)
 			}
@@ -185,8 +174,8 @@ func TestStandardMoves(t *testing.T) {
 
 func BenchmarkStandardMoves(b *testing.B) {
 	for _, bb := range testPositions {
+		pos := unsafeFEN(bb.preFEN)
 		b.Run(bb.preFEN, func(b *testing.B) {
-			pos := unsafeFEN(bb.preFEN)
 			for n := 0; n < b.N; n++ {
 				standardMoves(pos)
 			}
