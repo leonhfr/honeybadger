@@ -1,7 +1,24 @@
 // Package search implements the search algorithm.
 package search
 
-import "github.com/leonhfr/honeybadger/chess"
+import (
+	"math"
+
+	"github.com/leonhfr/honeybadger/chess"
+)
+
+const (
+	// mate is the score of a checkmate.
+	mate = math.MaxInt
+	// draw is the score of a draw.
+	draw = 0
+)
+
+var (
+	pestoMGPieceTables = [12][64]int{}
+	pestoEGPieceTables = [12][64]int{}
+	pestoGamePhaseInc  = [12]int{0, 0, 1, 1, 1, 1, 2, 2, 4, 4, 0, 0}
+)
 
 func evaluate(pos *chess.Position) int {
 	var mg, eg, phase int
@@ -28,11 +45,21 @@ func evaluate(pos *chess.Position) int {
 	return (phase*mg + (24-phase)*eg) / 24
 }
 
-var (
-	pestoMGPieceTables = [12][64]int{}
-	pestoEGPieceTables = [12][64]int{}
-	pestoGamePhaseInc  = [12]int{0, 0, 1, 1, 1, 1, 2, 2, 4, 4, 0, 0}
-)
+// incMateDistance increase the distance to the mate by a count of one.
+//
+// In case of a positive score, it is decreased by 1.
+// In case of a negative score, it is increased by 1.
+func incMateDistance(score, maxDepth int) int {
+	sign := 1
+	if score < 0 {
+		sign = -1
+	}
+	delta := mate - sign*score
+	if delta <= maxDepth {
+		return score - sign
+	}
+	return score
+}
 
 func init() {
 	pestoMGPieceValues := [6]int{82, 337, 365, 477, 1025, 0}
