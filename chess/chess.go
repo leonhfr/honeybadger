@@ -3,11 +3,61 @@ package chess
 
 func pseudoMoves(pos *Position) []Move {
 	switch checks := pos.getCheck(pos.turn.Other()); checks.ones() {
-	case 2: // double check
-		return checkFlightMoves(pos)
-	default: // no check & single check
+	case 0: // no check
 		return append(standardMoves(pos), castlingMoves(pos)...)
+	case 1: // single check
+		return append(checkAttackAndInterposingMoves(pos), checkFlightMoves(pos)...)
+	default: // double check and more
+		return checkFlightMoves(pos)
 	}
+}
+
+// assumes there is only one checking piece
+func checkAttackAndInterposingMoves(pos *Position) []Move {
+	c := pos.turn
+	bbChecking := pos.getCheck(c.Other())
+	sqKing, sqChecking := pos.getKingSquare(c), bbChecking.scanForward()
+	bbBetween := ^pos.getColor(c) & bbInBetween[sqKing][sqChecking]
+	bbPinned := pos.getPinned(c)
+
+	moves := make([]Move, 0, 32)
+	for p1 := Pawn.color(c); p1 <= WhiteQueen; p1 += 2 {
+		for bbS1 := pos.getBitboard(p1) & ^bbPinned; bbS1 > 0; bbS1 = bbS1.resetLSB() {
+			s1 := bbS1.scanForward()
+			bbS2 := moveBitboard(s1, pos, p1.Type())
+
+			bbTarget := bbChecking
+			if p1.Type() == Pawn && pos.pieceAt(sqChecking).Type() == Pawn {
+				bbTarget |= pos.enPassant.bitboard()
+			}
+
+			// attacks to the attacking piece (not pinned)
+			for bbAttack := bbS2 & bbTarget; bbAttack > 0; bbAttack = bbAttack.resetLSB() {
+				s2 := bbAttack.scanForward()
+				p2 := pos.pieceAt(s2)
+
+				if p1 == WhitePawn && s2.Rank() == Rank8 || p1 == BlackPawn && s2.Rank() == Rank1 {
+					moves = append(moves,
+						newMove(p1, p2, s1, s2, pos.enPassant, Queen.color(c)),
+						newMove(p1, p2, s1, s2, pos.enPassant, Rook.color(c)),
+						newMove(p1, p2, s1, s2, pos.enPassant, Bishop.color(c)),
+						newMove(p1, p2, s1, s2, pos.enPassant, Knight.color(c)),
+					)
+				} else {
+					moves = append(moves, newMove(p1, p2, s1, s2, pos.enPassant, NoPiece))
+				}
+			}
+
+			// interposing moves in case of distance sliding checks (not pinned)
+			for bbInterpose := bbS2 & bbBetween; bbInterpose > 0; bbInterpose = bbInterpose.resetLSB() {
+				s2 := bbInterpose.scanForward()
+
+				// there is always a clear path so p2 is always NoPiece
+				moves = append(moves, newMove(p1, NoPiece, s1, s2, NoSquare, NoPiece))
+			}
+		}
+	}
+	return moves
 }
 
 // king moves to non attacked squares

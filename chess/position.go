@@ -126,6 +126,9 @@ func (pos Position) String() string {
 }
 
 // PseudoMoves returns a list of pseudo moves.
+//
+// If the current player is not in check, some of the moves may not be legal.
+// If the current player is in check, all of the moves are guaranteed to be legal.
 func (pos *Position) PseudoMoves() []Move {
 	return pseudoMoves(pos)
 }

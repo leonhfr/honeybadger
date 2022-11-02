@@ -115,6 +115,74 @@ func BenchmarkPseudoMoves(b *testing.B) {
 	}
 }
 
+func TestCheckAttackAndInterposingMoves(t *testing.T) {
+	tests := []struct {
+		args string
+		want []Move
+	}{
+		{
+			"8/5pB1/3bn3/2r5/1q6/8/1k4K1/8 b - - 0 1",
+			[]Move{
+				newMove(BlackQueen, NoPiece, B4, C3, NoSquare, NoPiece),
+				newMove(BlackQueen, NoPiece, B4, D4, NoSquare, NoPiece),
+				newMove(BlackRook, NoPiece, C5, C3, NoSquare, NoPiece),
+				newMove(BlackRook, NoPiece, C5, E5, NoSquare, NoPiece),
+				newMove(BlackBishop, NoPiece, D6, E5, NoSquare, NoPiece),
+				newMove(BlackKnight, NoPiece, E6, D4, NoSquare, NoPiece),
+				newMove(BlackKnight, WhiteBishop, E6, G7, NoSquare, NoPiece),
+				newMove(BlackPawn, NoPiece, F7, F6, NoSquare, NoPiece),
+			},
+		},
+		{
+			"8/8/8/8/4n3/2B5/1k4K1/8 b - - 0 1",
+			[]Move{
+				newMove(BlackKnight, WhiteBishop, E4, C3, NoSquare, NoPiece),
+			},
+		},
+		{ // en passant defense
+			"8/8/3p4/1Pp2r2/1K1R1p1k/8/4P1P1/8 w - c6 0 1",
+			[]Move{
+				newMove(WhitePawn, NoPiece, B5, C6, C6, NoPiece),
+			},
+		},
+		{ // promotion
+			"8/2p5/3p4/KP5r/4P2k/8/6p1/7R b - - 0 1",
+			[]Move{
+				newMove(BlackPawn, WhiteRook, G2, H1, NoSquare, BlackQueen),
+				newMove(BlackPawn, WhiteRook, G2, H1, NoSquare, BlackRook),
+				newMove(BlackPawn, WhiteRook, G2, H1, NoSquare, BlackBishop),
+				newMove(BlackPawn, WhiteRook, G2, H1, NoSquare, BlackKnight),
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.args, func(t *testing.T) {
+			pos := unsafeFEN(tt.args)
+			moves := checkAttackAndInterposingMoves(pos)
+			assert.ElementsMatch(t, tt.want, moves)
+		})
+	}
+}
+
+func BenchmarkCheckAttackAndInterposingMoves(b *testing.B) {
+	fens := []string{
+		"8/5pB1/3bn3/2r5/1q6/8/1k4K1/8 b - - 0 1",
+		"8/8/8/8/4n3/2B5/1k4K1/8 b - - 0 1",
+		"8/8/3p4/1Pp2r2/1K1R1p1k/8/4P1P1/8 w - c6 0 1",
+		"8/2p5/3p4/KP5r/4P2k/8/6p1/7R b - - 0 1",
+	}
+
+	for _, fen := range fens {
+		pos := unsafeFEN(fen)
+		b.Run(fen, func(b *testing.B) {
+			for n := 0; n < b.N; n++ {
+				checkAttackAndInterposingMoves(pos)
+			}
+		})
+	}
+}
+
 func TestCheckFlightMoves(t *testing.T) {
 	tests := []struct {
 		args string
@@ -143,6 +211,17 @@ func TestCheckFlightMoves(t *testing.T) {
 				newMove(WhiteKing, NoPiece, B7, B8, NoSquare, NoPiece),
 			},
 		},
+		{ // en passant defense
+			"8/8/3p4/1Pp2r2/1K1R1p1k/8/4P1P1/8 w - c6 0 1",
+			[]Move{
+				newMove(WhiteKing, NoPiece, B4, A3, NoSquare, NoPiece),
+				newMove(WhiteKing, NoPiece, B4, A4, NoSquare, NoPiece),
+				newMove(WhiteKing, NoPiece, B4, A5, NoSquare, NoPiece),
+				newMove(WhiteKing, NoPiece, B4, B3, NoSquare, NoPiece),
+				newMove(WhiteKing, NoPiece, B4, C3, NoSquare, NoPiece),
+				newMove(WhiteKing, NoPiece, B4, C4, NoSquare, NoPiece),
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -158,6 +237,7 @@ func BenchmarkCheckFlightMoves(b *testing.B) {
 		"2r2q1k/5pp1/4p1N1/8/1bp5/5P1R/6P1/2R4K b - - 0 1",
 		"rnbk1b1r/pp3ppp/2p5/4q1B1/4n3/8/PPP2PPP/2KR1BNR b - - 0 1",
 		"8/1Kr5/8/8/8/8/6k1/8 w - - 0 1",
+		"8/8/3p4/1Pp2r2/1K1R1p1k/8/4P1P1/8 w - c6 0 1",
 	}
 
 	for _, fen := range fens {
