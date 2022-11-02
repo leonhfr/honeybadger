@@ -6,11 +6,6 @@ import (
 	"github.com/leonhfr/honeybadger/chess"
 )
 
-const (
-	// maxDepth is the maximum depth at which the package will search.
-	maxDepth = 64
-)
-
 func negamax(ctx context.Context, pos *chess.Position, depth int) (*output, error) {
 	select {
 	case <-ctx.Done():
@@ -19,23 +14,11 @@ func negamax(ctx context.Context, pos *chess.Position, depth int) (*output, erro
 	}
 
 	moves := pos.PseudoMoves()
-
-	if len(moves) == 0 && pos.InCheck() {
+	score, terminal := isTerminal(pos, len(moves), depth)
+	if terminal {
 		return &output{
 			nodes: 1,
-			score: -mate,
-		}, nil
-	} else if len(moves) == 0 {
-		return &output{
-			nodes: 1,
-			score: draw,
-		}, nil
-	}
-
-	if depth == 0 {
-		return &output{
-			nodes: 1,
-			score: evaluate(pos),
+			score: score,
 		}, nil
 	}
 
@@ -66,14 +49,6 @@ func negamax(ctx context.Context, pos *chess.Position, depth int) (*output, erro
 		pos.UnmakeMove(move, metadata)
 	}
 
-	result.score = incMateDistance(result.score, maxDepth)
+	result.score = incMateDistance(result.score)
 	return result, nil
-}
-
-// output holds a search output.
-type output struct {
-	depth int
-	nodes int
-	score int
-	pv    []chess.Move // reversed
 }
