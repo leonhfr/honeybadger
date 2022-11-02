@@ -115,6 +115,61 @@ func BenchmarkPseudoMoves(b *testing.B) {
 	}
 }
 
+func TestCheckFlightMoves(t *testing.T) {
+	tests := []struct {
+		args string
+		want []Move
+	}{
+		{
+			"2r2q1k/5pp1/4p1N1/8/1bp5/5P1R/6P1/2R4K b - - 0 1",
+			[]Move{
+				newMove(BlackKing, NoPiece, H8, G8, NoSquare, NoPiece),
+			},
+		},
+		{
+			"rnbk1b1r/pp3ppp/2p5/4q1B1/4n3/8/PPP2PPP/2KR1BNR b - - 0 1",
+			[]Move{
+				newMove(BlackKing, NoPiece, D8, E8, NoSquare, NoPiece),
+				newMove(BlackKing, NoPiece, D8, C7, NoSquare, NoPiece),
+			},
+		},
+		{
+			"8/1Kr5/8/8/8/8/6k1/8 w - - 0 1",
+			[]Move{
+				newMove(WhiteKing, NoPiece, B7, A6, NoSquare, NoPiece),
+				newMove(WhiteKing, NoPiece, B7, B6, NoSquare, NoPiece),
+				newMove(WhiteKing, BlackRook, B7, C7, NoSquare, NoPiece),
+				newMove(WhiteKing, NoPiece, B7, A8, NoSquare, NoPiece),
+				newMove(WhiteKing, NoPiece, B7, B8, NoSquare, NoPiece),
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.args, func(t *testing.T) {
+			pos := unsafeFEN(tt.args)
+			assert.ElementsMatch(t, tt.want, checkFlightMoves(pos))
+		})
+	}
+}
+
+func BenchmarkCheckFlightMoves(b *testing.B) {
+	fens := []string{
+		"2r2q1k/5pp1/4p1N1/8/1bp5/5P1R/6P1/2R4K b - - 0 1",
+		"rnbk1b1r/pp3ppp/2p5/4q1B1/4n3/8/PPP2PPP/2KR1BNR b - - 0 1",
+		"8/1Kr5/8/8/8/8/6k1/8 w - - 0 1",
+	}
+
+	for _, fen := range fens {
+		pos := unsafeFEN(fen)
+		b.Run(fen, func(b *testing.B) {
+			for n := 0; n < b.N; n++ {
+				checkFlightMoves(pos)
+			}
+		})
+	}
+}
+
 func TestCastlingMoves(t *testing.T) {
 	tests := []struct {
 		args string

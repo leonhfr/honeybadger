@@ -2,7 +2,61 @@
 package chess
 
 func pseudoMoves(pos *Position) []Move {
-	return append(standardMoves(pos), castlingMoves(pos)...)
+	switch checks := pos.getCheck(pos.turn.Other()); checks.ones() {
+	case 2: // double check
+		return checkFlightMoves(pos)
+	default: // no check & single check
+		return append(standardMoves(pos), castlingMoves(pos)...)
+	}
+}
+
+// king moves to non attacked squares
+func checkFlightMoves(pos *Position) []Move {
+	c, op := pos.turn, pos.turn.Other()
+
+	bbFlight := bbKingMoves[pos.getKingSquare(c)]
+	bbFlight &= ^pos.getColor(c)                    // possible moves
+	bbFlight &= ^bbKingMoves[pos.getKingSquare(op)] // enemy king attacks
+
+	// pawn attacks
+	if c == White {
+		bbFlight &= ^((pos.bbBlackPawn & ^bbFileA) >> 9)
+		bbFlight &= ^((pos.bbBlackPawn & ^bbFileH) >> 7)
+	} else {
+		bbFlight &= ^((pos.bbWhitePawn &^ bbFileA) << 9)
+		bbFlight &= ^((pos.bbWhitePawn &^ bbFileH) << 7)
+	}
+
+	for bb := pos.getBitboard(Knight.color(op)); bb > 0; bb = bb.resetLSB() {
+		sq := bb.scanForward()
+		bbFlight &= ^bbKnightMoves[sq]
+	}
+
+	bbOccupiedNoKing := pos.bbOccupied & ^pos.getBitboard(King.color(c))
+
+	for bb := pos.getBitboard(Queen.color(op)); bb > 0; bb = bb.resetLSB() {
+		sq := bb.scanForward()
+		bbFlight &= ^rookAttacksBitboard(sq, bbOccupiedNoKing)
+		bbFlight &= ^bishopAttacksBitboard(sq, bbOccupiedNoKing)
+	}
+
+	for bb := pos.getBitboard(Rook.color(op)); bb > 0; bb = bb.resetLSB() {
+		sq := bb.scanForward()
+		bbFlight &= ^rookAttacksBitboard(sq, bbOccupiedNoKing)
+	}
+
+	for bb := pos.getBitboard(Bishop.color(op)); bb > 0; bb = bb.resetLSB() {
+		sq := bb.scanForward()
+		bbFlight &= ^bishopAttacksBitboard(sq, bbOccupiedNoKing)
+	}
+
+	moves := make([]Move, 0, 8)
+	for s1 := pos.getKingSquare(c); bbFlight > 0; bbFlight = bbFlight.resetLSB() {
+		s2 := bbFlight.scanForward()
+		p1, p2 := King.color(c), pos.pieceAt(s2)
+		moves = append(moves, newMove(p1, p2, s1, s2, NoSquare, NoPiece))
+	}
+	return moves
 }
 
 const (
