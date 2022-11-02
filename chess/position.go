@@ -177,6 +177,18 @@ func (pos *Position) UnmakeMove(m Move, meta Metadata) {
 	pos.fullMoves = meta.fullMoves()
 }
 
+// PieceMap executes the callback for each piece on the board, passing
+// the piece and its square as arguments. This is intended to be used
+// in evaluation functions.
+func (pos *Position) PieceMap(cb func(p Piece, sq Square)) {
+	for p := BlackPawn; p <= WhiteKing; p++ {
+		for bb := pos.board.getBitboard(p); bb > 0; bb = bb.resetLSB() {
+			sq := bb.scanForward()
+			cb(p, sq)
+		}
+	}
+}
+
 // Hash returns a Zobrist hash of the position.
 //
 // The hash is compatible with polyglot files.

@@ -60,3 +60,14 @@ func TestPosition_UnmakeMove(t *testing.T) {
 		})
 	}
 }
+
+func BenchmarkPosition_PieceMap(b *testing.B) {
+	for _, bb := range testPositions {
+		pos := unsafeFEN(bb.preFEN)
+		b.Run(bb.preFEN, func(b *testing.B) {
+			for n := 0; n < b.N; n++ {
+				pos.PieceMap(func(p Piece, sq Square) {})
+			}
+		})
+	}
+}

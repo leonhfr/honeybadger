@@ -15,11 +15,11 @@ const (
 //	hash = piece ^ castle ^ enPassant ^ turn
 //
 // zobristHash follows the Polyglot opening file specification.
-func zobristHash(position *Position) (hash uint64) {
-	hash ^= pieceHash(position)
-	hash ^= enPassantHash(position)
-	hash ^= turnHash(position)
-	hash ^= castleHash(position)
+func zobristHash(pos *Position) (hash uint64) {
+	hash ^= pieceHash(pos)
+	hash ^= enPassantHash(pos)
+	hash ^= turnHash(pos)
+	hash ^= castleHash(pos)
 	return
 }
 
