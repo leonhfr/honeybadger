@@ -3,14 +3,12 @@ package search
 
 import "github.com/leonhfr/honeybadger/chess"
 
-func isTerminal(pos *chess.Position, moves, depth int) (int, bool) {
+func isTerminal(pos *chess.Position, moves int) (int, bool) {
 	switch {
 	case moves == 0 && pos.InCheck():
 		return -mate, true
 	case moves == 0:
 		return draw, true
-	case depth == 0:
-		return evaluate(pos), true
 	default:
 		return 0, false
 	}

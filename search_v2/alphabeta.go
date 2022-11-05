@@ -14,11 +14,18 @@ func alphaBeta(ctx context.Context, pos *chess.Position, alpha, beta, depth int)
 	}
 
 	moves := pos.PseudoMoves()
-	score, terminal := isTerminal(pos, len(moves), depth)
+	score, terminal := isTerminal(pos, len(moves))
 	if terminal {
 		return &output{
 			nodes: 1,
 			score: score,
+		}, nil
+	}
+
+	if depth == 0 {
+		return &output{
+			nodes: 1,
+			score: evaluate(pos),
 		}, nil
 	}
 
