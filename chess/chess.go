@@ -20,7 +20,7 @@ func checkAttackAndInterposingMoves(pos *Position) []Move {
 	bbBetween := ^pos.getColor(c) & bbInBetween[sqKing][sqChecking]
 	bbPinned := pos.getPinned(c)
 
-	moves := make([]Move, 0, 32)
+	var moves []Move
 	for p1 := Pawn.color(c); p1 <= WhiteQueen; p1 += 2 {
 		for bbS1 := pos.getBitboard(p1) & ^bbPinned; bbS1 > 0; bbS1 = bbS1.resetLSB() {
 			s1 := bbS1.scanForward()
@@ -100,7 +100,7 @@ func checkFlightMoves(pos *Position) []Move {
 		bbFlight &= ^bishopAttacksBitboard(sq, bbOccupiedNoKing)
 	}
 
-	moves := make([]Move, 0, 8)
+	var moves []Move
 	for s1 := pos.getKingSquare(c); bbFlight > 0; bbFlight = bbFlight.resetLSB() {
 		s2 := bbFlight.scanForward()
 		p1, p2 := King.color(c), pos.pieceAt(s2)
@@ -160,7 +160,7 @@ func standardMoves(pos *Position) []Move {
 	bbAllowed := ^pos.getColor(c)
 	bbPinned := pos.getPinned(c)
 
-	moves := make([]Move, 0, 128)
+	var moves []Move
 	for p1 := Pawn.color(c); p1 <= WhiteKing; p1 += 2 {
 		for bbS1 := pos.board.getBitboard(p1); bbS1 > 0; bbS1 = bbS1.resetLSB() {
 			s1 := bbS1.scanForward()
