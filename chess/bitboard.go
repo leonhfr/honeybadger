@@ -21,7 +21,7 @@ func (b bitboard) mapping() []Square {
 	if b == 0 {
 		return nil
 	}
-	squares := make([]Square, 0, 64)
+	squares := make([]Square, 0, 8)
 	for b > 0 {
 		squares = append(squares, b.scanForward())
 		b = b.resetLSB()

@@ -313,35 +313,71 @@ func checkBitboard(sq Square, c Color, occupied, k, q, r, b, n, p bitboard) bitb
 func pinnedBitboard(sq Square, occupied, blockers, queen, rook, bishop bitboard) (bitboard, bitboard) {
 	var pinned, pinner bitboard
 
-	rPinner := xrayRookAttacksBitboard(sq, occupied, blockers) & (queen | rook)
-	pinner |= rPinner
+	if bbRanks[sq]&(queen|rook) > 0 {
+		rPinner := xrayRankAttacksBitboard(sq, occupied, blockers) & (queen | rook)
+		pinner |= rPinner
 
-	for ; rPinner > 0; rPinner = rPinner.resetLSB() {
-		s := rPinner.scanForward()
-		pinned |= bbInBetween[sq][s] & blockers
+		for ; rPinner > 0; rPinner = rPinner.resetLSB() {
+			s := rPinner.scanForward()
+			pinned |= bbInBetween[sq][s] & blockers
+		}
 	}
 
-	bPinner := xrayBishopAttacksBitboard(sq, occupied, blockers) & (queen | bishop)
-	pinner |= bPinner
+	if bbFiles[sq]&(queen|rook) > 0 {
+		rPinner := xrayFileAttacksBitboard(sq, occupied, blockers) & (queen | rook)
+		pinner |= rPinner
 
-	for ; bPinner > 0; bPinner = bPinner.resetLSB() {
-		s := bPinner.scanForward()
-		pinned |= bbInBetween[sq][s] & blockers
+		for ; rPinner > 0; rPinner = rPinner.resetLSB() {
+			s := rPinner.scanForward()
+			pinned |= bbInBetween[sq][s] & blockers
+		}
+	}
+
+	if bbDiagonals[sq]&(queen|bishop) > 0 {
+		bPinner := xrayDiagonalAttacksBitboard(sq, occupied, blockers) & (queen | bishop)
+		pinner |= bPinner
+
+		for ; bPinner > 0; bPinner = bPinner.resetLSB() {
+			s := bPinner.scanForward()
+			pinned |= bbInBetween[sq][s] & blockers
+		}
+	}
+
+	if bbAntiDiagonals[sq]&(queen|bishop) > 0 {
+		bPinner := xrayAntiDiagonalAttacksBitboard(sq, occupied, blockers) & (queen | bishop)
+		pinner |= bPinner
+
+		for ; bPinner > 0; bPinner = bPinner.resetLSB() {
+			s := bPinner.scanForward()
+			pinned |= bbInBetween[sq][s] & blockers
+		}
 	}
 
 	return pinned, pinner
 }
 
-func xrayBishopAttacksBitboard(sq Square, occupied, blockers bitboard) bitboard {
-	attacks := bishopAttacksBitboard(sq, occupied)
+func xrayRankAttacksBitboard(sq Square, occupied, blockers bitboard) bitboard {
+	attacks := linearBitboard(sq, occupied, bbRanks[sq])
 	blockers &= attacks
-	return attacks ^ bishopAttacksBitboard(sq, occupied^blockers)
+	return attacks ^ linearBitboard(sq, occupied^blockers, bbRanks[sq])
 }
 
-func xrayRookAttacksBitboard(sq Square, occupied, blockers bitboard) bitboard {
-	attacks := rookAttacksBitboard(sq, occupied)
+func xrayFileAttacksBitboard(sq Square, occupied, blockers bitboard) bitboard {
+	attacks := linearBitboard(sq, occupied, bbFiles[sq])
 	blockers &= attacks
-	return attacks ^ rookAttacksBitboard(sq, occupied^blockers)
+	return attacks ^ linearBitboard(sq, occupied^blockers, bbFiles[sq])
+}
+
+func xrayDiagonalAttacksBitboard(sq Square, occupied, blockers bitboard) bitboard {
+	attacks := linearBitboard(sq, occupied, bbDiagonals[sq])
+	blockers &= attacks
+	return attacks ^ linearBitboard(sq, occupied^blockers, bbDiagonals[sq])
+}
+
+func xrayAntiDiagonalAttacksBitboard(sq Square, occupied, blockers bitboard) bitboard {
+	attacks := linearBitboard(sq, occupied, bbAntiDiagonals[sq])
+	blockers &= attacks
+	return attacks ^ linearBitboard(sq, occupied^blockers, bbAntiDiagonals[sq])
 }
 
 func pinnedBishopAttacksBitboard(sq, king Square, occupied bitboard) bitboard {
