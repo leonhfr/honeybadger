@@ -434,8 +434,8 @@ func TestPawnCapturesBitboards(t *testing.T) {
 func TestCheckBitboard(t *testing.T) {
 	pos := unsafeFEN("k6q/8/8/8/8/8/8/K7 w - - 0 1")
 	cb := checkBitboard(A1, White, pos.bbOccupied,
-		pos.bbBlackKing, pos.bbBlackQueen, pos.bbBlackRook,
-		pos.bbBlackBishop, pos.bbBlackKnight, pos.bbBlackPawn)
+		pos.bbBlack&pos.bbKing, pos.bbBlack&pos.bbQueen, pos.bbBlack&pos.bbRook,
+		pos.bbBlack&pos.bbBishop, pos.bbBlack&pos.bbKnight, pos.bbBlack&pos.bbPawn)
 	assert.Equal(t, newBitboard([]Square{H8}), cb)
 }
 
@@ -443,8 +443,8 @@ func BenchmarkCheckBitboard(b *testing.B) {
 	pos := unsafeFEN("k6q/8/8/8/8/8/8/K7 w - - 0 1")
 	for n := 0; n < b.N; n++ {
 		checkBitboard(A1, White, pos.bbOccupied,
-			pos.bbBlackKing, pos.bbBlackQueen, pos.bbBlackRook,
-			pos.bbBlackBishop, pos.bbBlackKnight, pos.bbBlackPawn)
+			pos.bbBlack&pos.bbKing, pos.bbBlack&pos.bbQueen, pos.bbBlack&pos.bbRook,
+			pos.bbBlack&pos.bbBishop, pos.bbBlack&pos.bbKnight, pos.bbBlack&pos.bbPawn)
 	}
 }
 

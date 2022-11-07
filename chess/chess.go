@@ -70,11 +70,11 @@ func checkFlightMoves(pos *Position) []Move {
 
 	// pawn attacks
 	if c == White {
-		bbFlight &= ^((pos.bbBlackPawn & ^bbFileA) >> 9)
-		bbFlight &= ^((pos.bbBlackPawn & ^bbFileH) >> 7)
+		bbFlight &= ^((pos.bbBlack & pos.bbPawn & ^bbFileA) >> 9)
+		bbFlight &= ^((pos.bbBlack & pos.bbPawn & ^bbFileH) >> 7)
 	} else {
-		bbFlight &= ^((pos.bbWhitePawn &^ bbFileA) << 9)
-		bbFlight &= ^((pos.bbWhitePawn &^ bbFileH) << 7)
+		bbFlight &= ^((pos.bbWhite & pos.bbPawn &^ bbFileA) << 9)
+		bbFlight &= ^((pos.bbWhite & pos.bbPawn &^ bbFileH) << 7)
 	}
 
 	for bb := pos.getBitboard(Knight.color(op)); bb > 0; bb = bb.resetLSB() {

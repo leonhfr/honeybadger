@@ -81,9 +81,9 @@ func enPassantHash(pos *Position) (hash uint64) {
 	switch epSquare := pos.enPassant; {
 	case epSquare == NoSquare:
 		return 0
-	case pos.turn == White && bbBlackPawnCaptures[epSquare]&pos.bbWhitePawn > 0:
+	case pos.turn == White && pos.bbWhite&pos.bbPawn&bbBlackPawnCaptures[epSquare] > 0:
 		return polyRandom[polyRandomEnPassantOffset+int(epSquare.File())]
-	case pos.turn == Black && bbWhitePawnCaptures[epSquare]&pos.bbBlackPawn > 0:
+	case pos.turn == Black && pos.bbBlack&pos.bbPawn&bbWhitePawnCaptures[epSquare] > 0:
 		return polyRandom[polyRandomEnPassantOffset+int(epSquare.File())]
 	default:
 		return 0

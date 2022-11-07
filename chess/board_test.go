@@ -25,23 +25,18 @@ var (
 	}
 
 	startingBoard = board{
-		bbWhiteKing:   16,
-		bbWhiteQueen:  8,
-		bbWhiteRook:   129,
-		bbWhiteBishop: 36,
-		bbWhiteKnight: 66,
-		bbWhitePawn:   65280,
-		bbBlackKing:   1152921504606846976,
-		bbBlackQueen:  576460752303423488,
-		bbBlackRook:   9295429630892703744,
-		bbBlackBishop: 2594073385365405696,
-		bbBlackKnight: 4755801206503243776,
-		bbBlackPawn:   71776119061217280,
-		bbWhite:       65535,
-		bbBlack:       18446462598732840960,
-		bbOccupied:    18446462598732906495,
-		bbPinned:      0,
-		bbPinner:      0,
+		bbKing:     1152921504606846992,
+		bbQueen:    576460752303423496,
+		bbRook:     9295429630892703873,
+		bbBishop:   2594073385365405732,
+		bbKnight:   4755801206503243842,
+		bbPawn:     71776119061282560,
+		bbWhite:    65535,
+		bbBlack:    18446462598732840960,
+		bbOccupied: 18446462598732906495,
+		bbPinned:   0,
+		bbPinner:   0,
+		bbCheck:    0,
 	}
 
 	startingBoardMap = map[Piece][]Square{
