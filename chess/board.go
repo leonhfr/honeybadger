@@ -30,19 +30,16 @@ type board struct {
 func newBoard(m SquareMap) board {
 	b := board{}
 	for sq, p := range m {
-		b.setPiece(p, sq)
+		bb := sq.bitboard()
+		b.xorBitboard(p, bb)
+		b.xorColor(p.Color(), bb)
+		b.bbOccupied ^= bb
 	}
 	b.computeConvenienceBitboards()
 	return b
 }
 
 func (b *board) computeConvenienceBitboards() {
-	b.bbWhite = b.bbWhiteKing | b.bbWhiteQueen | b.bbWhiteRook |
-		b.bbWhiteBishop | b.bbWhiteKnight | b.bbWhitePawn
-	b.bbBlack = b.bbBlackKing | b.bbBlackQueen | b.bbBlackRook |
-		b.bbBlackBishop | b.bbBlackKnight | b.bbBlackPawn
-	b.bbOccupied = b.bbWhite | b.bbBlack
-
 	whiteKing, blackKing := b.getKingSquare(White), b.getKingSquare(Black)
 
 	bbWhitePinned, bbWhitePinner := pinnedBitboard(whiteKing, b.bbOccupied,
@@ -96,76 +93,61 @@ func (b board) pieceByColor(sq Square, c Color) Piece {
 func (b *board) makeMoveBoard(m Move) {
 	p1, p2 := m.P1(), m.P2()
 	s1, s2 := m.S1(), m.S2()
+	c := p1.Color()
 
-	// remove s1 piece
-	b.removePiece(p1, s1)
+	s1bb, s2bb := s1.bitboard(), s2.bitboard()
+	mbb := s1bb ^ s2bb
 
-	// remove s2 piece if any
-	if p2 != NoPiece {
-		b.removePiece(p2, s2)
-	}
-
-	// set s1 piece in s2
-	// or set promotion piece if any
-	if m.Promo() == NoPiece {
-		b.setPiece(p1, s2)
+	if promo := m.Promo(); promo == NoPiece {
+		b.xorBitboard(p1, mbb)
 	} else {
-		b.setPiece(m.Promo(), s2)
+		// promotion
+		b.xorBitboard(p1, s1bb)
+		b.xorBitboard(promo, s2bb)
 	}
 
-	// en passant and castle (only move rook)
-	switch c := p1.Color(); {
-	case m.HasTag(EnPassant) && c == White:
-		b.removePiece(BlackPawn, s2-8)
-	case m.HasTag(EnPassant) && c == Black:
-		b.removePiece(WhitePawn, s2+8)
+	b.xorColor(c, mbb)
+
+	switch enPassant := m.HasTag(EnPassant); {
+	case m.HasTag(Capture) && !enPassant:
+		// capture
+		b.xorBitboard(p2, s2bb)
+		b.xorColor(p2.Color(), s2bb)
+		b.bbOccupied ^= s1bb
+	case c == White && enPassant:
+		// white en passant
+		bb := (s2 - 8).bitboard()
+		b.bbBlackPawn ^= bb
+		b.bbBlack ^= bb
+		b.bbOccupied ^= mbb ^ bb
+	case c == Black && enPassant:
+		// black en passant
+		bb := (s2 + 8).bitboard()
+		b.bbWhitePawn ^= bb
+		b.bbWhite ^= bb
+		b.bbOccupied ^= mbb ^ bb
 	case c == White && m.HasTag(KingSideCastle):
-		b.bbWhiteRook = b.bbWhiteRook & ^H1.bitboard() | F1.bitboard()
+		// white king side castle
+		b.bbWhiteRook ^= bbWhiteKingCastle
+		b.bbWhite ^= bbWhiteKingCastle
+		b.bbOccupied ^= bbWhiteKingCastleTravel
 	case c == White && m.HasTag(QueenSideCastle):
-		b.bbWhiteRook = b.bbWhiteRook & ^A1.bitboard() | D1.bitboard()
+		// white queen side castle
+		b.bbWhiteRook ^= bbWhiteQueenCastle
+		b.bbWhite ^= bbWhiteQueenCastle
+		b.bbOccupied ^= bbWhiteQueenCastleTravel
 	case c == Black && m.HasTag(KingSideCastle):
-		b.bbBlackRook = b.bbBlackRook & ^H8.bitboard() | F8.bitboard()
+		b.bbBlackRook ^= bbBlackKingCastle
+		b.bbBlack ^= bbBlackKingCastle
+		b.bbOccupied ^= bbBlackKingCastleTravel
 	case c == Black && m.HasTag(QueenSideCastle):
-		b.bbBlackRook = b.bbBlackRook & ^A8.bitboard() | D8.bitboard()
-	}
-
-	b.computeConvenienceBitboards()
-}
-
-func (b *board) unmakeMoveBoard(m Move) {
-	p1, p2 := m.P1(), m.P2()
-	s1, s2 := m.S1(), m.S2()
-
-	// remove original piece from new square
-	// or remove promotion piece if any
-	if m.Promo() == NoPiece {
-		b.removePiece(p1, s2)
-	} else {
-		b.removePiece(m.Promo(), s2)
-	}
-
-	// set original piece in original square
-	b.setPiece(p1, s1)
-
-	// set captured piece if any
-	if p2 != NoPiece {
-		b.setPiece(p2, s2)
-	}
-
-	// en passant and castle (only move rook)
-	switch c := p1.Color(); {
-	case m.HasTag(EnPassant) && c == White:
-		b.setPiece(BlackPawn, s2-8)
-	case m.HasTag(EnPassant) && c == Black:
-		b.setPiece(WhitePawn, s2+8)
-	case c == White && m.HasTag(KingSideCastle):
-		b.bbWhiteRook = b.bbWhiteRook & ^F1.bitboard() | H1.bitboard()
-	case c == White && m.HasTag(QueenSideCastle):
-		b.bbWhiteRook = b.bbWhiteRook & ^D1.bitboard() | A1.bitboard()
-	case c == Black && m.HasTag(KingSideCastle):
-		b.bbBlackRook = b.bbBlackRook & ^F8.bitboard() | H8.bitboard()
-	case c == Black && m.HasTag(QueenSideCastle):
-		b.bbBlackRook = b.bbBlackRook & ^D8.bitboard() | A8.bitboard()
+		// black queen side castle
+		b.bbBlackRook ^= bbBlackQueenCastle
+		b.bbBlack ^= bbBlackQueenCastle
+		b.bbOccupied ^= bbBlackQueenCastleTravel
+	default:
+		// quiet
+		b.bbOccupied ^= mbb
 	}
 
 	b.computeConvenienceBitboards()
@@ -218,64 +200,6 @@ func (b board) String() string {
 		fields = append(fields, string(field))
 	}
 	return strings.Join(fields, "/")
-}
-
-func (b *board) setPiece(p Piece, sq Square) {
-	switch bb := sq.bitboard(); p {
-	case WhiteKing:
-		b.bbWhiteKing |= bb
-	case WhiteQueen:
-		b.bbWhiteQueen |= bb
-	case WhiteRook:
-		b.bbWhiteRook |= bb
-	case WhiteBishop:
-		b.bbWhiteBishop |= bb
-	case WhiteKnight:
-		b.bbWhiteKnight |= bb
-	case WhitePawn:
-		b.bbWhitePawn |= bb
-	case BlackKing:
-		b.bbBlackKing |= bb
-	case BlackQueen:
-		b.bbBlackQueen |= bb
-	case BlackRook:
-		b.bbBlackRook |= bb
-	case BlackBishop:
-		b.bbBlackBishop |= bb
-	case BlackKnight:
-		b.bbBlackKnight |= bb
-	case BlackPawn:
-		b.bbBlackPawn |= bb
-	}
-}
-
-func (b *board) removePiece(p Piece, sq Square) {
-	switch mask := ^sq.bitboard(); p {
-	case WhiteKing:
-		b.bbWhiteKing &= mask
-	case WhiteQueen:
-		b.bbWhiteQueen &= mask
-	case WhiteRook:
-		b.bbWhiteRook &= mask
-	case WhiteBishop:
-		b.bbWhiteBishop &= mask
-	case WhiteKnight:
-		b.bbWhiteKnight &= mask
-	case WhitePawn:
-		b.bbWhitePawn &= mask
-	case BlackKing:
-		b.bbBlackKing &= mask
-	case BlackQueen:
-		b.bbBlackQueen &= mask
-	case BlackRook:
-		b.bbBlackRook &= mask
-	case BlackBishop:
-		b.bbBlackBishop &= mask
-	case BlackKnight:
-		b.bbBlackKnight &= mask
-	case BlackPawn:
-		b.bbBlackPawn &= mask
-	}
 }
 
 func (b board) getBitboard(p Piece) bitboard {
@@ -342,6 +266,44 @@ func (b board) getKingSquare(c Color) Square {
 		return b.bbWhiteKing.scanForward()
 	}
 	return b.bbBlackKing.scanForward()
+}
+
+func (b *board) xorBitboard(p Piece, bb bitboard) {
+	switch p {
+	case WhiteKing:
+		b.bbWhiteKing ^= bb
+	case WhiteQueen:
+		b.bbWhiteQueen ^= bb
+	case WhiteRook:
+		b.bbWhiteRook ^= bb
+	case WhiteBishop:
+		b.bbWhiteBishop ^= bb
+	case WhiteKnight:
+		b.bbWhiteKnight ^= bb
+	case WhitePawn:
+		b.bbWhitePawn ^= bb
+	case BlackKing:
+		b.bbBlackKing ^= bb
+	case BlackQueen:
+		b.bbBlackQueen ^= bb
+	case BlackRook:
+		b.bbBlackRook ^= bb
+	case BlackBishop:
+		b.bbBlackBishop ^= bb
+	case BlackKnight:
+		b.bbBlackKnight ^= bb
+	case BlackPawn:
+		b.bbBlackPawn ^= bb
+	}
+}
+
+func (b *board) xorColor(c Color, bb bitboard) {
+	switch c {
+	case White:
+		b.bbWhite ^= bb
+	case Black:
+		b.bbBlack ^= bb
+	}
 }
 
 func (b board) copyBoard() board {

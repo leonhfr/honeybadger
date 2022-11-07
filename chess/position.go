@@ -145,7 +145,7 @@ func (pos *Position) MakeMove(m Move) (Metadata, bool) {
 	}
 
 	if pos.board.makeMoveBoard(m); pos.getCheck(pos.turn.Other()) > 0 {
-		pos.board.unmakeMoveBoard(m)
+		pos.board.makeMoveBoard(m)
 
 		return metadata, false
 	}
@@ -169,7 +169,7 @@ func (pos *Position) MakeMove(m Move) (Metadata, bool) {
 
 // UnmakeMove unmakes a move and restores the previous position.
 func (pos *Position) UnmakeMove(m Move, meta Metadata) {
-	pos.board.unmakeMoveBoard(m)
+	pos.board.makeMoveBoard(m)
 	pos.turn = meta.turn()
 	pos.castlingRights = meta.castleRights()
 	pos.enPassant = meta.enPassant()

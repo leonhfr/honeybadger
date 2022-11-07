@@ -73,7 +73,7 @@ func (b bitboard) String() string {
 }
 
 const (
-	bbRank1 bitboard = (1<<A1 + 1<<B1 + 1<<C1 + 1<<D1 + 1<<E1 + 1<<F1 + 1<<G1 + 1<<H1) << (8 * iota)
+	bbRank1 bitboard = (1<<A1 | 1<<B1 | 1<<C1 | 1<<D1 | 1<<E1 | 1<<F1 | 1<<G1 | 1<<H1) << (8 * iota)
 	bbRank2
 	bbRank3
 	bbRank4
@@ -84,7 +84,7 @@ const (
 )
 
 const (
-	bbFileA bitboard = (1<<A1 + 1<<A2 + 1<<A3 + 1<<A4 + 1<<A5 + 1<<A6 + 1<<A7 + 1<<A8) << iota
+	bbFileA bitboard = (1<<A1 | 1<<A2 | 1<<A3 | 1<<A4 | 1<<A5 | 1<<A6 | 1<<A7 | 1<<A8) << iota
 	bbFileB
 	bbFileC
 	bbFileD
@@ -95,13 +95,24 @@ const (
 )
 
 const (
-	bbWhiteSquares bitboard = 1<<B1 + 1<<D1 + 1<<F1 + 1<<H1 +
-		1<<B3 + 1<<D3 + 1<<F3 + 1<<H3 +
-		1<<B5 + 1<<D5 + 1<<F5 + 1<<H5 +
-		1<<B7 + 1<<D7 + 1<<F7 + 1<<H7 +
-		1<<A2 + 1<<C2 + 1<<E2 + 1<<G2 +
-		1<<A4 + 1<<C4 + 1<<E4 + 1<<G4 +
-		1<<A6 + 1<<C6 + 1<<E6 + 1<<G6 +
-		1<<A8 + 1<<C8 + 1<<E8 + 1<<G8
+	bbWhiteSquares bitboard = 1<<B1 | 1<<D1 | 1<<F1 | 1<<H1 |
+		1<<B3 | 1<<D3 | 1<<F3 | 1<<H3 |
+		1<<B5 | 1<<D5 | 1<<F5 | 1<<H5 |
+		1<<B7 | 1<<D7 | 1<<F7 | 1<<H7 |
+		1<<A2 | 1<<C2 | 1<<E2 | 1<<G2 |
+		1<<A4 | 1<<C4 | 1<<E4 | 1<<G4 |
+		1<<A6 | 1<<C6 | 1<<E6 | 1<<G6 |
+		1<<A8 | 1<<C8 | 1<<E8 | 1<<G8
 	bbBlackSquares = ^bbWhiteSquares
+)
+
+const (
+	bbWhiteKingCastle        = 1<<F1 | 1<<H1
+	bbWhiteQueenCastle       = 1<<A1 | 1<<D1
+	bbBlackKingCastle        = 1<<F8 | 1<<H8
+	bbBlackQueenCastle       = 1<<A8 | 1<<D8
+	bbWhiteKingCastleTravel  = 1<<E1 | 1<<F1 | 1<<G1 | 1<<H1
+	bbWhiteQueenCastleTravel = 1<<A1 | 1<<C1 | 1<<D1 | 1<<E1
+	bbBlackKingCastleTravel  = 1<<E8 | 1<<F8 | 1<<G8 | 1<<H8
+	bbBlackQueenCastleTravel = 1<<A8 | 1<<C8 | 1<<D8 | 1<<E8
 )

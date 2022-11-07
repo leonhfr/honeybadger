@@ -149,10 +149,11 @@ func TestBoard_PieceAt(t *testing.T) {
 func TestBoard_MakeMoveBoard(t *testing.T) {
 	for _, tt := range testPositions {
 		t.Run(tt.move.String(), func(t *testing.T) {
-			pos := unsafeFEN(tt.preFEN)
+			pos, post := unsafeFEN(tt.preFEN), unsafeFEN(tt.postFEN)
 			pos.board.makeMoveBoard(tt.move)
 			want := strings.Fields(tt.postFEN)[0]
 			assert.Equal(t, want, pos.board.String())
+			assert.Equal(t, post.board, pos.board)
 		})
 	}
 }
